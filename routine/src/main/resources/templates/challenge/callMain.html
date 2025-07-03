@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>챌린지</title>
+<th:block th:replace="~{/common/fragment :: library}"></th:block>
+</head>
+<body>
+<th:block th:replace="~{/common/fragment :: header}"></th:block>
+뭘봐요
+<!-- SPA도입해보기 -->
+
+<!--
+메인 왼쪽 사이드바 :
+
+-로그인한 유저에게 활성화됨
+새로운 챌린지 생성하기
+내가 생성한 챌린지
+내가 참여한 챌린지
+
+
+-->
+
+<!--
+위쪽
+필터 - 최신순, 인기순, 카테고리
+검색바 - 전체/제목/내용/작성자
+-->
+
+<!--
+중앙
+필터/검색에 따라 각 챌린지 동적 생성
+검색어 하이라이트 표시
+챌린지 카드는 고정 영역이 아닌 내용 길이에 따라 달라짐
+이름 길이 표시 제한 30자, 내용 길이 제한 300자
+무한 스크롤 구현
+-->
+
+<!-- 오른쪽 하단에는 깨알같은 맨 위로가기 버튼 -->
+</body>
+</html>
