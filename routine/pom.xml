@@ -12,7 +12,7 @@
 	<artifactId>spring</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>war</packaging>
-	<name>springbootThymeleaf</name>
+	<name>wellness</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>
@@ -159,6 +159,37 @@
 		    <artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
 		
+		<!-- 미디어 서버 연결 -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+		
+		<!--부트스트랩-->
+		<dependency>
+		    <groupId>org.webjars</groupId>
+		    <artifactId>bootstrap</artifactId>
+		    <version>5.3.7</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.webjars.npm</groupId>
+		    <artifactId>bootstrap-icons</artifactId>
+		    <version>1.13.1</version>
+		</dependency>
+		
+		<!--jquery-->
+		<dependency>
+		    <groupId>org.webjars</groupId>
+		    <artifactId>jquery</artifactId>
+		    <version>3.7.1</version>
+		</dependency>
+		
+		<!--lodash-->
+		<dependency>
+		    <groupId>org.webjars.npm</groupId>
+		    <artifactId>lodash</artifactId>
+		    <version>4.17.21</version>
+		</dependency>
 		
 	</dependencies>
 
