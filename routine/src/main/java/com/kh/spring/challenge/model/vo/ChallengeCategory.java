@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class ChallengeCategory {
 	private int categoryNo;
-	private int categoryName;
+	private String categoryName;
 	/*
 	 * 카테고리
 	 * 

@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class ChallengeComment {
-	private Long commentNo;
-	private Long userNo;
-	private Long chalNo;
-	private Long recommentTarget;
+	private int commentNo;
+	private int userNo;
+	private int chalNo;
+	private int recommentTarget;
 	private String reply;
 	private String status;
 

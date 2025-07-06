@@ -1,4 +1,4 @@
-package com.kh.spring.common;
+package com.kh.spring.common.advice;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpSession;
 
 
 @ControllerAdvice
-public class ControllerAdvise {
+public class CommonControllerAdvice {
 //	@ModelAttribute("loginUser")
 //	public Member addLoginUser(HttpSession session) {
 //		if(session.getAttribute("loginUser") != null) {

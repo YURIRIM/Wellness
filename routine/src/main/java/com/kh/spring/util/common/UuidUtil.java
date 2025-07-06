@@ -1,4 +1,4 @@
-package com.kh.spring.common;
+package com.kh.spring.util.common;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;

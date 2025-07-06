@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="challengeMapper">
+
+	<insert id="newChal" parameterType="Challenge">
+		<selectKey keyProperty="chalNo" resultType="int"
+			order="BEFORE">
+			SELECT SEQ_CHALLENGE.nextval FROM dual
+		</selectKey>
+		INSERT INTO CHALLENGE(
+			CHAL_NO
+			,USER_NO
+			,CATEGORY_NO
+			,TITLE
+			,CONTENT
+			,VERIFY_CYCLE
+			,CREATE_DATE
+			,START_DATE
+			,END_DATE
+			,STATUS
+			,PICTURE_REQUIRED
+			,PICTURE_WATERMARK
+			,REPLY_REQUIRED
+			)
+		VALUES (
+			#{chalNo}
+			,#{userNo}
+			,#{categoryNo}
+			,#{title}
+			,#{content}
+			,#{verifyCycle}
+			,SYSDATE
+			,#{startDate}
+			,#{endDate}
+			,#{status}
+			,#{pictureRequired}
+			,#{pictureWaterMark}
+			,#{replyRequired}
+			)
+	</insert>
+
+</mapper>
