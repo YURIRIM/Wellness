@@ -191,6 +191,35 @@
 		    <version>4.17.21</version>
 		</dependency>
 		
+		<!--webp-->
+		<dependency>
+		    <groupId>org.sejda.imageio</groupId>
+		    <artifactId>webp-imageio</artifactId>
+		    <version>0.1.6</version>
+		</dependency>
+		
+		<!--summernote-->
+		<dependency>
+		    <groupId>org.webjars.npm</groupId>
+		    <artifactId>summernote</artifactId>
+		    <version>0.9.1</version>
+		</dependency>
+		
+		<!--XSS 소독-->
+		<dependency>
+		    <groupId>com.googlecode.owasp-java-html-sanitizer</groupId>
+		    <artifactId>owasp-java-html-sanitizer</artifactId>
+		    <version>20240325.1</version>
+		</dependency>
+		
+		<!--HTML 이스케이프-->
+		<dependency>
+		    <groupId>org.apache.commons</groupId>
+		    <artifactId>commons-text</artifactId>
+		    <version>1.13.1</version>
+		</dependency>
+
+		
 	</dependencies>
 
 	<build>

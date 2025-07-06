@@ -1,4 +1,4 @@
-package com.kh.spring.challenge.model.controller;
+package com.kh.spring.challenge.controller;
 
 import java.util.List;
 
@@ -22,40 +22,40 @@ public class ChallengeController {
 	private ChallengeService service;
 	
 	//챌린지 메인 화면으로
-	@GetMapping("/challMain")
-	public String goCallMain() {
-		return "challenge/challMain";
+	@GetMapping("/chalMain")
+	public String goChalMain() {
+		return "challenge/chalMain";
 	}
 
 	//새로운 챌린지 생성하기 - newChall조각 반환
-	@GetMapping("/newChall")
-	public String getNewChall() {
-		return "fragments :: newChall";
+	@GetMapping("/newChal")
+	public String getNewChal() {
+		return "fragments :: newChal";
 	}
 	
 	//내가 생성한 챌린지로
-	@GetMapping("/createdChall")
-	public String goCreatedChall() {
-		return "challenge/createdChall";
+	@GetMapping("/createdChal")
+	public String goCreatedChal() {
+		return "challenge/createdChal";
 	}
 	
 	//내가 참여한 챌린지로
-	@GetMapping("/joinedChall")
-	public String goJoinedChall() {
-		return "challenge/joinedChall";
+	@GetMapping("/joinedChal")
+	public String goJoinedChal() {
+		return "challenge/joinedChal";
 	}
 	
 	//새로운 챌린지 생성하기
-	@PostMapping("/newChall")
+	@PostMapping("/newChal")
 	public String newChall(HttpSession session ,Model model
-			,Challenge chall ,List<MultipartFile> files) {
+			,Challenge chal ,List<MultipartFile> files) {
 		try {
-			service.newChall(session, model, chall, files);
+			service.newChal(session, model, chal, files);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return "common/errorPage";
 		}
-		return "challenge/challDetail";
+		return "challenge/chalDetail";
 	}
 	
 }
