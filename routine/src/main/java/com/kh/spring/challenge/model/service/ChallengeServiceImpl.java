@@ -20,6 +20,7 @@ import com.kh.spring.util.attachment.Exiftool;
 import com.kh.spring.util.attachment.FileSanitizer;
 import com.kh.spring.util.attachment.ResizeWebp;
 import com.kh.spring.util.challenge.ChallengeValidator;
+import com.kh.spring.util.common.Regexp;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -34,20 +35,22 @@ public class ChallengeServiceImpl implements ChallengeService {
 
 	// 비동기 - 챌린지 메인에서 챌린지 리스트 조회
 	@Override
-	public void selectChal(HttpSession session, int currentPage) throws Exception {
+	public void selectChal(HttpSession session, Model model, int currentPage) throws Exception {
 		if (currentPage <= 0)
 			throw new Exception("페이지 오류");
-		else if (currentPage == 1) {
-			// 페이지가 1이면 처음 페이지라는 뜻 : 세션 페이지 초기화
-			session.setAttribute("chalList", null);
-		}
 
 		// DB에서 페이지 긁어오기
 		Map<String, Object> map = Map.of(
 				"currentPage", currentPage
-				, "key2", 123
+				, "showLimit", Regexp.CHAL_SHOW_LIMIT
 				);
+		
+		List<Challenge> result = chalDao.selectChal(sqlSession, map);
 
+		if(result==null ||result.isEmpty()) throw new Exception("챌린지 리스트 조회 불가");
+		
+		model.addAttribute(map);
+		
 	}
 
 	// 챌린지 생성하기
@@ -60,6 +63,19 @@ public class ChallengeServiceImpl implements ChallengeService {
 		// challenge 유효성 확인
 		if (!ChallengeValidator.challenge(chal))
 			throw new Exception("challenge 유효성");
+		
+		//썸네일
+		byte[] thumbnail = chal.getThumbnail();
+		if(thumbnail!=null) {
+			//썸네일 있으면 리사이즈 및 소독
+			thumbnail = ResizeWebp.resizeWebp(thumbnail);
+			if (Exiftool.exiftoolCheck()) {
+				Exiftool.sanitizeMetadata(thumbnail);
+			}
+		}else {
+			//썸네일 없으면 기본이미지 사용
+			
+		}
 
 		// DB저장
 		chal.setUserNo(user.getUserNo());
@@ -90,7 +106,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 
 			// 메타데이터 소독
 			if (Exiftool.exiftoolCheck()) {// exiftool이 있어요!
-				Exiftool.sanitizeMetadata(at);
+				at.setFile(Exiftool.sanitizeMetadata(at.getFile()));
 			}
 
 			// Attachment테이블에 넣자!

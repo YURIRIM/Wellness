@@ -21,6 +21,8 @@ public class Challenge {
     @NoHtmlEscape//html이스케이프 금지
     private String content;
     
+    private byte[] Thumbnail;
+    
     //"yyyy-MM-dd HH:mm:ss" 포맷이여야 Timestamp자동 맵핑
     private Timestamp createDate;
     private int verifyCycle;

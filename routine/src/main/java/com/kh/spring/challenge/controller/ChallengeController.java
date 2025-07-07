@@ -31,9 +31,9 @@ public class ChallengeController {
 	//비동기 - 챌린지 메인에서 챌린지 리스트
 	@ResponseBody
 	@PostMapping("/selectChal")
-	public String selectChal(HttpSession session, int currentPage) {
+	public String selectChal(HttpSession session, Model model, int currentPage) {
 		try {
-			service.selectChal(session,currentPage);
+			service.selectChal(session,model,currentPage);
 			return "true";
 		} catch (Exception e) {
 			e.printStackTrace();

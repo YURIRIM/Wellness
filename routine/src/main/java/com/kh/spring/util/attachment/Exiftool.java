@@ -77,11 +77,11 @@ public class Exiftool {
 	}
 
 	//메타데이터 소각 
-	public static void sanitizeMetadata(Attachment attachment) throws Exception {
+	public static byte[] sanitizeMetadata(byte[] picture) throws Exception {
 		//임시 파일 생성 및 byte[] 저장
 		File tempInput = File.createTempFile("input_", ".webp");
 		try (FileOutputStream fos = new FileOutputStream(tempInput)) {
-			fos.write(attachment.getFile());
+			fos.write(picture);
 		}
 
 		//메타데이터 소각
@@ -97,9 +97,10 @@ public class Exiftool {
 
 		//소각된 파일을 다시 byte[]로 읽어 Attachment.file에 슛
 		byte[] sanitizedData = Files.readAllBytes(tempInput.toPath());
-		attachment.setFile(sanitizedData);
 
 		//이제 볼일 없는 임시파일 가세요라 처리
 		tempInput.delete();
+		
+		return sanitizedData;
 	}
 }
