@@ -3,20 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <title>Insert title here</title>
-<!-- 외부 스타일시트 가져오기 -->
-<link rel="stylesheet" th:href="@{/css/common.css}">
-
- <!-- jQuery 라이브러리 -->
- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
- <!-- 부트스트랩에서 제공하고 있는 스타일 -->
- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
- <!-- 부트스트랩에서 제공하고 있는 스크립트 -->
- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
+<th:block th:replace="~{/common/fragment :: library}"></th:block>
 </head>
 <body>
+<th:block th:replace="~{/common/fragment :: header}"></th:block>
 	
 	2조 ROUTINE 메인입니다.
+	
+	http://localhost:8153/routine/
+	
+	<a th:href="@{/challenge/chalMain}">OnggiJonggi개발실</a>
+	
 	
 </body>
 </html>

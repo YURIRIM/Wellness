@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>챌린지</title>
+<th:block th:replace="~{/common/fragment :: library}"></th:block>
+<link rel="stylesheet" th:href="@{/css/challenge/challMain.css}" />
+</head>
+<body>
+<th:block th:replace="~{/common/fragment :: header}"></th:block>
+개발실
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-3">
+      왼쪽: 검색/필터
+      <th:block th:replace="~{/challenge/chalMain-left :: chal-left}"></th:block>
+      <div class="sidebar-bottom">좌측 사이드바 아래 영역(비워둘꺼임)</div>
+    </div>
+    <div class="col-6">
+      <div class="challenge-list">
+        중앙: 챌린지 목록 (무한 스크롤 영역)
+        <th:block th:replace="~{/challenge/chalMain-center :: chal-center}"></th:block>
+      </div>
+    </div>
+    <div class="col-3">
+      오른쪽: 개인 영역
+      <th:block th:replace="~{/challenge/chalMain-right :: chal-right}"></th:block>
+      <div class="sidebar-bottom">우측 사이드바 아래 영역(비워둘꺼임)</div>
+<!-- 오른쪽 하단에는 깨알같은 맨 위로가기 버튼 -->
+    </div>
+  </div>
+</div>
+
+<!-- 스크립트 -->
+<script th:src="@{/js/challenge/challMain.js}"></script>
+</body>
+</html>
