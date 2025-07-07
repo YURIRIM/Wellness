@@ -27,8 +27,7 @@ public class Challenge {
     private Timestamp startDate;
     private Timestamp endDate;
     private String status; //Y:활성화 N:종료됨 D:삭제됨
-    private String pictureRequired; //Y:필수 O:선택 N:불가
-    private String pictureWatermark; //D:디폴트 F:개인 N:없음
+    private String pictureRequired; //I:필수(도용 불가) Y:필수 O:선택 N:불가
     private String replyRequired; //Y:필수 O:선택 N:불가
     
     private String categoryName; //challenge_category

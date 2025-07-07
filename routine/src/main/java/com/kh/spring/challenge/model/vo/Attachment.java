@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Attachment {
 	private int attachmentNo;
-	private int chalNo;
-	private int commentNo;
+	private int refNo;
+	private String refTable;//C:챌린지, R:챌린지 댓글
 	private byte[] file;
 	private int fileSize;
 	private String fileName;

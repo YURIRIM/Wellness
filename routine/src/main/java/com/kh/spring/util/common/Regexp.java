@@ -5,8 +5,7 @@ public class Regexp {
 	//Challenge
 	public static final String CHAL_TITLE = "^.{1,100}$";
 	public static final String CHAL_CONTENT = "^.{0,1000}$";
-	public static final String CHAL_PICTURE_REQUIRED = "^[YON]$";
-	public static final String CHAL_PICTURE_WATERMARK = "^[DFN]$";
+	public static final String CHAL_PICTURE_REQUIRED = "^[IYON]$";
 	public static final String CHAL_REPLY_REQUIRED = "^[YON]$";
 	
 	//Attachment

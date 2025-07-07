@@ -16,8 +16,6 @@ public class ChallengeValidator {
 				|| !chal.getContent().matches(Regexp.CHAL_CONTENT)
 				|| chal.getPictureRequired() ==null
 				|| !chal.getPictureRequired().matches(Regexp.CHAL_PICTURE_REQUIRED)
-				|| chal.getPictureWatermark() ==null
-				|| !chal.getPictureWatermark().matches(Regexp.CHAL_PICTURE_WATERMARK)
 				|| chal.getReplyRequired() ==null
 				|| !chal.getReplyRequired().matches(Regexp.CHAL_REPLY_REQUIRED)
 				)return false;

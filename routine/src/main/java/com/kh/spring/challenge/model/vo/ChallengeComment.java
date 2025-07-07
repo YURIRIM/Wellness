@@ -17,4 +17,7 @@ public class ChallengeComment {
 
 	private String nick;//member
 	private String role;//member
+	
+	//프론트에서 받아오고 DB저장 안 하는 값
+	private String pictureWatermark; //D:디폴트 F:개인 N:없음
 }

@@ -14,4 +14,7 @@ public interface ChallengeService {
 	//새로운 챌린지 생성
 	void newChal(HttpSession session, Model model, Challenge chall, List<MultipartFile> files) throws Exception;
 
+	//비동기 - 챌린지 메인에서 챌린지 목록 조회
+	void selectChal(HttpSession session, int currentPage) throws Exception;
+
 }
