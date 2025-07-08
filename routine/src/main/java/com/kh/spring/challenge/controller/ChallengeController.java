@@ -26,7 +26,7 @@ public class ChallengeController {
 	//챌린지 메인 화면으로
 	@GetMapping("/chalMain")
 	public String goChalMain() {
-		return "challenge/chalMain";
+		return "/challenge/chalMain";
 	}
 	
 	//비동기 - 챌린지 메인에서 챌린지 리스트
@@ -46,25 +46,25 @@ public class ChallengeController {
 	//챌린지 세부 화면으로
 	@GetMapping("/chalDetail")
 	public String goChalDetail() {
-		return "fragments :: chalDetail";
+		return "/challenge/chalDetail :: chalDetail";
 	}
 
 	//새로운 챌린지 생성하기
 	@GetMapping("/newChal")
 	public String getNewChal() {
-		return "fragments :: newChal";
+		return "/challenge/newChal :: newChal";
 	}
 	
 	//내가 생성한 챌린지로
 	@GetMapping("/createdChal")
 	public String goCreatedChal() {
-		return "fragments :: createdChal";
+		return "/challenge/createdChal :: createdChal";
 	}
 	
 	//내가 참여한 챌린지로
 	@GetMapping("/joinedChal")
 	public String goJoinedChal() {
-		return "fragments :: joinedChal";
+		return "/challenge/joinedChal :: joinedChal";
 	}
 	
 	//새로운 챌린지 생성하기
