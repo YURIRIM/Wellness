@@ -63,6 +63,10 @@ public class UserController {
         
         System.out.println("회원가입 시도: " + u);
         
+        if (u.getEmail() != null) {
+            u.setEmail(u.getEmail().replace("&#64;", "@"));
+        }
+        
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(u.getPassword());
         u.setPassword(encodedPassword);
@@ -134,15 +138,10 @@ public class UserController {
     @ResponseBody
     @RequestMapping(value = "/checkId", produces = "text/html;charset=UTF-8")
     public String checkUserId(@RequestParam String userId) {
-        /*
+        
         int count = userService.checkUserId(userId);
         
         if (count > 0) {
-            return "NNNNN"; // 중복
-        } else {
-            return "NNNNY"; // 사용가능
-        }*/
-    	if ("admin".equals(userId) || "test".equals(userId) || "user123".equals(userId)) {
             return "NNNNN"; // 중복
         } else {
             return "NNNNY"; // 사용가능
