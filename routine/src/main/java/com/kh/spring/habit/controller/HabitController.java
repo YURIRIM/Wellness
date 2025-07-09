@@ -5,13 +5,13 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.kh.spring.habit.model.vo.Habit;
 import com.kh.spring.habit.service.HabitService;
 
-import ch.qos.logback.core.model.Model;
+import org.springframework.ui.Model;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/habit")
@@ -21,9 +21,10 @@ public class HabitController {
 	private HabitService service;
 	
 	@GetMapping("/list")
-    public String habitList(Model model) {
-//        List<Habit> list = service.habitList();
-//        model.addAttribute("habit", list);
+    public String habitList(HttpSession session,Model model) {
+        List<Habit> list = service.habitList();
+        model.addAttribute("habit", list);
+        
         return "habit/habitList";
     }
 	

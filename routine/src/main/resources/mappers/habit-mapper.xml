@@ -19,7 +19,7 @@
     </resultMap>
 
     <!-- 전체 목록 조회 -->
-    <select id="selectAllHabits" resultMap="habitResultMap">
+    <select id="habitList" resultMap="habitResultMap">
         SELECT * FROM HABIT
     </select>
 
