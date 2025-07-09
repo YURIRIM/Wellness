@@ -111,6 +111,8 @@ function newChalScript() {
   $("#new-thumb").on("change", async function () {
     const file = this.files[0];
     if (!file) return;
+
+    //webp로 변환 및 리사이즈
     const blob = await compressImage(file);
     if (blob.size > 200 * 1024) {
       alert("썸네일은 200KB 이하만 허용됩니다.");
@@ -119,10 +121,14 @@ function newChalScript() {
     }
     const url = URL.createObjectURL(blob);
     $("#new-thumb-preview").attr("src", url).removeClass("d-none");
-    // input 교체 (formData에 blob 전송)
-    const dt = new DataTransfer();
-    dt.items.add(new File([blob], blob.name, { type: blob.type }));
-    this.files = dt.files;
+
+    //Base64 변환
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const base64 = e.target.result.split(",")[1];
+      $("#new-thumb-base64").val(base64);
+    };
+    reader.readAsDataURL(blob);
   });
 
   $("#new-copy-first").on("click", function () {
@@ -144,7 +150,6 @@ function newChalScript() {
   });
 
   /** ---------- 카테고리 연결 ---------- */
-  const catAll = /*[[${ChallengeCategory}]]*/ [];
   $("#new-cat-parent").on("change", function () {
     const parent = Number(this.value);
     const childSel = $("#new-cat-child").prop("disabled", false).empty();
@@ -152,7 +157,7 @@ function newChalScript() {
     catAll
       .filter(
         (c) =>
-          Math.floor(c.categoryNo / 10) === parent / 10 &&
+          Math.floor(c.categoryNo / 10) * 10 === parent &&
           c.categoryNo % 10 !== 0
       )
       .forEach((c) =>
@@ -296,13 +301,18 @@ function newChalScript() {
     if (!this.checkValidity()) {
       e.preventDefault();
       e.stopPropagation();
+      $(this).addClass("was-validated");
+      return;
     }
-    $(this).addClass("was-validated");
-    if (this.checkValidity()) {
-      $("#new-submit-text").addClass("d-none");
-      $("#new-submit-spinner").removeClass("d-none");
-      $("#new-submit").prop("disabled", true);
-    }
+
+    //시작일 / 종료일 없으면 지우기
+    if (!$("#new-start").val()) $("#new-start").remove();
+    if (!$("#new-end").val()) $("#new-end").remove();
+
+    // 유효성 통과 시 로딩 표시
+    $("#new-submit-text").addClass("d-none");
+    $("#new-submit-spinner").removeClass("d-none");
+    $("#new-submit").prop("disabled", true);
   });
 
   /** ---------- 초기화 확인 ---------- */

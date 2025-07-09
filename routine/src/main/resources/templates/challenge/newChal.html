@@ -82,7 +82,6 @@
           <label for="new-thumb" class="form-label">썸네일 (선택)</label>
           <input
             id="new-thumb"
-            name="Thumbnail"
             type="file"
             accept="image/*"
             class="form-control"
@@ -107,6 +106,8 @@
             1200×1200 픽셀 · ≤ 200 KB · WebP 자동 변환
           </div>
         </div>
+        <!-- 썸네일이 인코딩 후 실제로 담기는 input -->
+        <input type="hidden" id="new-thumb-base64" name="thumbnailBase64" />
 
         <!-- ========== 인증 주기 ========== -->
         <div class="mb-3">

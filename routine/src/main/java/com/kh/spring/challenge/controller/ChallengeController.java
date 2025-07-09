@@ -69,7 +69,7 @@ public class ChallengeController {
 	//새로운 챌린지 생성하기
 	@PostMapping("/newChal")
 	public String newChall(HttpSession session ,Model model
-			,Challenge chal ,List<MultipartFile> files) {
+			,Challenge chal, List<MultipartFile> files) {
 		int chalNo=0;
 		try {
 			service.newChal(session, model, chal, files);
