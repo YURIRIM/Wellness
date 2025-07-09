@@ -26,10 +26,99 @@
 					,C.REPLY_REQUIRED
 					,CC.CATEGORY_NAME
 					,U.NICK
+					,COUNT(cp.user_no) as PARTICIPATE_COUNT
+					,ROUND(SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END)
+						* 100.0 / COUNT(cp.user_no),2) as SUCCESS_RATIO
+
 				from CHALLENGE c
 				left join CHALLENGE_CATEGORY cc on(c.CATEGORY_NO = cc.CATEGORY_NO)
+				left join CHALLENGE_PARTICIPATION cp on(c.CHAL_NO = cp.CHAL_NO)
 				left join USER u on(c.USER_NO = u.USER_NO)
-				order by CREATE_DATE desc
+
+				where 1=1
+				<if test="search != null">
+					<choose>
+						<when test="searchType == 'T'">
+							and C.TITLE = #{search}
+						</when>
+						<when test="searchType == 'C'">
+							and C.CONTENT = #{search}
+						</when>
+						<when test="searchType == 'N'">
+							and U.NICK = #{search}
+						</when>
+						<otherwise>
+							and (C.TITLE = #{search} or C.CONTENT = #{search} or U.NICK = #{search})
+						</otherwise>
+					</choose>
+				</if>
+				<if test="categoryNo != 0">
+					<choose>
+						<when test="categoryNo % 10 != 0">
+							and C.CATEGORY_NO = #{categoryNo}
+						</when>
+						<otherwise>
+							and C.CATEGORY_NO &gt;= #{categoryNo}
+							and C.CATEGORY_NO &lt; (#{categoryNo} + 10)
+						</otherwise>
+					</choose>
+				</if>
+				<if test="verifyCycle != 0">
+					<choose>
+						<when test="verifyCycle &gt; 0 and verifyCycle &lt;= 127">
+							and (C.VERIFY_CYCLE &amp; #{verifyCycle}) = #{verifyCycle}
+						</when>
+						<otherwise>
+							and C.VERIFY_CYCLE = #{verifyCycle}
+						</otherwise>
+					</choose>
+				</if>
+				<if test="startDate != null">
+					and C.START_DATE &gt; #{startDate}
+				</if>
+				<if test="endDate != null">
+					and C.END_DATE &lt; #{endDate}
+				</if>
+				<if test="status != 'X'">
+					and C.STATUS = #{status}
+				</if>
+				<if test="pictureRequired != 'X'">
+					and C.PICTURE_REQUIRED = #{pictureRequired}
+				</if>
+				<if test="replyRequired != 'X'">
+					and C.REPLY_REQUIRED = #{replyRequired}
+				</if>
+
+				group by
+					C.CHAL_NO
+					,C.USER_NO
+					,C.CATEGORY_NO
+					,C.TITLE
+					,C.CONTENT
+					,C.THUMBNAIL
+					,C.VERIFY_CYCLE
+					,C.CREATE_DATE
+					,C.START_DATE
+					,C.END_DATE
+					,C.STATUS
+					,C.PICTURE_REQUIRED
+					,C.REPLY_REQUIRED
+					,CC.CATEGORY_NAME
+					,U.NICK
+				
+				order by
+				<choose>
+					<when test="orderby == 'P'">
+						COUNT(cp.user_no) desc
+					</when>
+					<when test="orderby == 'S'">
+						ROUND(SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END)
+							* 100.0 / COUNT(cp.user_no),2) desc
+					</when>
+					<otherwise>
+						C.CREATE_DATE desc
+					</otherwise>
+				</choose>
 			) a
 			where rnum &lt;= (#{currentPage}+1) * #{showLimit}
 		)

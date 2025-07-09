@@ -39,7 +39,7 @@ public class Challenge {
     private String role; //member
     
     private int participateCount; //challenge_participation
-    private Double successRatio; //challenge_participation, 0~1
+    private Double successRatio; //challenge_participation, 백분율
     
     /*
      * verifyCycle 인증 주기

@@ -39,7 +39,7 @@ public class Challenge {
     private String role; //member
     
     private int participateCount; //challenge_participation
-    private Double successRatio; //challenge_participation, 0~1
+    private Double successRatio; //challenge_participation, 0~100
     
     /*
      * verifyCycle 인증 주기
@@ -67,7 +67,7 @@ public class Challenge {
 내용(content)
 시작일(startDate) / 종료일(endDate - null일 경우 종료일 표시하지 않음)
 인증 주기(verifyCycle)
-참여자(participateCount) / 성공률(successRatio - 백분율로 표기)
+참여자(participateCount) / 성공률(successRatio - 서버에서 소수점 두 자리까지 백분율로 받아옴)
 사진 필수 여부(pictureRequired) / 댓글 내용 필수 여부 (replyRequired)
 작성자(nick)
 
