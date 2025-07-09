@@ -11,9 +11,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.spring.challenge.model.dao.AttachmentDao;
+import com.kh.spring.challenge.model.dao.ChallengeCategoryDao;
 import com.kh.spring.challenge.model.dao.ChallengeDao;
 import com.kh.spring.challenge.model.vo.Attachment;
 import com.kh.spring.challenge.model.vo.Challenge;
+import com.kh.spring.challenge.model.vo.ChallengeCategory;
 import com.kh.spring.challenge.model.vo.SearchChallenge;
 import com.kh.spring.user.model.vo.User;
 import com.kh.spring.util.attachment.Exiftool;
@@ -21,6 +23,7 @@ import com.kh.spring.util.attachment.FileSanitizer;
 import com.kh.spring.util.attachment.ResizeWebp;
 import com.kh.spring.util.challenge.ChallengeValidator;
 import com.kh.spring.util.challenge.SearchChallengeValidator;
+import com.kh.spring.util.common.Dummy;
 import com.kh.spring.util.common.Regexp;
 
 import jakarta.servlet.http.HttpSession;
@@ -33,10 +36,20 @@ public class ChallengeServiceImpl implements ChallengeService {
 	private ChallengeDao chalDao;
 	@Autowired
 	private AttachmentDao atDao;
-
+	@Autowired
+	private ChallengeCategoryDao ccDao;
+	
+	
+	//controllerAdviser - CC조회
+	@Override
+	public List<ChallengeCategory> selectCCList() {
+		return ccDao.selectCCList(sqlSession);
+	}
+	
 	// 비동기 - 챌린지 메인에서 챌린지 리스트 조회
 	@Override
 	public void selectChal(HttpSession session, Model model, SearchChallenge sc) throws Exception {
+		
 		// challenge 유효성 확인
 		if (!SearchChallengeValidator.searchChallenge(sc))
 			throw new Exception("searchChallenge 유효성");
@@ -66,7 +79,11 @@ public class ChallengeServiceImpl implements ChallengeService {
 	@Transactional
 	public void newChal(HttpSession session, Model model, Challenge chal, List<MultipartFile> files) throws Exception {
 		User user = (User) session.getAttribute("loginUser");
+		if(user==null) user = Dummy.dummyUser();
 		int result = 0;
+		
+		//제목 trim
+		chal.setTitle(chal.getTitle().trim());
 
 		// challenge 유효성 확인
 		if (!ChallengeValidator.challenge(chal))

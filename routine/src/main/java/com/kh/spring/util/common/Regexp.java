@@ -20,8 +20,8 @@ public class Regexp {
 	//모든 언어의 글자, 숫자, 언더스코어, 마침표, 하이픈 허가
 	public static final String ATTACHMENT_FILE_NAME = "^[\\p{L}\\p{N}._\\-]{1,100}$";
 	public static final long MAX_ATTACHMENT_FILE_SIZE = 200 * 1024;
-	public static final int ATTACHMENT_FILE_HEIGHT = 720;
-	public static final int ATTACHMENT_FILE_WIDTH = 1280;
+	public static final int ATTACHMENT_FILE_HEIGHT = 1200;
+	public static final int ATTACHMENT_FILE_WIDTH = 1200;
 	
 	//VideoCall
 	public static final String VCNAME = "^.{1,30}$";

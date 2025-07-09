@@ -46,13 +46,17 @@ public class ChallengeValidator {
 	     * 221 : 매달
 	     */
 		
+		//시작일이 null이면 시작일 == 현재 시간
+		if(chal.getStartDate()==null) {}
 		//시작일이 과거면 뭐냐 넌 과거에서 왔냐?
-		if(chal.getStartDate()
+		else if(chal.getStartDate()
 				.before(Timestamp.valueOf(LocalDateTime.now())))
 				return false;
 		
+		//종료일이 null이면 종료일 없음
+		if(chal.getEndDate() ==null) {}
 		//종료일이 1주일도 안 되면 왜 함??
-		if(chal.getEndDate()
+		else if(chal.getEndDate()
 				.before(Timestamp.valueOf(LocalDateTime.now().plusWeeks(1))))
 			return false;
 		

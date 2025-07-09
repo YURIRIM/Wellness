@@ -40,7 +40,6 @@ public class ChallengeController {
 			e.printStackTrace();
 			return "false";
 		}
-		
 	}
 	
 	//챌린지 세부 화면으로
