@@ -1,0 +1,37 @@
+<!-- templates/habit/add.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>습관 등록</title>
+</head>
+<body>
+    <h2>습관 등록</h2>
+    <form th:action="@{/habit/add}" method="post">
+		<!-- 습관 정보 -->
+        습관명: <input type="text" name="title"><br>
+
+		<!-- 반복 정보 -->
+		반복 유형:
+		<select name="repeatType">
+			<option value="DAILY">매일</option>
+		    <option value="WEEKLY">매주</option>
+		    <option value="MONTHLY">매월</option>
+		</select><br>
+
+		반복일:  
+		<input type="checkbox" name="weekDays" value="MON">월
+		<input type="checkbox" name="weekDays" value="WED">화
+		<input type="checkbox" name="weekDays" value="WED">수
+		<input type="checkbox" name="weekDays" value="WED">목
+		<input type="checkbox" name="weekDays" value="FRI">금
+		<input type="checkbox" name="weekDays" value="WED">토
+		<input type="checkbox" name="weekDays" value="WED">일<br>
+
+		시간: <input type="time" name="repeatTime"><br>	
+		
+        <button type="submit">등록</button>
+    </form>
+    <a th:href="@{/habit/list}">목록으로</a>
+</body>
+</html>

@@ -19,6 +19,8 @@ public class Habit {
     private int currentCheck;       // 현재 연속 일수
     private int maxCheck;           // 최대 연속 일수
     private String status;          // 상태
-    private Date field;             // 마지막 체크
+    private Date lastCheck;             // 마지막 체크
+    
+    private HabitRepeat repeat;
 
 }
