@@ -218,6 +218,13 @@
 		    <artifactId>commons-text</artifactId>
 		    <version>1.13.1</version>
 		</dependency>
+		
+		<!--Axios-->
+		<dependency>
+		    <groupId>org.webjars.npm</groupId>
+		    <artifactId>axios</artifactId>
+		    <version>1.10.0</version>
+		</dependency>
 
 		
 	</dependencies>

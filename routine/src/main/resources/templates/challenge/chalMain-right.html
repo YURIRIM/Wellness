@@ -1,0 +1,41 @@
+<!--
+오른쪽 사이드바
+
+*중요 - 모든 태그의 id는 `right-`로 시작하기(다른 조각과 충돌 방지)
+
+
+새로운 챌린지 생성하기
+<a th:href="@{/challenge/newChal}">챌린지 새로 생성하기</a>
+
+내가 생성한 챌린지
+<a th:href="@{/challenge/createdChal}">내가 생성한 챌린지</a>
+
+내가 참여한 챌린지
+<a th:href="@{/challenge/joinedChal}">참여한 챌린지</a>
+
+-->
+<th:block th:fragment="chalMain-right">
+  <div id="right-chal-right" class="p-3">
+    <h5>개인 영역</h5>
+    <div class="list-group">
+      <a
+        th:href="@{/challenge/newChal}"
+        id="right-newChal"
+        class="list-group-item list-group-item-action"
+        >새로운 챌린지 생성하기</a
+      >
+      <a
+        th:href="@{/challenge/createdChal}"
+        id="right-createdChal"
+        class="list-group-item list-group-item-action"
+        >내가 생성한 챌린지</a
+      >
+      <a
+        th:href="@{/challenge/joinedChal}"
+        id="right-joinedChal"
+        class="list-group-item list-group-item-action"
+        >내가 참여한 챌린지</a
+      >
+    </div>
+  </div>
+</th:block>

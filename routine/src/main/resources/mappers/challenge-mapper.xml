@@ -5,6 +5,37 @@
 
 <mapper namespace="challengeMapper">
 
+	<select id="selectChal" parameterType="SearchChallenge" resultType="Challenge">
+		select *
+		from (
+			select a.*, rownum rnum
+			from(
+				select
+					C.CHAL_NO
+					,C.USER_NO
+					,C.CATEGORY_NO
+					,C.TITLE
+					,C.CONTENT
+					,C.THUMBNAIL
+					,C.VERIFY_CYCLE
+					,C.CREATE_DATE
+					,C.START_DATE
+					,C.END_DATE
+					,C.STATUS
+					,C.PICTURE_REQUIRED
+					,C.REPLY_REQUIRED
+					,CC.CATEGORY_NAME
+					,U.NICK
+				from CHALLENGE c
+				left join CHALLENGE_CATEGORY cc on(c.CATEGORY_NO = cc.CATEGORY_NO)
+				left join USER u on(c.USER_NO = u.USER_NO)
+				order by CREATE_DATE desc
+			) a
+			where rnum &lt;= (#{currentPage}+1) * #{showLimit}
+		)
+		where rnum &gt; #{currentPage} * #{showLimit}
+	</select>
+
 	<insert id="newChal" parameterType="Challenge">
 		<selectKey keyProperty="chalNo" resultType="int"
 			order="BEFORE">
@@ -16,13 +47,13 @@
 			,CATEGORY_NO
 			,TITLE
 			,CONTENT
+			,THUMBNAIL
 			,VERIFY_CYCLE
 			,CREATE_DATE
 			,START_DATE
 			,END_DATE
 			,STATUS
 			,PICTURE_REQUIRED
-			,PICTURE_WATERMARK
 			,REPLY_REQUIRED
 			)
 		VALUES (
@@ -31,15 +62,16 @@
 			,#{categoryNo}
 			,#{title}
 			,#{content}
+			,#{thumbnail}
 			,#{verifyCycle}
 			,SYSDATE
 			,#{startDate}
 			,#{endDate}
 			,#{status}
 			,#{pictureRequired}
-			,#{pictureWaterMark}
 			,#{replyRequired}
 			)
 	</insert>
+	
 
 </mapper>

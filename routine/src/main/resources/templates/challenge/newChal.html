@@ -1,4 +1,47 @@
-<th:block th:fragment="newChall">
+<th:block th:fragment="newChal">
+  <!--
+*중요 - 모든 태그의 id는 `new-`로 시작하기(다른 조각과 충돌 방지), 동적으로 생성되는 영역
 
+summernote는 0.9.1버전 한국어를 사용
 
+-->
+
+  <div>새로운 챌린지 생성</div>
+  <form th:action="@{/challenge/newChal}" method="post">
+    제목 : <input type="text" placeholder="제목" required />
+
+    <!--
+    내용 : summernote를 이용해 입력받기
+    -->
+    내용 :
+
+    <!--
+    카테고리 : model에 담긴 값 활용
+    -->
+    카테고리 :
+
+    <!--썸네일 : wepb 200kb이하 사진만 허용-->
+    썸네일 :
+
+    <!--
+    시작일 : "yyyy-MM-dd HH:mm:ss" 포맷,
+    년/월/일/시 조작 가능,
+    현재 날짜보다 과거를 선택할 수 없음,
+    현재 날짜의 세 달 뒤 이후부터는 선택할 수 없음
+    -->
+    시작일 :
+
+    <!--
+    종료일 : "yyyy-MM-dd HH:mm:ss" 포맷,
+    년/월/일/시 조작 가능,
+    시작일의 일주일 후를 기준으로 그 이전은 선택할 수 없음,
+    '종료 기간 없음' 선택 가능
+    -->
+    종료일 :
+
+    <!--
+    
+    -->
+    인증에 사진 필수 여부
+  </form>
 </th:block>
