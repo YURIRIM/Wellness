@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> 회원가입</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        .signup-form {
+            max-width: 500px;
+            margin: 30px auto;
+            padding: 30px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .id-check-group {
+            display: flex;
+            gap: 10px;
+        }
+        .id-check-group input {
+            flex: 1;
+        }
+        .id-check-btn {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .link-area {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .success-msg {
+            color: green;
+            font-size: 12px;
+        }
+        .error-msg {
+            color: red;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div id="header">
+        <div id="header_1">
+            <div id="header_1_left">
+                <img th:src="@{/images/logo.png}" onclick="location.href='/'">
+            </div>
+            <div id="header_1_center"></div>
+            <div id="header_1_right">
+                <a th:href="@{/}">홈으로</a>
+                <a th:href="@{/user/login}">로그인</a>
+            </div>
+        </div>
+        <div id="header_2">
+            <ul>
+                <li><a th:href="@{/}">홈</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <div class="innerOuter">
+            <div class="signup-form">
+                <h2 style="text-align: center; margin-bottom: 30px;">회원가입</h2>
+                
+                <!-- 에러 메시지 -->
+                <div th:if="${errorMsg}" style="color: red; text-align: center; margin-bottom: 20px;">
+                    <span th:text="${errorMsg}"></span>
+                </div>
+
+                <form th:action="@{/user/signup}" method="post" id="signupForm">
+                    <div class="form-group">
+                        <label for="userId">아이디 *</label>
+                        <div class="id-check-group">
+                            <input type="text" id="userId" name="userId" required>
+                            <button type="button" class="id-check-btn" onclick="checkUserId()">중복확인</button>
+                        </div>
+                        <div id="checkResult"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">비밀번호 *</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="passwordConfirm">비밀번호 확인 *</label>
+                        <input type="password" id="passwordConfirm" required>
+                        <div id="pwdResult"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="name">이름 *</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="nick">닉네임 *</label>
+                        <input type="text" id="nick" name="nick" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">이메일 *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="submitBtn" disabled>회원가입</button>
+                </form>
+                
+                <div class="link-area">
+                    <a th:href="@{/user/login}">이미 계정이 있으신가요? 로그인</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        let isIdChecked = false;
+        let isPwdMatched = false;
+
+        // 아이디 중복 확인
+        function checkUserId() {
+            const userId = document.getElementById('userId').value;
+            
+            if (!userId) {
+                alert('아이디를 입력해주세요.');
+                return;
+            }
+
+            fetch('/user/checkId?userId=' + userId)
+                .then(response => response.text())
+                .then(data => {
+                    const resultDiv = document.getElementById('checkResult');
+                    if (data === 'NNNNY') {
+                        resultDiv.innerHTML = '<span class="success-msg">사용 가능한 아이디입니다.</span>';
+                        isIdChecked = true;
+                    } else {
+                        resultDiv.innerHTML = '<span class="error-msg">이미 사용중인 아이디입니다.</span>';
+                        isIdChecked = false;
+                    }
+                    checkFormValid();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('아이디 확인 중 오류가 발생했습니다.');
+                });
+        }
+
+        // 비밀번호 확인
+        document.getElementById('passwordConfirm').addEventListener('keyup', function() {
+            const password = document.getElementById('password').value;
+            const passwordConfirm = this.value;
+            const resultDiv = document.getElementById('pwdResult');
+
+            if (password === passwordConfirm && password !== '') {
+                resultDiv.innerHTML = '<span class="success-msg">비밀번호가 일치합니다.</span>';
+                isPwdMatched = true;
+            } else {
+                resultDiv.innerHTML = '<span class="error-msg">비밀번호가 일치하지 않습니다.</span>';
+                isPwdMatched = false;
+            }
+            checkFormValid();
+        });
+
+        // 아이디 변경 시 중복확인 초기화
+        document.getElementById('userId').addEventListener('input', function() {
+            isIdChecked = false;
+            document.getElementById('checkResult').innerHTML = '';
+            checkFormValid();
+        });
+
+        // 폼 유효성 검사
+        function checkFormValid() {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = !(isIdChecked && isPwdMatched);
+        }
+    </script>
+</body>
+</html>
