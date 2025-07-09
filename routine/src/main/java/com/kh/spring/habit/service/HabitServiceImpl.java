@@ -1,16 +1,27 @@
 package com.kh.spring.habit.service;
 
+import org.mybatis.spring.SqlSessionTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.kh.spring.habit.dao.HabitDao;
 import com.kh.spring.habit.model.vo.Habit;
 
 @Service
 public class HabitServiceImpl implements HabitService{
-
+	
+	@Autowired
+	private HabitDao dao;
+	
+	@Autowired
+	private SqlSessionTemplate sqlSession;
+	
 	@Override
-	public int insertHabit(Habit habit) {
+	@Transactional
+	public int insertHabit(Habit h) {
 		// TODO Auto-generated method stub
-		return 0;
+		return dao.insertHabit(sqlSession,h);
 	}
 
 }
