@@ -13,46 +13,42 @@ import com.kh.spring.util.common.Regexp;
 //바이너리 webp 파일 이름/확장자 소독하기
 public class FileSanitizer {
 
-	public static boolean attachmentSanitizer(List<MultipartFile> files, List<Attachment> atList) throws Exception {
-		for (MultipartFile atFile : files) {
-			// 파일이 비어있는지 체크
-			if (atFile.isEmpty()) {
-				return false;
-			}
-
-			String originalFilename = atFile.getOriginalFilename();
-			if (originalFilename == null || originalFilename.trim().isEmpty()) {
-				return false;
-			}
-
-			// 파일명 보안 처리
-			String sanitizedFilename = sanitizeFileName(originalFilename);
-
-			// 확장자 검증
-			String extension = FilenameUtils.getExtension(sanitizedFilename).toLowerCase();
-			List<String> allowedExtensions = Arrays.asList("webp");
-
-			if (!allowedExtensions.contains(extension)) {
-				return false;
-			}
-
-			// MIME 타입 검증
-			String contentType = atFile.getContentType();
-			if (contentType == null || !isValidMimeType(contentType, extension)) {
-				return false;
-			}
-
-			// Magic Bytes 검증 (실제 파일 내용 확인)
-			if (!validateFileContent(atFile.getBytes(), extension)) {
-				return false;
-			}
-
-			// 저장!
-			Attachment attachment = Attachment.builder().file(atFile.getBytes()).fileName(sanitizedFilename)
-					.fileSize((int) atFile.getSize()).build();
-
-			atList.add(attachment);
+	public static boolean attachmentSanitizer(MultipartFile file, Attachment at) throws Exception {
+		// 파일이 비어있는지 체크
+		if (file.isEmpty()) {
+			return false;
 		}
+
+		String originalFilename = file.getOriginalFilename();
+		if (originalFilename == null || originalFilename.trim().isEmpty()) {
+			return false;
+		}
+
+		// 파일명 보안 처리
+		String sanitizedFilename = sanitizeFileName(originalFilename);
+
+		// 확장자 검증
+		String extension = FilenameUtils.getExtension(sanitizedFilename).toLowerCase();
+		List<String> allowedExtensions = Arrays.asList("webp");
+
+		if (!allowedExtensions.contains(extension)) {
+			return false;
+		}
+
+		// MIME 타입 검증
+		String contentType = file.getContentType();
+		if (contentType == null || !isValidMimeType(contentType, extension)) {
+			return false;
+		}
+
+		// Magic Bytes 검증 (실제 파일 내용 확인)
+		if (!validateFileContent(file.getBytes(), extension)) {
+			return false;
+		}
+
+		// 저장!
+		at = Attachment.builder().file(file.getBytes()).fileName(sanitizedFilename).fileSize((int) file.getSize())
+				.build();
 		return true;
 	}
 

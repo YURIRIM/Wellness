@@ -21,7 +21,8 @@ public class Challenge {
     @NoHtmlEscape//html이스케이프 금지
     private String content;
     
-    private byte[] Thumbnail;
+    private byte[] thumbnail;
+    private String thumbnailBase64; //프론트와 base64로 썸네일 파일 통신
     
     //"yyyy-MM-dd HH:mm:ss" 포맷이여야 Timestamp자동 맵핑
     private Timestamp createDate;
@@ -36,6 +37,9 @@ public class Challenge {
 
     private String nick; //member
     private String role; //member
+    
+    private int participateCount; //challenge_participation
+    private Double successRatio; //challenge_participation, 백분율
     
     /*
      * verifyCycle 인증 주기

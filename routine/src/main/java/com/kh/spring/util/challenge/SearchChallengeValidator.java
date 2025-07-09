@@ -9,16 +9,18 @@ public class SearchChallengeValidator {
 
 	//챌린지 유효성 검사
 	public static boolean searchChallenge(SearchChallenge sc) throws Exception{
-		if(sc.getTitle() == null 
-				|| !sc.getTitle().matches(Regexp.CHAL_TITLE)
-				|| sc.getContent() == null
-				|| !sc.getContent().matches(Regexp.CHAL_CONTENT)
+		if(sc.getOrderby() ==null
+				|| !sc.getOrderby().matches(Regexp.SC_ORDERBY)
+				|| sc.getSearch() ==null
+				|| !sc.getSearch().matches(Regexp.SC_SEARCH)
+				|| sc.getSearchType() ==null
+				|| !sc.getSearchType().matches(Regexp.SC_SEARCH_TYPE)
+				|| sc.getStatus() ==null
+				|| !sc.getStatus().matches(Regexp.SC_STATUS)
 				|| sc.getPictureRequired() ==null
 				|| !sc.getPictureRequired().matches(Regexp.CHAL_PICTURE_REQUIRED)
 				|| sc.getReplyRequired() ==null
 				|| !sc.getReplyRequired().matches(Regexp.CHAL_REPLY_REQUIRED)
-				|| sc.getStatus() == null
-				|| !sc.getStatus().matches(Regexp.SC_STATUS)
 				)return false;
 		
 		if(sc.getVerifyCycle()<0
@@ -36,12 +38,20 @@ public class SearchChallengeValidator {
 		
 		if(sc.getCurrentPage()<0) return false;
 		
-		Timestamp a = sc.getStartDate();
-		Timestamp b = sc.getEndDate();
-		if (a.compareTo(b) > 0) { //끝일이 시작일보다 빠르면 자리 교환
-		    Timestamp temp = a;
-		    a = b;
-		    b = temp;
+		Timestamp sd = sc.getStartDate();
+		Timestamp ed = sc.getEndDate();
+		
+		//날짜가 14530529면 null로 변환
+		if (sd.toLocalDateTime().toLocalDate().equals(Regexp.DOWNFALL)) {
+		    sc.setStartDate(null);
+		}
+		if (ed.toLocalDateTime().toLocalDate().equals(Regexp.DOWNFALL)) {
+			sc.setEndDate(null);
+		}
+		
+		if (sd.compareTo(ed) > 0) { //끝일이 시작일보다 빠르면 자리 교환
+		    sc.setStartDate(ed);
+		    sc.setEndDate(sd);
 		}
 		
 		//categoryNo생략
