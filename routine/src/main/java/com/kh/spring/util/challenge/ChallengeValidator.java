@@ -57,8 +57,8 @@ public class ChallengeValidator {
 			return false;
 		
 		/*
-		 * chalNo도 검증해야 하는데 귀찮네
-		 * DB에서 chalNo 리스트 빼와야 하고
+		 * 카테고리도 검증해야 하는데 귀찮네
+		 * DB에서 카테고리 리스트 빼와야 하고
 		 * 또 그거 빼오려면 dao필요해서 bean등록 필수고
 		 * 그냥 귀찮으니 이대로만 갑시다!!
 		 */
