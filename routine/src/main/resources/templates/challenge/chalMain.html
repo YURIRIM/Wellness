@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <title>챌린지</title>
 <th:block th:replace="~{/common/fragment :: library}"></th:block>
+<script th:src="@{/webjars/summernote/0.9.1/dist/summernote-bs5.min.js}"></script>
+<script th:src="@{/js/common/summernote-ko-KR.js}"></script>
+<link th:href="@{/webjars/summernote/0.9.1/dist/summernote-bs5.min.css}" rel="stylesheet">
 <link rel="stylesheet" th:href="@{/css/challenge/challMain.css}" />
 </head>
 <body>
@@ -13,18 +16,18 @@
   <div class="row">
     <div class="col-3">
       왼쪽: 검색/필터
-      <th:block th:replace="~{/challenge/chalMain-left :: chal-left}"></th:block>
+      <th:block th:replace="~{/challenge/chalMain-left :: chalMain-left}"></th:block>
       <div class="sidebar-bottom">좌측 사이드바 아래 영역(비워둘꺼임)</div>
     </div>
     <div class="col-6">
       <div class="challenge-list">
         중앙: 챌린지 목록 (무한 스크롤 영역)
-        <th:block th:replace="~{/challenge/chalMain-center :: chal-center}"></th:block>
+        <th:block th:replace="~{/challenge/chalMain-center :: chalMain-center}"></th:block>
       </div>
     </div>
     <div class="col-3">
       오른쪽: 개인 영역
-      <th:block th:replace="~{/challenge/chalMain-right :: chal-right}"></th:block>
+      <th:block th:replace="~{/challenge/chalMain-right :: chalMain-right}"></th:block>
       <div class="sidebar-bottom">우측 사이드바 아래 영역(비워둘꺼임)</div>
 <!-- 오른쪽 하단에는 깨알같은 맨 위로가기 버튼 -->
     </div>

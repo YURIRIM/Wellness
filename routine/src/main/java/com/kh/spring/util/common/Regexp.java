@@ -4,13 +4,17 @@ package com.kh.spring.util.common;
 public class Regexp {
 	//Challenge
 	public static final String CHAL_TITLE = "^.{1,100}$";
-	public static final String CHAL_CONTENT = "^.{0,1000}$";
+	public static final String CHAL_CONTENT = "^.{1,1000}$";
 	public static final String CHAL_PICTURE_REQUIRED = "^[IYON]$";
 	public static final String CHAL_REPLY_REQUIRED = "^[YON]$";
 	
 	//페이지당 노출될 챌린지 게시글 수
 	public static final int CHAL_SHOW_LIMIT = 20;
 	
+	//SearchChallenge
+	public static final String SC_STATUS = "^[YN]$";
+	public static final int TITLE_SHOW_LIMIT = 20; //제목 글자 표시 제한
+	public static final int CONTENT_SHOW_LIMIT = 100; //내용 글자 표시 제한
 	
 	//Attachment
 	//모든 언어의 글자, 숫자, 언더스코어, 마침표, 하이픈 허가
