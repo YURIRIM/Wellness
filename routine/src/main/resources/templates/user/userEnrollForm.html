@@ -157,17 +157,20 @@
         let isIdChecked = false;
         let isPwdMatched = false;
 
-        // 아이디 중복 확인
+     // 아이디 중복 확인
         function checkUserId() {
-            const userId = document.getElementById('userId').value;
+            const userId = document.getElementById('userId').value.trim(); // trim() 추가
             
             if (!userId) {
                 alert('아이디를 입력해주세요.');
                 return;
             }
 
-            fetch('/user/checkId?userId=' + userId)
-                .then(response => response.text())
+            // URL 인코딩 추가
+            fetch('/routine/user/checkId?userId=' + encodeURIComponent(userId))
+                .then(response => {
+                    return response.text();
+                })
                 .then(data => {
                     const resultDiv = document.getElementById('checkResult');
                     if (data === 'NNNNY') {
