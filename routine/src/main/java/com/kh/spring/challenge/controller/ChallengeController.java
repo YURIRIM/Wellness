@@ -35,10 +35,10 @@ public class ChallengeController {
 	public String selectChal(HttpSession session, Model model, SearchChallenge sc) {
 		try {
 			service.selectChal(session,model,sc);
-			return "true";
+			return "success";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return "false";
+			return "fail";
 		}
 	}
 	

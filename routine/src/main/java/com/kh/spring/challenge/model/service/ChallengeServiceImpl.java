@@ -48,6 +48,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 	// 비동기 - 챌린지 메인에서 챌린지 리스트 조회
 	@Override
 	public void selectChal(HttpSession session, Model model, SearchChallenge sc) throws Exception {
+		model.addAttribute("searchChallenge", sc);//모달에 검색어 저장
 
 		// challenge 유효성 확인
 		if (!SearchChallengeValidator.searchChallenge(sc))
@@ -99,12 +100,12 @@ public class ChallengeServiceImpl implements ChallengeService {
 		if (!ChallengeValidator.challenge(chal))
 			throw new Exception("challenge 유효성");
 
-		// 썸네일 있으면 바이너리 변환, 리사이즈 및 소독
+		// 썸네일 있으면 Base64 디코딩, 리사이즈 및 소독
 		byte[] thumbnail = null;
 		if (chal.getThumbnailBase64() != null) {
 			thumbnail = Base64.getDecoder().decode(chal.getThumbnailBase64());
 			thumbnail = ResizeWebp.resizeWebp(thumbnail);
-			if (Exiftool.exiftoolCheck()) {
+			if (Exiftool.EXIFTOOL) {// exiftool이 있어요!
 				thumbnail = Exiftool.sanitizeMetadata(thumbnail);
 			}
 			chal.setThumbnail(thumbnail);
@@ -137,7 +138,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 			at.setFile(ResizeWebp.resizeWebp(at.getFile()));
 
 			// 메타데이터 소독
-			if (Exiftool.exiftoolCheck()) {// exiftool이 있어요!
+			if (Exiftool.EXIFTOOL) {
 				at.setFile(Exiftool.sanitizeMetadata(at.getFile()));
 			}
 			

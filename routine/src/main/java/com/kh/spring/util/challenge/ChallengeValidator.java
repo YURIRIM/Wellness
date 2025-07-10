@@ -10,7 +10,7 @@ public class ChallengeValidator {
 
 	//챌린지 유효성 검사
 	public static boolean challenge(Challenge chal) throws Exception{
-		if(chal.getTitle() == null 
+		if(chal.getTitle() == null
 				|| !chal.getTitle().matches(Regexp.CHAL_TITLE)
 				|| chal.getContent() == null
 				|| !chal.getContent().matches(Regexp.CHAL_CONTENT)
@@ -46,25 +46,31 @@ public class ChallengeValidator {
 	     * 221 : 매달
 	     */
 		
-		//시작일이 null이면 시작일 == 현재 시간
-		if(chal.getStartDate()==null) {}
-		//시작일이 과거면 뭐냐 넌 과거에서 왔냐?
-		else if(chal.getStartDate()
-				.before(Timestamp.valueOf(LocalDateTime.now())))
-				return false;
+		//시작일, 종료일은 사용자가 입력하지 않으면 해당 input을 삭제하고 보냄 -&gt; null 담김
+		Timestamp sd = chal.getStartDate();
+		Timestamp ed = chal.getEndDate();
 		
-		//종료일이 null이면 종료일 없음
-		if(chal.getEndDate() ==null) {}
-		//종료일이 1주일도 안 되면 왜 함??
-		else if(chal.getEndDate()
-				.before(Timestamp.valueOf(LocalDateTime.now().plusWeeks(1))))
-			return false;
+		
+		if(sd==null) {} //시작일이 null이면 시작일 == 현재 시간
+		else if(sd.toLocalDateTime().toLocalDate().equals(Regexp.DOWNFALL)) {
+			//날짜가 14530529면 null
+			chal.setStartDate(null);
+		}
+		else if(sd.before(Timestamp.valueOf(LocalDateTime.now())))
+			return false; //시작일이 과거면 뭐냐 넌 과거에서 왔냐?
+		
+		
+		if(ed ==null) {} //종료일이 null이면 종료일 없음
+		else if(ed.toLocalDateTime().toLocalDate().equals(Regexp.DOWNFALL)) {
+			//날짜가 14530529면 null
+			chal.setEndDate(null);
+		}
+		else if(ed.before(Timestamp.valueOf(LocalDateTime.now().plusWeeks(1))))
+			return false; //종료일이 1주일도 안 되면 왜 함??
 		
 		/*
 		 * 카테고리도 검증해야 하는데 귀찮네
-		 * DB에서 카테고리 리스트 빼와야 하고
-		 * 또 그거 빼오려면 dao필요해서 bean등록 필수고
-		 * 그냥 귀찮으니 이대로만 갑시다!!
+		 * 세션 들춰보고 그러기 귀찮으니 그냥 하죠?
 		 */
 		return true;
 	}

@@ -154,7 +154,14 @@
 			,#{thumbnail}
 			,#{verifyCycle}
 			,SYSDATE
-			,#{startDate}
+			<choose>
+				<when test="startDate == null">
+					,SYSDATE
+				</when>
+				<otherwise>
+					,#{startDate}
+				</otherwise>
+			</choose>
 			,#{endDate}
 			,#{status}
 			,#{pictureRequired}
