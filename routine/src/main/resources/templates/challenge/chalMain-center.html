@@ -2,7 +2,53 @@
   <!--
 *중요 - 모든 태그의 id는 `center-`로 시작하기(다른 조각과 충돌 방지)
 css사용 시, class가 아닌 id로 연결하기
-스크립트 사용 시, thymeleaf를 사용해야 할 경우 해당 변수는 별도로 사용하기
+스크립트 사용 시, thymeleaf를 사용해야 할 경우 해당 변수는 별도로 선언하기
+,모든 스크립트는 chalMainCenterScript에 담고 이 조각이 활성화되면 스크립트와 연결해주어야 함.
+연결 방식은 다음 스크립트와 유사한 방법 사용
+------------
+document.addEventListener("DOMContentLoaded", function () {
+  //==========================chalMain-right==========================
+  const centerDiv = document.querySelector(".challenge-list");
+
+  function loadFragment(url) {
+    axios
+      .get(url)
+      .then(function (response) {
+        centerDiv.innerHTML = response.data;
+
+        //조각 불러올 때 스크립트 초기화
+        if (centerDiv.querySelector("#new-form")) {
+          newChalScript();
+        }
+      })
+      .catch(function (error) {
+        console.error("Error loading fragment:", error);
+      });
+  }
+
+  document
+    .getElementById("right-newChal")
+    .addEventListener("click", function (e) {
+      e.preventDefault();
+      loadFragment(this.getAttribute("href"));
+    });
+
+  document
+    .getElementById("right-createdChal")
+    .addEventListener("click", function (e) {
+      e.preventDefault();
+      loadFragment(this.getAttribute("href"));
+    });
+
+  document
+    .getElementById("right-joinedChal")
+    .addEventListener("click", function (e) {
+      e.preventDefault();
+      loadFragment(this.getAttribute("href"));
+    });
+});
+-----------------
+
 
 부트스트랩(+아이콘,달력), axios, jquery 라이브러리는 선언되어 있다고 가정 
 
@@ -12,17 +58,13 @@ css사용 시, class가 아닌 id로 연결하기
 요청 경로 : @{/challenge/chalMain}
 요청에 성공하면 success, 실패하면 fail을 수신받음
 요청받은 데이터는 model의 chalList라는 이름으로 List<Challenge>에 담김
+조회 결과가 없으면 적당한 아이콘으로 비어 있음을 표시
 
-아래는 게시글(챌린지)객체
-public class Challenge {
+아래는 게시글(챌린지) 조회용 객체
+public class ChallengeResponse {
     private int chalNo;
-    private int userNo;
-    private int categoryNo;
     private String title;
-    
-    @NoHtmlEscape//html이스케이프 금지
     private String content;
-    
     private byte[] thumbnail;
     private String thumbnailBase64; //프론트와 base64로 썸네일 파일 통신
     
@@ -39,10 +81,11 @@ public class Challenge {
 
     private String nick; //member
     private String role; //member
-    private byte[] writerProfilePicture //
+    
+    private byte[] profilePicture; //profile
+    private String profilePictureBase64;
     
     private int participateCount; //challenge_participation
-    private Double successRatio; //challenge_participation, 0~100
     
     /*
      * verifyCycle 인증 주기
@@ -50,8 +93,6 @@ public class Challenge {
      * 1~127 : 특정 요일 선택(비트마스크)
      * -월요일 : 1, 화요일 : 2, ..., 일요일 : 64
      * 
-     
-     //하나만 선택 가능
      * 201 : 매일
      * 202 : 이틀
      * 203 : 사흘
@@ -72,10 +113,10 @@ public class Challenge {
 인증 주기(verifyCycle - 1~127은 각 요일을 비트마스크 방식으로 표시되어 있음)
 참여자(participateCount) / 성공률(successRatio - 서버에서 소수점 두 자리까지 백분율로 받아옴)
 사진 필수 여부(pictureRequired) / 댓글 내용 필수 여부 (replyRequired)
-작성자 프로필 사진(writerProfilePicture  - base64로 인코딩된 바이너리 데이터 형식 사진,
+작성자 프로필 사진(profilePictureBase64  - base64로 인코딩된 바이너리 데이터 형식 사진,
 	만일 null이면 resources/static/img/challenge-writer-default.wepb 을 대신 랜더링)/작성자(nick)
 위 순서대로 카드에 표시하기
-만약 status가 N이면, 카드를 어둡게 표시하고 카드에 마우스 호버링하면 '챌린지가 종료되었습니다.' 표시
+만약 status가 N이면, 카드를 어둡게(혹은 블러) 표시하고 카드에 마우스 호버링하면 '챌린지가 종료되었습니다.' 표시
 
 
 아래는 검색에 사용하는 객체(검색 바 / 필터 등은 여기서 구현하지 않음)
@@ -83,26 +124,26 @@ public class SearchChallenge {
 
 	private int currentPage; //현재 페이지
 	private final int showLimit = Regexp.CHAL_SHOW_LIMIT; //한 페이지에서 보여줄 게시글 수
-	private String orderby; //정렬 방식. L:최신순, P:참여인원 많은 순, S:성공률 순
+	private String orderby; //정렬 방식. '빈문자열':최신순, P:참여인원 많은 순, S:성공률 순
 	private String search; //검색어
-	private String searchType;//검색 대상(T:제목 C:내용 N:닉네임 A:전부)
+	private String searchType;//검색 대상(T:제목 C:내용 N:닉네임 '빈문자열':전부)
 	
-	
-	private int categoryNo; //0없음
-	private int verifyCycle; //0없음
-    private Timestamp startDate; //null없음
-    private Timestamp endDate; //null없음
-    private String status; //Y:활성화 N:종료됨 X:선택안함
-    private String pictureRequired; //I:필수(도용 불가) Y:필수 O:선택 N:불가 X:선택안함
-    private String replyRequired; //Y:필수 O:선택 N:불가 X:선택안함
-    
-    private String nick; //member
+	private int categoryNo;
+	private int verifyCycle;
+	private Timestamp startDate1; //비었을 경우 -> 1453-05-29 00:00:00
+  private Timestamp startDate2;
+  private Timestamp endDate1;
+  private Timestamp endDate2;
+  private String status; //Y:활성화 N:종료됨 '빈문자열':선택안함
+  private String pictureRequired; //I:필수(도용 불가) Y:필수 O:선택 N:불가 '빈문자열':선택안함
+  private String replyRequired; //Y:필수 O:선택 N:불가 '빈문자열':선택안함
 }
-처음 페이지에 접근하면 currentPage=0, startDate="1453-05-29 00:00:00",
-endDate="1453-05-29 00:00:00" 값을 가지고 요청 보내기
+
 검색에 사용된 SearchChallenge는 'searchChallenge'라는 이름으로 model에 담김
+이 페이지 조각이 불러졌는데 searchChallenge가 비었을 경우, currentPage=0
+, startDate1=startDate2=endDate1=endDate2="1453-05-29 00:00:00" 값을 가지고 요청 보내기
 model에 searchChallenge.search 가 존재할 경우, searchChallenge.searchType에 따라 검색 결과에 하이라이트 표시
-예)search가 '공부', searchType이 'T'인 경우, 제목에 '공부합시다'인 게시글의 제목 중 '공부'에 하이라이트 표시
+예1)search가 '공부', searchType이 'T'인 경우, 제목에 '공부합시다'인 게시글의 제목 중 '공부'에 하이라이트 표시
 
 챌린지 카드는 고정 영역이 아닌 내용 길이에 따라 달라짐(구글의 사진 검색결과처럼)
 세로는 고정, 가로는 제목/내용 길이에 따라 가변됨

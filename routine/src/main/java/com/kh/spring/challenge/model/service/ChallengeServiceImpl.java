@@ -14,8 +14,9 @@ import com.kh.spring.challenge.model.dao.AttachmentDao;
 import com.kh.spring.challenge.model.dao.ChallengeCategoryDao;
 import com.kh.spring.challenge.model.dao.ChallengeDao;
 import com.kh.spring.challenge.model.vo.Attachment;
-import com.kh.spring.challenge.model.vo.Challenge;
 import com.kh.spring.challenge.model.vo.ChallengeCategory;
+import com.kh.spring.challenge.model.vo.ChallengeRequest;
+import com.kh.spring.challenge.model.vo.ChallengeResponse;
 import com.kh.spring.challenge.model.vo.SearchChallenge;
 import com.kh.spring.user.model.vo.User;
 import com.kh.spring.util.attachment.Exiftool;
@@ -45,11 +46,12 @@ public class ChallengeServiceImpl implements ChallengeService {
 		return ccDao.selectCCList(sqlSession);
 	}
 
-	// 비동기 - 챌린지 메인에서 챌린지 리스트 조회
+	//챌린지 리스트 조회
 	@Override
 	public void selectChal(HttpSession session, Model model, SearchChallenge sc) throws Exception {
 		model.addAttribute("searchChallenge", sc);//모달에 검색어 저장
 
+		System.out.println("챌린지 검색어 : "+sc);
 		// challenge 유효성 확인
 		if (!SearchChallengeValidator.searchChallenge(sc))
 			throw new Exception("searchChallenge 유효성");
@@ -58,11 +60,11 @@ public class ChallengeServiceImpl implements ChallengeService {
 		sc.setSearch(sc.getSearch().trim());
 
 		// DB에서 페이지 긁어오기
-		List<Challenge> result = chalDao.selectChal(sqlSession, sc);
+		List<ChallengeResponse> result = chalDao.selectChal(sqlSession, sc);
 		if (result == null || result.isEmpty())
 			throw new Exception("챌린지 리스트 조회 불가");
 
-		for (Challenge chal : result) {
+		for (ChallengeResponse chal : result) {
 			// 제목이 표시 제한 초과일 경우
 			if (chal.getTitle().length() > Regexp.TITLE_SHOW_LIMIT) {
 				chal.setTitle(chal.getTitle().substring(0, Regexp.TITLE_SHOW_LIMIT) + "⋯");
@@ -77,6 +79,14 @@ public class ChallengeServiceImpl implements ChallengeService {
 			byte[] thumbnail = chal.getThumbnail();
 			if(thumbnail!=null) {
 				chal.setThumbnailBase64(Base64.getEncoder().encodeToString(thumbnail));
+				chal.setThumbnail(null);
+			}
+			
+			//프로필 사진 base64인코딩
+			byte[] profilePicture = chal.getProfilePicture();
+			if(profilePicture!=null) {
+				chal.setProfilePictureBase64(Base64.getEncoder().encodeToString(profilePicture));
+				chal.setProfilePicture(null);
 			}
 		}
 
@@ -87,7 +97,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 	// 챌린지 생성하기
 	@Override
 	@Transactional
-	public void newChal(HttpSession session, Model model, Challenge chal, List<MultipartFile> files) throws Exception {
+	public void newChal(HttpSession session, Model model, ChallengeRequest chal, List<MultipartFile> files) throws Exception {
 		User user = (User) session.getAttribute("loginUser");
 		if (user == null)
 			user = Dummy.dummyUser(); // 로그인되지 않았으면 더미데이터

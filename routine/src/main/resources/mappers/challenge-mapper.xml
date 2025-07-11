@@ -5,15 +5,14 @@
 
 <mapper namespace="challengeMapper">
 
-	<select id="selectChal" parameterType="SearchChallenge" resultType="Challenge">
+	<select id="selectChal" parameterType="SearchChallenge" resultType="ChallengeResponse">
+	<bind name="searchPattern" value="'%' + search + '%'" />
 		select *
 		from (
 			select a.*, rownum rnum
 			from(
 				select
 					C.CHAL_NO
-					,C.USER_NO
-					,C.CATEGORY_NO
 					,C.TITLE
 					,C.CONTENT
 					,C.THUMBNAIL
@@ -26,29 +25,33 @@
 					,C.REPLY_REQUIRED
 					,CC.CATEGORY_NAME
 					,U.NICK
+					,P.PICTURE
 					,COUNT(cp.user_no) as PARTICIPATE_COUNT
 					,ROUND(SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END)
 						* 100.0 / COUNT(cp.user_no),2) as SUCCESS_RATIO
+					,ROUND(SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END)
+						* 100.0 / COUNT(cp.user_no),2) as FAIL_RATIO
 
 				from CHALLENGE c
 				left join CHALLENGE_CATEGORY cc on(c.CATEGORY_NO = cc.CATEGORY_NO)
 				left join CHALLENGE_PARTICIPATION cp on(c.CHAL_NO = cp.CHAL_NO)
 				left join USER u on(c.USER_NO = u.USER_NO)
+				left join PROFILE p on(c.USER_NO = p.USER_NO)
 
 				where 1=1
-				<if test="search != null">
+				<if test="search != ''">
 					<choose>
 						<when test="searchType == 'T'">
-							and C.TITLE = #{search}
+							and C.TITLE = #{searchPattern}
 						</when>
 						<when test="searchType == 'C'">
-							and C.CONTENT = #{search}
+							and C.CONTENT = #{searchPattern}
 						</when>
 						<when test="searchType == 'N'">
-							and U.NICK = #{search}
+							and U.NICK = #{searchPattern}
 						</when>
 						<otherwise>
-							and (C.TITLE = #{search} or C.CONTENT = #{search} or U.NICK = #{search})
+							and (C.TITLE = #{searchPattern} or C.CONTENT = #{searchPattern} or U.NICK = #{searchPattern})
 						</otherwise>
 					</choose>
 				</if>
@@ -73,26 +76,30 @@
 						</otherwise>
 					</choose>
 				</if>
-				<if test="startDate != null">
-					and C.START_DATE &gt; #{startDate}
+				<if test="startDate1 != null">
+					and C.START_DATE &gt; #{startDate1}
 				</if>
-				<if test="endDate != null">
-					and C.END_DATE &lt; #{endDate}
+				<if test="startDate2 != null">
+					and C.START_DATE &lt; #{startDate2}
 				</if>
-				<if test="status != 'X'">
+				<if test="endDate1 != null">
+					and C.END_DATE &gt; #{endDate1}
+				</if>
+				<if test="endDate2 != null">
+					and C.END_DATE &lt; #{endDate2}
+				</if>
+				<if test="status != ''">
 					and C.STATUS = #{status}
 				</if>
-				<if test="pictureRequired != 'X'">
+				<if test="pictureRequired != ''">
 					and C.PICTURE_REQUIRED = #{pictureRequired}
 				</if>
-				<if test="replyRequired != 'X'">
+				<if test="replyRequired != ''">
 					and C.REPLY_REQUIRED = #{replyRequired}
 				</if>
 
 				group by
 					C.CHAL_NO
-					,C.USER_NO
-					,C.CATEGORY_NO
 					,C.TITLE
 					,C.CONTENT
 					,C.THUMBNAIL
@@ -105,6 +112,7 @@
 					,C.REPLY_REQUIRED
 					,CC.CATEGORY_NAME
 					,U.NICK
+					,P.PICTURE
 				
 				order by
 				<choose>
@@ -125,7 +133,7 @@
 		where rnum &gt; #{currentPage} * #{showLimit}
 	</select>
 
-	<insert id="newChal" parameterType="Challenge">
+	<insert id="newChal" parameterType="ChallengeRequest">
 		<selectKey keyProperty="chalNo" resultType="int"
 			order="BEFORE">
 			SELECT SEQ_CHALLENGE.nextval FROM dual

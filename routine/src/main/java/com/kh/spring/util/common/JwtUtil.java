@@ -7,6 +7,7 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
@@ -41,7 +42,35 @@ public class JwtUtil {
 				.setIssuedAt(now) //발급된 때
 				.setExpiration(expiryDate) //만료될 때
 				.signWith(getSignKey()) //생성된 암호화 키로 토큰에 디지털 서명(토큰 위조 검증)
+//				.claim("키", "값") --추가적으로 토큰에 담을 데이터가 있다면
 				.compact(); //최종적으로 JWT문자열 형태로 압축해 반환해주는 메소드
+	}
+	
+	//토큰에서 userId 가져오기
+	public String getUserIdFormToken(String token) {
+		//jwt파서로 토큰 해독하고 원하는 정보 추출
+		Claims claims = Jwts.parserBuilder() //jwt파서 빌더
+				.setSigningKey(getSignKey()) //서명 검증
+				.build() //객체 생성
+				.parseClaimsJws(token) //해당 객체에 jwt토큰 파싱해 검증
+				.getBody(); //Claims객체 추출
+		return claims.getSubject(); //주체 값 추출(토큰 생성시 setSubject() - 주체에 userId설정됨)
+		
+	}
+	
+	//JWT유효한지 확인하는 검증 메소드
+	public boolean vaildateToken(String token) {
+		try {
+			//토큰 파싱 시도 - 성공시 유효한 토큰 / 예외 발생 시 유효하지 않은 토큰
+			Jwts.parserBuilder()
+				.setSigningKey(getSignKey())
+				.build()
+				.parseClaimsJws(token); //검증용
+			
+			return true;
+		}catch(Exception e) {
+			return false;
+		}
 	}
 	
 	/*
@@ -70,6 +99,12 @@ public class JwtUtil {
 	 * JWT방식 토큰으로는 서버에서 처리할 게 없다.
 	 * 로그아웃시 프론트에서 토큰 삭제
 	 * RestFul요청 형태를 일관성있게 유지하고 토큰에 확장성을 고려해 작성하자
+	 * 
+	 * 
+	 * ----------------------------------------
+	 * 컨트롤러에서 http요청의 헤더 추출하기
+	 * 
+	 * request.getHeader();
 	 * 
 	 */
 }

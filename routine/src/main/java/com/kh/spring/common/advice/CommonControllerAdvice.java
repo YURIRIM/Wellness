@@ -11,6 +11,7 @@ import com.kh.spring.challenge.model.service.ChallengeService;
 import com.kh.spring.challenge.model.vo.ChallengeCategory;
 import com.kh.spring.util.common.Dummy;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 
@@ -47,4 +48,18 @@ public class CommonControllerAdvice {
 		}
 		return (List<ChallengeCategory>) session.getAttribute("ChallengeCategory");
 	}
+	
+	//root-context 넣기
+	@ModelAttribute("rootContextPath")
+	public String getRoot(HttpSession session, HttpServletRequest request) {
+		try {
+	        String contextPath = request.getContextPath();
+	        session.setAttribute("rootContextPath", contextPath);
+	        return contextPath;
+		} catch (Exception e) {
+			return "/routine";
+		}
+	}
+	
+	
 }

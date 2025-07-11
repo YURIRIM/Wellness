@@ -51,6 +51,7 @@
     <!-- thymeleaf 스크립트 변수 선언-->
     <script th:inline="javascript">
       const catAll = /*[[${ChallengeCategory}]]*/ ["안아줘요", "싫은데요"];
+      const contextPath = /*[[${rootContextPath}]]*/ "/routine";
     </script>
     <!-- 스크립트 파일-->
     <script th:src="@{/js/challenge/challMain.js}"></script>

@@ -3,13 +3,13 @@ package com.kh.spring.util.challenge;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
-import com.kh.spring.challenge.model.vo.Challenge;
+import com.kh.spring.challenge.model.vo.ChallengeRequest;
 import com.kh.spring.util.common.Regexp;
 
 public class ChallengeValidator {
 
 	//챌린지 유효성 검사
-	public static boolean challenge(Challenge chal) throws Exception{
+	public static boolean challenge(ChallengeRequest chal) throws Exception{
 		if(chal.getTitle() == null
 				|| !chal.getTitle().matches(Regexp.CHAL_TITLE)
 				|| chal.getContent() == null
@@ -20,17 +20,20 @@ public class ChallengeValidator {
 				|| !chal.getReplyRequired().matches(Regexp.CHAL_REPLY_REQUIRED)
 				)return false;
 		
-		if(chal.getVerifyCycle()<0
-				|| chal.getVerifyCycle()>221) return false;
-		switch(chal.getVerifyCycle()) {
-		case 201:
-		case 202:
-		case 203:
-		case 211:
-		case 212:
-		case 221:
-			break;
-		default : return false;
+		
+		int verifyCycle = chal.getVerifyCycle();
+		if(verifyCycle<0 || verifyCycle>221) return false;
+		else if(verifyCycle>127) {
+			switch(verifyCycle) {
+			case 201:
+			case 202:
+			case 203:
+			case 211:
+			case 212:
+			case 221:
+				break;
+			default : return false;
+			}
 		}
 	    /*
 	     * verifyCycle 인증 주기

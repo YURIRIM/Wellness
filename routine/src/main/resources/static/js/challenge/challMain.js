@@ -334,3 +334,172 @@ function newChalScript() {
     $("#new-cycle-type").trigger("change");
   });
 }
+
+//==========================chalMain-left==========================
+function chalMainLeftScript() {
+  // 뒤로가기 버튼
+  document
+    .getElementById("left-back-btn")
+    .addEventListener("click", function () {
+      window.history.go(-1);
+    });
+
+  // 세부 검색 버튼
+  document
+    .getElementById("left-detail-search-btn")
+    .addEventListener("click", function () {
+      const detailArea = document.getElementById("left-detail-search-area");
+      const btn = document.getElementById("left-detail-search-btn");
+      const icon = btn.querySelector("i");
+
+      if (detailArea.style.display === "none") {
+        detailArea.style.display = "block";
+        icon.className = "bi bi-chevron-up";
+        btn.innerHTML = '<i class="bi bi-chevron-up"></i> 세부 검색 닫기';
+      } else {
+        detailArea.style.display = "none";
+        icon.className = "bi bi-chevron-down";
+        btn.innerHTML = '<i class="bi bi-chevron-down"></i> 세부 검색';
+      }
+    });
+
+  // 인증 주기 선택 처리
+  document
+    .getElementById("left-cycle-type")
+    .addEventListener("change", function () {
+      const opt = document.getElementById("left-cycle-options");
+      opt.innerHTML = "";
+      const type = this.value;
+
+      if (type === "day") {
+        opt.innerHTML = createRadios(
+          "verifyCycle",
+          [201, "매일"],
+          [202, "이틀"],
+          [203, "사흘"]
+        );
+      } else if (type === "week") {
+        opt.innerHTML = createCheckboxes(
+          "verifyCycleBit",
+          [1, "월"],
+          [2, "화"],
+          [4, "수"],
+          [8, "목"],
+          [16, "금"],
+          [32, "토"],
+          [64, "일"]
+        );
+      } else if (type === "weeknum") {
+        opt.innerHTML = createRadios(
+          "verifyCycle",
+          [211, "매주"],
+          [212, "2주"]
+        );
+      } else if (type === "month") {
+        opt.innerHTML = createRadios("verifyCycle", [221, "매달"]);
+      } else {
+        opt.innerHTML = createRadios("verifyCycle", [0, "없음"]);
+      }
+    });
+
+  // 라디오 버튼 생성 함수
+  function createRadios(name, ...options) {
+    let html = "";
+    options.forEach((option) => {
+      html += `
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="${name}" value="${option[0]}" id="left-${name}-${option[0]}">
+              <label class="form-check-label" for="left-${name}-${option[0]}">${option[1]}</label>
+            </div>
+          `;
+    });
+    return html;
+  }
+
+  // 체크박스 생성 함수
+  function createCheckboxes(name, ...options) {
+    let html = "";
+    options.forEach((option) => {
+      html += `
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" name="${name}" value="${option[0]}" id="left-${name}-${option[0]}">
+              <label class="form-check-label" for="left-${name}-${option[0]}">${option[1]}</label>
+            </div>
+          `;
+    });
+    return html;
+  }
+
+  // 검색 버튼 클릭 처리
+  document
+    .getElementById("left-search-btn")
+    .addEventListener("click", function (e) {
+      e.preventDefault();
+      const form = document.getElementById("left-search-form");
+
+      //FormData로 전체 폼 데이터 추출
+      const params = {};
+      for (const [key, value] of new FormData(form)) {
+        params[key] = value; // 입력이 없으면 빈 문자열이 들어감
+      }
+
+      //날짜 없으면 기본값(날짜 없으면 톰캣이 퉷퉷함)
+      ["startDate1", "startDate2", "endDate1", "endDate2"].forEach((field) => {
+        if (!params[field] || params[field].trim() === "") {
+          params[field] = "1453-05-29 00:00:00";
+        }
+      });
+
+      //verifyCycle, verifyCycleBit 반영
+      const verifyCycleRadio = document.querySelector(
+        'input[name="verifyCycle"]:checked'
+      );
+      if (verifyCycleRadio) {
+        params.verifyCycle = verifyCycleRadio.value;
+      }
+      const checkedBits = document.querySelectorAll(
+        'input[name="verifyCycleBit"]:checked'
+      );
+      if (checkedBits.length > 0) {
+        let bitSum = 0;
+        checkedBits.forEach((cb) => (bitSum += parseInt(cb.value)));
+        params.verifyCycleBit = bitSum;
+      }
+
+      console.log("검색할 파라미터:", params);
+
+      axios
+        .get(contextPath + "/challenge/chalMainSearch", { params })
+        .then(function (response) {
+          document.getElementById("main-challenge-list").innerHTML =
+            response.data;
+        })
+        .catch(function (error) {
+          console.error("검색 중 오류 발생:", error);
+          alert("검색 중 오류가 발생했습니다.");
+        });
+    });
+
+  // 초기화 버튼 클릭 처리
+  document
+    .getElementById("left-reset-btn")
+    .addEventListener("click", function () {
+      const form = document.getElementById("left-search-form");
+      form.reset();
+
+      // 세부 검색 영역 닫기
+      document.getElementById("left-detail-search-area").style.display = "none";
+      document.getElementById("left-detail-search-btn").innerHTML =
+        '<i class="bi bi-chevron-down"></i> 세부 검색';
+
+      // 인증 주기 옵션 초기화
+      document.getElementById("left-cycle-options").innerHTML = "";
+    });
+}
+
+// 조각이 로드될 때 스크립트 실행
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", chalMainLeftScript);
+} else {
+  chalMainLeftScript();
+}
