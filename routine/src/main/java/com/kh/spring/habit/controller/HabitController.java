@@ -30,7 +30,8 @@ public class HabitController {
 	
 	@GetMapping("/add")
     public String insertHabit(Habit h) {
-//        int result = service.insertHabit(h);
+		service.insertHabit(h);
+		
         return "habit/habitAdd";
     }
 
