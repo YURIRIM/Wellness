@@ -9,20 +9,20 @@ public class Regexp {
 	public static final String CHAL_CONTENT = "^.{1,1000}$";
 	public static final String CHAL_PICTURE_REQUIRED = "^[IYON]$";
 	public static final String CHAL_REPLY_REQUIRED = "^[YON]$";
+	public static final LocalDate DOWNFALL = LocalDate.of(1453, 5, 29);
 	
 	//페이지당 노출될 챌린지 게시글 수
 	public static final int CHAL_SHOW_LIMIT = 20;
 	
 	//SearchChallenge
-	public static final String SC_ORDERBY = "^[LPS]$";
-	public static final String SC_SEARCH = "^.{1,100}$";
-	public static final String SC_SEARCH_TYPE = "^[TCA]$";
-	public static final String SC_STATUS = "^[YNX]$";
-	public static final String SC_PICTURE_REQUIRED = "^[IYONX]$";
-	public static final String SC_REPLY_REQUIRED = "^[YONX]$";
+	public static final String SC_ORDERBY = "^[PS]?$";
+	public static final String SC_SEARCH = "^.{0,100}$";
+	public static final String SC_SEARCH_TYPE = "^[TCN]?$";
+	public static final String SC_STATUS = "^[YN]?$";
+	public static final String SC_PICTURE_REQUIRED = "^[IYON]?$";
+	public static final String SC_REPLY_REQUIRED = "^[YON]?$";
 	public static final int TITLE_SHOW_LIMIT = 20; //제목 글자 표시 제한
 	public static final int CONTENT_SHOW_LIMIT = 100; //내용 글자 표시 제한
-	public static final LocalDate DOWNFALL = LocalDate.of(1453, 5, 29);
 	
 	//Attachment
 	//모든 언어의 글자, 숫자, 언더스코어, 마침표, 하이픈 허가
