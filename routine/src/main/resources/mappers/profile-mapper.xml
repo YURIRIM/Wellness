@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="profileMapper">
+
+<select id="selectMyProfile" resultType="Profile">
+  select p.USER_NO
+        ,p.PICTURE
+        ,p.BIO
+        ,p.IS_OPEN
+        ,count(cp.CHAL_NO) as chal_particiapte_count
+        ,SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) as success_count
+        ,SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END) as fail_count
+        ,ROUND(SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END)
+          * 100.0 / COUNT(cp.user_no),2) as SUCCESS_RATIO
+        ,ROUND(SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END)
+          * 100.0 / COUNT(cp.user_no),2) as FAIL_RATIO
+
+  from PROFILE p
+  left join CHALLENGE_PARTICIPATION cp on(cp.USER_NO = p.USER_NO)
+  where p.user_no = #{userNo}
+  group by p.USER_NO
+          ,p.PICTUR
+          ,p.BIO
+          ,p.IS_OPEN
+</select>
+	
+
+</mapper>

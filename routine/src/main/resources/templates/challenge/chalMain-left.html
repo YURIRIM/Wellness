@@ -13,7 +13,6 @@
   <!-- 검색/필터 -->
   <div class="card shadow-sm mb-3">
     <div class="card-body">
-      <!-- 뒤로가기 버튼 -->
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="card-title mb-0">검색/필터</h5>
       </div>
@@ -53,17 +52,28 @@
 
         <!-- 카테고리 -->
         <div class="mb-3">
-          <label for="left-category" class="form-label">카테고리</label>
-          <select class="form-select" id="left-category" name="categoryNo">
-            <option value="0">전체</option>
-            <option
-              th:each="category : ${ChallengeCategory}"
-              th:value="${category.categoryNo}"
-              th:text="${category.categoryName}"
-            >
-              카테고리명
-            </option>
-          </select>
+          <label class="form-label">카테고리</label>
+
+          <!-- 대분류 박스 -->
+          <div class="mb-2">
+            <select class="form-select" id="left-category-parent">
+              <option value="0">전체</option>
+              <!-- 10의 자리가 같고 1의 자리가 0인 항목만 표시 -->
+              <option th:each="category : ${ChallengeCategory}"
+                      th:if="${category.categoryNo % 10 == 0 and category.categoryNo > 0}"
+                      th:value="${category.categoryNo}"
+                      th:text="${category.categoryName}">
+                카테고리명
+              </option>
+            </select>
+          </div>
+
+          <!-- 소분류 뽝스 -->
+          <div>
+            <select class="form-select" id="left-category-child" name="categoryNo" disabled>
+              <option value="0">전체</option>
+            </select>
+          </div>
         </div>
 
         <!-- 세부 검색 버튼 -->
@@ -90,6 +100,8 @@
               <option value="month">월 단위</option>
             </select>
             <div id="left-cycle-options" class="mt-2"></div>
+            <!-- 숨겨진 input: 인증 주기 값 전송용 (verifyCycleBit 제거) -->
+            <input type="hidden" id="left-verify-cycle" name="verifyCycle" value="0">
           </div>
 
           <!-- 시작일 -->

@@ -363,24 +363,60 @@ function chalMainLeftScript() {
       }
     });
 
+  // 카테고리 부모 선택 시 자식 카테고리 업데이트
+  document
+    .getElementById("left-category-parent")
+    .addEventListener("change", function () {
+      const parent = parseInt(this.value, 10);
+      const childSel = document.getElementById("left-category-child");
+
+      // 1) 초기화 - "전체" 옵션의 value는 0으로 설정
+      childSel.disabled = parent === 0;
+      childSel.innerHTML = '<option value="0">전체</option>';
+
+      if (parent === 0) return; // 전체 선택이면 종료
+
+      // 2) catAll에서 자식 카테고리 필터링 (window.catAll 대신 catAll 직접 사용)
+      const children = (catAll || []).filter((c) => {
+        const categoryNo = parseInt(c.categoryNo, 10);
+        const parentCategory = Math.floor(categoryNo / 10) * 10;
+        const isChild = categoryNo % 10 !== 0;
+
+        return parentCategory === parent && isChild;
+      });
+
+      // 3) 옵션 동적 추가
+      children.forEach((c) => {
+        const opt = document.createElement("option");
+        opt.value = c.categoryNo;
+        opt.textContent = c.categoryName;
+        childSel.appendChild(opt);
+      });
+    });
+
   // 인증 주기 선택 처리
   document
     .getElementById("left-cycle-type")
     .addEventListener("change", function () {
       const opt = document.getElementById("left-cycle-options");
+      const verifyCycleInput = document.getElementById("left-verify-cycle");
+
       opt.innerHTML = "";
       const type = this.value;
 
+      // 기본값으로 초기화
+      verifyCycleInput.value = "0";
+
       if (type === "day") {
         opt.innerHTML = createRadios(
-          "verifyCycle",
+          "verifyCycleRadio",
           [201, "매일"],
           [202, "이틀"],
           [203, "사흘"]
         );
       } else if (type === "week") {
         opt.innerHTML = createCheckboxes(
-          "verifyCycleBit",
+          "verifyCycleCheck",
           [1, "월"],
           [2, "화"],
           [4, "수"],
@@ -391,85 +427,94 @@ function chalMainLeftScript() {
         );
       } else if (type === "weeknum") {
         opt.innerHTML = createRadios(
-          "verifyCycle",
+          "verifyCycleRadio",
           [211, "매주"],
           [212, "2주"]
         );
       } else if (type === "month") {
-        opt.innerHTML = createRadios("verifyCycle", [221, "매달"]);
-      } else {
-        opt.innerHTML = createRadios("verifyCycle", [0, "없음"]);
+        opt.innerHTML = createRadios("verifyCycleRadio", [221, "매달"]);
       }
     });
 
   // 라디오 버튼 생성 함수
   function createRadios(name, ...options) {
     let html = "";
-    options.forEach((option) => {
+    options.forEach((option, index) => {
+      const checked = index === 0 ? "checked" : "";
       html += `
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="${name}" value="${option[0]}" id="left-${name}-${option[0]}">
-              <label class="form-check-label" for="left-${name}-${option[0]}">${option[1]}</label>
-            </div>
-          `;
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="${name}" value="${option[0]}" 
+                 id="left-${name}-${option[0]}" ${checked} 
+                 onchange="updateVerifyCycle(${option[0]})">
+          <label class="form-check-label" for="left-${name}-${option[0]}">${option[1]}</label>
+        </div>
+      `;
     });
     return html;
   }
 
   // 체크박스 생성 함수
-  function createCheckboxes(name, ...options) {
+  function createCheckboxes(_, ...options) {
     let html = "";
-    options.forEach((option) => {
+    options.forEach((opt) => {
       html += `
-            <div class="form-check form-check-inline">
-              <input class="form-check-input" type="checkbox" name="${name}" value="${option[0]}" id="left-${name}-${option[0]}">
-              <label class="form-check-label" for="left-${name}-${option[0]}">${option[1]}</label>
-            </div>
-          `;
+        <div class="form-check form-check-inline">
+          <input class="form-check-input verifyCycleChk"
+                 type="checkbox"
+                 value="${opt[0]}"
+                 id="left-vc-${opt[0]}"
+                 onchange="updateVerifyCycleFromCheckbox()">
+          <label class="form-check-label" for="left-vc-${opt[0]}">${opt[1]}</label>
+        </div>
+      `;
     });
     return html;
   }
 
-  // 검색 버튼 클릭 처리
+  // verifyCycle 업데이트 함수
+  window.updateVerifyCycle = function (value) {
+    document.getElementById("left-verify-cycle").value = value;
+  };
+
+  // 체크박스에서 verifyCycle 업데이트 함수
+  window.updateVerifyCycleFromCheckbox = function () {
+    const bitSum = [
+      ...document.querySelectorAll(".verifyCycleChk:checked"),
+    ].reduce((sum, cb) => sum + parseInt(cb.value, 10), 0);
+    document.getElementById("left-verify-cycle").value = bitSum;
+  };
+
+  // 날짜 필드에 시간 부분 추가하는 함수
+  function formatDateTimeString(dateString) {
+    if (!dateString || dateString.trim() === "") {
+      return "1453-05-29 00:00:00";
+    }
+    return dateString + " 00:00:00";
+  }
+
+  // 검색 버튼 클릭 처리 (수정: 날짜 형식 처리)
   document
     .getElementById("left-search-btn")
     .addEventListener("click", function (e) {
       e.preventDefault();
       const form = document.getElementById("left-search-form");
 
-      //FormData로 전체 폼 데이터 추출
+      // FormData로 전체 폼 데이터 추출
       const params = {};
       for (const [key, value] of new FormData(form)) {
-        params[key] = value; // 입력이 없으면 빈 문자열이 들어감
+        params[key] = value;
       }
 
-      //날짜 없으면 기본값(날짜 없으면 톰캣이 퉷퉷함)
+      // 날짜 필드: 시간 부분 추가
       ["startDate1", "startDate2", "endDate1", "endDate2"].forEach((field) => {
-        if (!params[field] || params[field].trim() === "") {
-          params[field] = "1453-05-29 00:00:00";
+        const input = document.querySelector(`[name="${field}"]`);
+        if (input) {
+          params[field] = formatDateTimeString(input.value);
         }
       });
 
-      //verifyCycle, verifyCycleBit 반영
-      const verifyCycleRadio = document.querySelector(
-        'input[name="verifyCycle"]:checked'
-      );
-      if (verifyCycleRadio) {
-        params.verifyCycle = verifyCycleRadio.value;
-      }
-      const checkedBits = document.querySelectorAll(
-        'input[name="verifyCycleBit"]:checked'
-      );
-      if (checkedBits.length > 0) {
-        let bitSum = 0;
-        checkedBits.forEach((cb) => (bitSum += parseInt(cb.value)));
-        params.verifyCycleBit = bitSum;
-      }
-
-      console.log("검색할 파라미터:", params);
-
       axios
-        .get(contextPath + "/challenge/chalMainSearch", { params })
+        .get(contextPath + "/challenge/chalMainSearchLeft", { params })
         .then(function (response) {
           document.getElementById("main-challenge-list").innerHTML =
             response.data;
@@ -480,7 +525,7 @@ function chalMainLeftScript() {
         });
     });
 
-  // 초기화 버튼 클릭 처리
+  // 초기화 버튼 클릭 처리 (수정: verifyCycleBit 제거)
   document
     .getElementById("left-reset-btn")
     .addEventListener("click", function () {
@@ -494,6 +539,14 @@ function chalMainLeftScript() {
 
       // 인증 주기 옵션 초기화
       document.getElementById("left-cycle-options").innerHTML = "";
+
+      // 카테고리 자식 선택박스 초기화
+      const childSelect = document.getElementById("left-category-child");
+      childSelect.innerHTML = '<option value="0">전체</option>';
+      childSelect.disabled = true;
+
+      // hidden input 초기화
+      document.getElementById("left-verify-cycle").value = "0";
     });
 }
 

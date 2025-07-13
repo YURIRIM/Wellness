@@ -37,7 +37,7 @@ public class ChallengeController {
 	
 	//비동기 - 챌린지 메인에서 챌린지 리스트
 	@ResponseBody
-	@PostMapping("/selectChal")
+	@GetMapping("/chalMainSearch")
 	public String selectChalAjax(HttpSession session, Model model, SearchChallenge sc) {
 		try {
 			service.selectChal(session,model,sc);
@@ -49,7 +49,7 @@ public class ChallengeController {
 	}
 	
 	//비동기 - 왼쪽 사이드바에서 검색했을 경우
-	@GetMapping("/chalMainSearch")
+	@GetMapping("/chalMainSearchLeft")
 	public String selectChal(HttpSession session, Model model, SearchChallenge sc) {
 		try {
 			//비동기 조회 로직과 동일

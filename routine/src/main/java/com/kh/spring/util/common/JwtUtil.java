@@ -7,6 +7,8 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.kh.spring.challenge.model.vo.Profile;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -28,21 +30,27 @@ public class JwtUtil {
 		return Keys.hmacShaKeyFor(secret.getBytes());
 	}
 	
-	//사용자 로그인 성공시 JWT 토큰을 생성하는 메소드
-	//매개변수 : userId - 토큰에 필요한 생성자
-	//반환값 : 생성된 JWT 토큰 문자열
-	public String generateToken(String userId) {
+	//자신 프로필 JWT로 저장
+	public String userProfileToken(Profile userProfile) {
 		Date now = new Date();
 		
 		Date expiryDate = new Date(now.getTime()+expiration); //현재시간+만료시간
 		
 		//JWT 토큰 빌더패턴을 이용해 토큰 생성
 		return Jwts.builder()
-				.setSubject(userId) //Subject - 토큰 대상
+				.setSubject(String.valueOf(userProfile.getUserNo())) //Subject - 토큰 대상
 				.setIssuedAt(now) //발급된 때
 				.setExpiration(expiryDate) //만료될 때
 				.signWith(getSignKey()) //생성된 암호화 키로 토큰에 디지털 서명(토큰 위조 검증)
-//				.claim("키", "값") --추가적으로 토큰에 담을 데이터가 있다면
+				.claim("userNo", userProfile.getUserNo()) //추가적으로 토큰에 담을 데이터
+				.claim("bio", userProfile.getBio())
+				.claim("pictureBase64", userProfile.getPictureBase64())
+				.claim("isOpen", userProfile.getIsOpen())
+				.claim("chalParticiapteCount", userProfile.getChalParticiapteCount())
+				.claim("successCount", userProfile.getSuccessCount())
+				.claim("failCount", userProfile.getFailCount())
+				.claim("successRatio", userProfile.getSuccessRatio())
+				.claim("failRatio", userProfile.getFailRatio())
 				.compact(); //최종적으로 JWT문자열 형태로 압축해 반환해주는 메소드
 	}
 	

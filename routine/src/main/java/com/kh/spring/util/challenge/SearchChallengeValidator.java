@@ -9,17 +9,18 @@ public class SearchChallengeValidator {
 
 	//챌린지 유효성 검사
 	public static boolean searchChallenge(SearchChallenge sc){
-		if(sc.getOrderby() ==null
-				|| !sc.getOrderby().matches(Regexp.SC_ORDERBY)
-				|| sc.getSearch() ==null
+		if(sc.getOrderby() ==null) sc.setOrderby("");
+		if(sc.getSearch() ==null) sc.setSearch("");
+		if(sc.getSearchType() ==null) sc.setSearchType("");
+		if(sc.getStatus() ==null) sc.setStatus("");
+		if(sc.getPictureRequired() ==null) sc.setPictureRequired("");
+		if(sc.getReplyRequired() ==null) sc.setReplyRequired("");
+		
+		if(!sc.getOrderby().matches(Regexp.SC_ORDERBY)
 				|| !sc.getSearch().matches(Regexp.SC_SEARCH)
-				|| sc.getSearchType() ==null
 				|| !sc.getSearchType().matches(Regexp.SC_SEARCH_TYPE)
-				|| sc.getStatus() ==null
 				|| !sc.getStatus().matches(Regexp.SC_STATUS)
-				|| sc.getPictureRequired() ==null
 				|| !sc.getPictureRequired().matches(Regexp.SC_PICTURE_REQUIRED)
-				|| sc.getReplyRequired() ==null
 				|| !sc.getReplyRequired().matches(Regexp.SC_REPLY_REQUIRED)
 				)return false;
 		
