@@ -1,5 +1,11 @@
 package com.kh.spring.controller;
 
+import java.util.Iterator;
+import java.util.Locale;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriter;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -9,8 +15,8 @@ public class MainController {
 	
 	@GetMapping("/")
 	public String main() {
+		ImageIO.scanForPlugins();
 		return "main";
-	
 	}
 	
 	 /**
