@@ -5,49 +5,6 @@ css사용 시, class가 아닌 id로 연결하기
 스크립트 사용 시, thymeleaf를 사용해야 할 경우 해당 변수는 별도로 선언하기
 모든 스크립트는 함수 chalMainCenterScript에 담고 이 조각이 활성화되면 스크립트와 연결해주어야 함.
 연결 방식은 다음 스크립트와 유사한 방법 사용
-------------
-document.addEventListener("DOMContentLoaded", function () {
-  //==========================chalMain-right==========================
-  const centerDiv = document.querySelector(".challenge-list");
-
-  function loadFragment(url) {
-    axios
-      .get(url)
-      .then(function (response) {
-        centerDiv.innerHTML = response.data;
-
-        //조각 불러올 때 스크립트 초기화
-        if (centerDiv.querySelector("#new-form")) {
-          newChalScript();
-        }
-      })
-      .catch(function (error) {
-        console.error("Error loading fragment:", error);
-      });
-  }
-
-  document
-    .getElementById("right-newChal")
-    .addEventListener("click", function (e) {
-      e.preventDefault();
-      loadFragment(this.getAttribute("href"));
-    });
-
-  document
-    .getElementById("right-createdChal")
-    .addEventListener("click", function (e) {
-      e.preventDefault();
-      loadFragment(this.getAttribute("href"));
-    });
-
-  document
-    .getElementById("right-joinedChal")
-    .addEventListener("click", function (e) {
-      e.preventDefault();
-      loadFragment(this.getAttribute("href"));
-    });
-});
------------------
 
 
 부트스트랩(+아이콘,달력), axios, jquery 라이브러리는 선언되어 있다고 가정 
@@ -55,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
 중앙
 챌린지 카드 동적 생성
 가로로 2열 생성
-요청 경로(이 경로를 그대로 사용) : contextPath+'/challenge/chalMainSearch', 메소드 : GET
+요청 경로 : contextPath+'/challenge/chalMainSearch', 메소드 : GET
 요청에 성공하면 success, 실패하면 fail을 수신받음
 요청받은 데이터는 model의 chalList라는 이름으로 List<ChallengeResponse>에 담김
 조회 결과가 없으면 ressources/static/img/not-found.webp 이미지를 대신 출력
@@ -129,7 +86,7 @@ public class SearchChallenge {
 	private final int showLimit = Regexp.CHAL_SHOW_LIMIT; //한 페이지에서 보여줄 게시글 수
 	private String orderby; //정렬 방식. '빈문자열':최신순, P:참여인원 많은 순, S:성공률 순
 	private String search; //검색어
-	private String searchType;//검색 대상(T:제목 C:내용 N:닉네임 '빈문자열':전부)
+	private String searchType;//검색 대상(T:제목 C:내용 N:닉네임 '빈문자열':전부 J,O:자신이 참여/생성한 챌린지)
 	
 	private int categoryNo;
 	private int verifyCycle;
@@ -143,8 +100,9 @@ public class SearchChallenge {
 }
 
 검색에 사용된 SearchChallenge는 'searchChallenge'라는 이름으로 model에 담김
-이 페이지 조각이 불러졌는데 searchChallenge가 비었을 경우, currentPage=0
-, startDate1=startDate2=endDate1=endDate2="1453-05-29 00:00:00" 값을 가지고 요청 보내기
+이 페이지 조각이 불러졌는데 searchChallenge가 비었을(model이 없을) 경우, currentPage=0
+, startDate1=startDate2=endDate1=endDate2="1453-05-29 00:00:00" 값을 가지고 chalMainSearch로 요청 보내기
+
 model에 searchChallenge와 searchChallenge와.search 가 존재할 경우, searchChallenge.searchType에 따라 검색 결과에 하이라이트 표시
 예)search가 '공부', searchType이 'T'인 경우, 제목에 '공부합시다'인 게시글의 제목 중 '공부'에 하이라이트 표시
 
@@ -156,6 +114,10 @@ model에 searchChallenge와 searchChallenge와.search 가 존재할 경우, sear
 무한 스크롤 구현 : 화면이 게시글 끝에 거의 도달하면 searchChallenge.currentPage에서 currentPage를 추출하고
 +1한 후, model에 담긴 나머지 값을 포함해서 보내기
 
-카드를 클릭한 경우, 해당 카드의 chalNo를 가지고 contextPath+'/challenge/chalDetail'로 get요청 
+SearchChallenge.searchType가 O혹은 J이면, currentPage와 해당searchType를 가지고
+contextPath+'/challenge/myChal'로 다음 페이지 get요청 보내기
+
+
+카드를 클릭한 경우, 해당 카드의 chalNo를 가지고 contextPath+'/challenge/chalDetail'로 get요청(페이지 이동됨)
 -->
 </th:block>

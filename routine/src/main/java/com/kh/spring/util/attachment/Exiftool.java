@@ -42,7 +42,7 @@ public class Exiftool {
 		//임시 파일 생성
 		File tempFile = File.createTempFile("upload_", ".webp");
 		try (FileOutputStream fos = new FileOutputStream(tempFile)) {
-			fos.write(at.getFile());
+			fos.write(at.getFileContent());
 		}
 
 		//메타데이터 자 자 이리로 왓

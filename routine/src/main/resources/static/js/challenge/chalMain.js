@@ -1,14 +1,16 @@
 document.addEventListener("DOMContentLoaded", function () {
   //==========================chalMain-right==========================
-  const centerDiv = document.querySelector(".challenge-list");
+  const centerDiv = document.getElementById("main-challenge-list");
 
   function loadFragment(url) {
     axios
       .get(url)
       .then(function (response) {
+        // 서버에서 반환된 Thymeleaf fragment(html) 전체가 아니라
+        // chalMain-center 프래그먼트(<div id="main-challenge-list">...</div>)만 담겨 있다고 가정
         centerDiv.innerHTML = response.data;
 
-        //조각 불러올 때 스크립트 초기화
+        // 새로 삽입된 HTML에 스크립트가 필요하면 초기화
         if (centerDiv.querySelector("#new-form")) {
           newChalScript();
         }
@@ -18,26 +20,135 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
-  document
-    .getElementById("right-newChal")
-    .addEventListener("click", function (e) {
-      e.preventDefault();
-      loadFragment(this.getAttribute("href"));
-    });
+  // 오른쪽 사이드바 버튼들에 클릭 이벤트 등록
+  ["right-newChal", "right-createdChal", "right-joinedChal"].forEach(function (
+    id
+  ) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("click", function (e) {
+        e.preventDefault();
+        loadFragment(this.getAttribute("href"));
+      });
+    }
+  });
 
-  document
-    .getElementById("right-createdChal")
-    .addEventListener("click", function (e) {
-      e.preventDefault();
-      loadFragment(this.getAttribute("href"));
-    });
+  // 프로필 영역 렌더링 함수
+  async function renderProfile() {
+    const profileArea = document.getElementById("right-profile-area");
+    let profileData = null;
 
-  document
-    .getElementById("right-joinedChal")
-    .addEventListener("click", function (e) {
-      e.preventDefault();
-      loadFragment(this.getAttribute("href"));
-    });
+    // JWT 토큰 확인
+    const jwt = localStorage.getItem("jwtToken");
+    let loginUserNo = /*[[${loginUser.userNo}]]*/ 0;
+    let loginUserName = /*[[${loginUser.name}]]*/ "사용자";
+
+    if (jwt) {
+      const payload = JSON.parse(atob(jwt.split(".")[1]));
+      if (payload.userNo == loginUserNo) {
+        profileData = payload;
+      }
+    }
+
+    // JWT 없거나 userNo 불일치 시 서버로부터 프로필 fetch
+    if (!profileData) {
+      try {
+        const res = await axios.post(contextPath + "/profile/selectMyProfile");
+        if (res.data.status === "success") {
+          const payload = JSON.parse(atob(res.data.data.split(".")[1]));
+          profileData = payload;
+        } else if (res.data.status === "noProfile") {
+          profileArea.innerHTML = `
+            <div id="right-no-profile" class="text-center">
+              <p>프로필이 없습니다.</p>
+              <button id="right-create-profile" class="btn btn-primary btn-sm">프로필 생성하기</button>
+            </div>
+          `;
+          document.getElementById("right-create-profile").onclick =
+            function () {
+              window.location.href = contextPath + "/profile/insertMyProfile";
+            };
+          return;
+        } else {
+          profileArea.innerHTML = "";
+          return;
+        }
+      } catch (e) {
+        profileArea.innerHTML = "";
+        return;
+      }
+    }
+
+    //------프로필 렌더링------
+    const pictureBase64 = profileData.pictureBase64;
+    let imgSrc = "";
+    if (pictureBase64) {
+      imgSrc = `data:image/png;base64,${pictureBase64}`;
+    } else {
+      const localImg = localStorage.getItem("challengeWriterImage");
+      if (localImg) {
+        imgSrc = localImg;
+      } else {
+        console.log("challengeWriterImage 접근 불가");
+        imgSrc = "/img/default-profile.png";
+      }
+    }
+
+    const successRatio = Number(profileData.successRatio || 0);
+    const failRatio = Number(profileData.failRatio || 0);
+    const progressRatio = Math.max(0, 100 - successRatio - failRatio);
+
+    profileArea.innerHTML = `
+      <div id="right-profile" class="mb-3 text-center">
+        <div id="right-profile-img-wrap" class="mx-auto mb-2" style="width:80px;height:80px;">
+          <img id="right-profile-img" src="${imgSrc}" alt="프로필" class="rounded-circle border" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+        <div id="right-profile-name" class="fw-bold mb-1">${loginUserName}</div>
+        <div id="right-profile-bio" class="mb-2" style="min-height:32px;word-break:break-all;">${
+          profileData.bio || ""
+        }</div>
+        <div id="right-profile-bar" class="mb-2">
+          <div class="progress" style="height:22px;">
+            <div class="progress-bar bg-primary" role="progressbar"
+              style="width:${successRatio}%" title="성공 ${
+      profileData.successCount
+    }/${profileData.chalParticiapteCount}">
+              ${successRatio.toFixed(2)}%
+            </div>
+            <div class="progress-bar bg-success" role="progressbar"
+              style="width:${progressRatio}%" title="진행중 ${
+      profileData.chalParticiapteCount -
+      profileData.successCount -
+      profileData.failCount
+    }">
+              ${progressRatio.toFixed(2)}%
+            </div>
+            <div class="progress-bar bg-danger" role="progressbar"
+              style="width:${failRatio}%" title="실패 ${profileData.failCount}">
+              ${failRatio.toFixed(2)}%
+            </div>
+          </div>
+        </div>
+        <div id="right-profile-isopen" class="mb-2">
+          <span class="badge bg-secondary">
+            ${
+              profileData.isOpen === "Y"
+                ? "공개"
+                : profileData.isOpen === "N"
+                ? "비공개"
+                : "익명"
+            }
+          </span>
+        </div>
+        <button id="right-update-profile" class="btn btn-outline-secondary btn-sm w-100">프로필 갱신하기</button>
+      </div>
+    `;
+    document.getElementById("right-update-profile").onclick = function () {
+      window.location.href = contextPath + "/profile/updateMyProfile";
+    };
+  }
+
+  renderProfile();
 });
 
 //==========================newChal==========================

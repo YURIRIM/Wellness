@@ -100,9 +100,10 @@ isOpen (프로필 공개 여부 - Y:공개, N:참여한 챌린지 비공개, A:�
 위 순서대로 표시
 
 -->
-
+  <div id="right-profile-area" class="mb-4">
+    <!-- 프로필 영역 -->
+  </div>
   <div id="right-chal-right" class="p-3">
-    <h5>개인 영역</h5>
     <div class="list-group">
       <a
         th:href="@{/challenge/newChal}"
@@ -111,13 +112,13 @@ isOpen (프로필 공개 여부 - Y:공개, N:참여한 챌린지 비공개, A:�
         >새로운 챌린지 생성하기</a
       >
       <a
-        th:href="@{/challenge/createdChal}"
+        th:href="@{/challenge/goMyChal?searchType=O}"
         id="right-createdChal"
         class="list-group-item list-group-item-action"
         >내가 생성한 챌린지</a
       >
       <a
-        th:href="@{/challenge/joinedChal}"
+        th:href="@{/challenge/goMyChal?searchType=J}"
         id="right-joinedChal"
         class="list-group-item list-group-item-action"
         >내가 참여한 챌린지</a

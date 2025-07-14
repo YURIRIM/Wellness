@@ -3,8 +3,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const images = [
     {
       url: "/img/challenge-writer-default.webp",
-      storageKey: "challengeWriterImage",
-      expiryKey: "challengeWriterImageExpiry",
+      storageKey: "challengeWriterDefaultImage",
+      expiryKey: "challengeWriterDefaultImageExpiry",
     },
     {
       url: "/img/challenge-default.webp",

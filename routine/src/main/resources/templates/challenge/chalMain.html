@@ -12,7 +12,7 @@
       th:href="@{/webjars/summernote/0.9.1/dist/summernote-bs5.min.css}"
       rel="stylesheet"
     />
-    <link rel="stylesheet" th:href="@{/css/challenge/challMain.css}" />
+    <link rel="stylesheet" th:href="@{/css/challenge/chalMain.css}" />
   </head>
   <body>
     <th:block th:replace="~{/common/fragment :: header}"></th:block>
@@ -37,9 +37,11 @@
         </div>
         <div id="main-right" class="col-3">
           오른쪽: 개인 영역
-          <th:block
-            th:replace="~{/challenge/chalMain-right :: chalMain-right}"
-          ></th:block>
+          <th:block th:if="${loginUser != null}">
+            <th:block
+              th:replace="~{/challenge/chalMain-right :: chalMain-right}"
+            ></th:block>
+          </th:block>
           <div id="main-sidebar-right" class="sidebar-bottom">
             우측 사이드바 아래 영역(비워둘꺼임)
           </div>
@@ -54,6 +56,6 @@
       const contextPath = /*[[${rootContextPath}]]*/ "/routine";
     </script>
     <!-- 스크립트 파일-->
-    <script th:src="@{/js/challenge/challMain.js}"></script>
+    <script th:src="@{/js/challenge/chalMain.js}"></script>
   </body>
 </html>

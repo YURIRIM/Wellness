@@ -37,14 +37,13 @@ public class ChallengeResponse {
     
     private int participateCount; //challenge_participation
     private Double successRatio; //challenge_participation, 백분율
-    
+    private Double failRatio; //challenge_participation, 백분율
     
     //-----세부 조회용 요소-----
     private int userNo;
     private int categoryNo;
     private int successCount; //challenge_participation
     private int failCount; //challenge_participation
-    private Double failRatio; //challenge_participation, 백분율
     
     /*
      * verifyCycle 인증 주기

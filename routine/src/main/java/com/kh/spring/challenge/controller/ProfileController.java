@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.kh.spring.challenge.model.service.ProfileService;
+import com.kh.spring.challenge.model.vo.Profile;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -39,7 +40,7 @@ public class ProfileController {
 	                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
 	            case "3": //프로필 없음
 	                response.put("status", "noProfile");
-	                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+	                return ResponseEntity.ok(response);
 	            default: //프로필 jwt로 반환
 	                response.put("status", "success");
 	                response.put("data", result);
@@ -55,7 +56,37 @@ public class ProfileController {
 	//프로필 생성 주소로 이동
 	@GetMapping("/insertMyProfile")
 	public String goInsetMyProfile() {
-		return "profile/insertProfile";
+		return "profile/insertMyProfile";
+	}
+	
+	//프로필 생성
+	@PostMapping("/insertMyProfile")
+	public String insertMyProfile(HttpSession session, Profile p) {
+		try {
+			service.insertMyProfile(session,p);
+			return "redirect:/challenge/chalMain";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "common/errorPage";
+		}
+	}
+	
+	//프로필 갱신 주소로 이동
+	@GetMapping("/updateMyProfile")
+	public String goUpdateMyProfile() {
+		return "profile/updateMyProfile";
+	}
+	
+	//프로필 생성
+	@PostMapping("/updateMyProfile")
+	public String updateMyProfile(HttpSession session, Profile p) {
+		try {
+			service.updateMyProfile(session,p);
+			return "redirect:/challenge/chalMain";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "common/errorPage";
+		}
 	}
 
 	

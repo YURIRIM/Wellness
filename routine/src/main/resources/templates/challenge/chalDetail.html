@@ -1,7 +1,40 @@
-<th:block th:fragment="chalDetail">
-<!--
-*중요 - 모든 태그의 id는 `detail-`로 시작하기(다른 조각과 충돌 방지)
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>챌린지</title>
+    <th:block th:replace="~{/common/fragment :: library}"></th:block>
+    <script
+      th:src="@{/webjars/summernote/0.9.1/dist/summernote-bs5.min.js}"
+    ></script>
+    <script th:src="@{/js/common/summernote-ko-KR.js}"></script>
+    <link
+      th:href="@{/webjars/summernote/0.9.1/dist/summernote-bs5.min.css}"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" th:href="@{/css/challenge/chalDetail.css}" />
+  </head>
+  <body>
+    <th:block th:replace="~{/common/fragment :: header}"></th:block>
 
--->
+    <!--
+    챌린지 상세보기
+    크게 좌/우로 구분된 두 영역 - 챌린지, 댓글 리스트
 
-</th:block>
+    챌린지 객체
+
+
+    댓글 객체
+
+    
+    -->
+
+    <!-- thymeleaf 스크립트 변수 선언-->
+    <script th:inline="javascript">
+      const catAll = /*[[${ChallengeCategory}]]*/ ["안아줘요", "싫은데요"];
+      const contextPath = /*[[${rootContextPath}]]*/ "/routine";
+    </script>
+    <!-- 스크립트 파일-->
+    <script th:src="@{/js/challenge/chalDetail.js}"></script>
+  </body>
+</html>

@@ -4,11 +4,377 @@
     <meta charset="UTF-8" />
     <title>프로필 갱신하기</title>
     <th:block th:replace="~{/common/fragment :: library}"></th:block>
-    <link rel="stylesheet" th:href="@{/css/challenge/challMain.css}" />
+    <style>
+      /* 중앙 카드 레이아웃 */
+      .profile-container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 30px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      /* 사진 업로드 영역 */
+      .profile-picture-area {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .profile-picture-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 3px dashed #ccc;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: 0.3s;
+        overflow: hidden;
+      }
+      .profile-picture-circle:hover {
+        border-color: #0d6efd;
+        background: #e3f2fd;
+      }
+      .profile-picture-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .profile-picture-circle i {
+        font-size: 30px;
+        color: #ccc;
+      }
+      .profile-picture-circle:hover i {
+        color: #0d6efd;
+      }
+      /* 글자수 카운트 */
+      .char-count {
+        font-size: 0.9em;
+        color: #666;
+        text-align: right;
+      }
+      /* 크롭 모달 */
+      .cropper-modal {
+        display: none;
+        position: fixed;
+        z-index: 1055;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+      }
+      .cropper-modal-content {
+        background: #fff;
+        margin: 50px auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 600px;
+        border-radius: 10px;
+      }
+      .cropper-container {
+        height: 400px;
+        margin: 20px 0;
+      }
+      .cropper-image {
+        max-width: 100%;
+        max-height: 100%;
+      }
+    </style>
   </head>
   <body>
-    <!--
-    
-    -->
+    <div class="profile-container">
+      <!-- 뒤로가기 -->
+      <div class="mb-3">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          onclick="history.back()"
+        >
+          <i class="bi bi-arrow-left"></i> 뒤로가기
+        </button>
+      </div>
+
+      <h3 class="text-center mb-4">프로필 갱신하기</h3>
+
+      <form id="profileForm">
+        <!-- 프로필 사진 -->
+        <div class="profile-picture-area">
+          <div class="profile-picture-circle" id="profilePictureArea">
+            <i class="bi bi-camera"></i>
+          </div>
+          <input
+            type="file"
+            id="profilePictureInput"
+            accept="image/*"
+            style="display: none"
+          />
+          <div class="mt-2">
+            <small class="text-muted">사진을 클릭하여 변경</small>
+          </div>
+        </div>
+
+        <!-- 자기소개 -->
+        <div class="mb-3">
+          <label for="bio" class="form-label">자기소개</label>
+          <textarea
+            class="form-control"
+            id="bio"
+            rows="3"
+            maxlength="100"
+            placeholder="자기소개를 입력하세요"
+          ></textarea>
+          <div class="char-count" id="bioCharCount">0/100</div>
+        </div>
+
+        <!-- 공개 설정 -->
+        <div class="mb-4">
+          <label class="form-label">프로필 공개 설정</label>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="isOpen"
+              id="openY"
+              value="Y"
+            />
+            <label class="form-check-label" for="openY">공개</label>
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="isOpen"
+              id="openN"
+              value="N"
+            />
+            <label class="form-check-label" for="openN"
+              >참여한 챌린지 비공개</label
+            >
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="isOpen"
+              id="openA"
+              value="A"
+            />
+            <label class="form-check-label" for="openA">익명</label>
+          </div>
+        </div>
+
+        <!-- 버튼 -->
+        <div class="d-flex gap-2">
+          <button
+            type="button"
+            class="btn btn-secondary flex-fill"
+            id="resetBtn"
+          >
+            초기화
+          </button>
+          <button type="submit" class="btn btn-primary flex-fill">제출</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 이미지 크롭 모달 -->
+    <div id="cropperModal" class="cropper-modal">
+      <div class="cropper-modal-content">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5>이미지 편집</h5>
+          <button
+            type="button"
+            class="btn-close"
+            id="closeCropperModal"
+          ></button>
+        </div>
+        <div class="cropper-container">
+          <img
+            id="cropperImage"
+            class="cropper-image"
+            src=""
+            alt="Crop Image"
+          />
+        </div>
+        <div class="d-flex justify-content-end gap-2 mt-3">
+          <button type="button" class="btn btn-secondary" id="cancelCrop">
+            취소
+          </button>
+          <button type="button" class="btn btn-primary" id="confirmCrop">
+            확인
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 스크립트 -->
+    <script th:inline="javascript">
+      const contextPath = /*[[${rootContextPath}]]*/ "";
+      const jwtToken = localStorage.getItem("jwtToken");
+
+      //jwt없으면 프로필 생성 페이지로 강제이동
+      if (!jwtToken) {
+        window.location.replace(contextPath + "/profile/insertMyProfile");
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        let payload = {};
+        try {
+          payload = JSON.parse(atob(jwtToken.split(".")[1])); // base64-decode
+        } catch (e) {
+          console.error("JWT 파싱 오류", e);
+          window.location.replace(contextPath + "/profile/insertMyProfile");
+        }
+
+        // 사진 영역 초기화
+        const profilePictureArea =
+          document.getElementById("profilePictureArea");
+        const defaultImg = payload.pictureBase64
+          ? "data:image/png;base64," + payload.pictureBase64
+          : null;
+        if (defaultImg) {
+          profilePictureArea.innerHTML =
+            '<img src="' + defaultImg + '" alt="profile">';
+        }
+
+        // 자기소개 초기값
+        const bioTextarea = document.getElementById("bio");
+        const bioCharCount = document.getElementById("bioCharCount");
+        bioTextarea.value = payload.bio || "";
+        bioCharCount.textContent = bioTextarea.value.length + "/100";
+
+        // 공개 설정 초기값
+        const openRadio = document.querySelector(
+          `input[name="isOpen"][value="${payload.isOpen || "Y"}"]`
+        );
+        if (openRadio) openRadio.checked = true;
+
+        // 글자수 카운트
+        bioTextarea.addEventListener("input", () => {
+          bioCharCount.textContent = bioTextarea.value.length + "/100";
+        });
+
+        //프로필 사진
+        const profilePictureInput = document.getElementById(
+          "profilePictureInput"
+        );
+        const cropperModal = document.getElementById("cropperModal");
+        const cropperImage = document.getElementById("cropperImage");
+        const closeCropperModal = document.getElementById("closeCropperModal");
+        const cancelCrop = document.getElementById("cancelCrop");
+        const confirmCrop = document.getElementById("confirmCrop");
+        let cropper = null;
+        let currentImageBase64 = payload.pictureBase64 || ""; // 서버 전송용
+
+        // 원형 영역 클릭 → 파일 선택
+        profilePictureArea.addEventListener("click", () =>
+          profilePictureInput.click()
+        );
+
+        // 파일 선택
+        profilePictureInput.addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          if (!file.type.startsWith("image/")) {
+            alert("이미지 파일만 선택");
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            cropperImage.src = ev.target.result;
+            cropperModal.style.display = "block";
+            setTimeout(() => {
+              cropper = new Cropper(cropperImage, {
+                aspectRatio: 1,
+                viewMode: 1,
+                background: false,
+                autoCrop: true,
+                minCropBoxWidth: 100,
+                minCropBoxHeight: 100,
+                cropBoxResizable: true,
+                cropBoxMovable: true,
+              });
+            }, 100);
+          };
+          reader.readAsDataURL(file);
+        });
+
+        // 크롭 모달 닫기
+        const closeCrop = () => {
+          cropperModal.style.display = "none";
+          if (cropper) {
+            cropper.destroy();
+            cropper = null;
+          }
+          profilePictureInput.value = "";
+        };
+        closeCropperModal.onclick = closeCrop;
+        cancelCrop.onclick = closeCrop;
+
+        // 크롭 확인
+        confirmCrop.addEventListener("click", () => {
+          if (!cropper) return;
+          const canvas = cropper.getCroppedCanvas({ width: 200, height: 200 });
+          compress(canvas, 0.7, (base64) => {
+            currentImageBase64 = base64.split(",")[1]; // "data:image/.." 제거
+            profilePictureArea.innerHTML =
+              '<img src="' + base64 + '" alt="profile">';
+            closeCrop();
+          });
+        });
+
+        // 200 KB 이하 압축
+        function compress(canvas, q, cb) {
+          const MAX = 200 * 1024;
+          const dataURL = canvas.toDataURL("image/jpeg", q);
+          if (dataURL.length * 0.75 <= MAX || q <= 0.1) {
+            cb(dataURL);
+          } else {
+            compress(canvas, q - 0.1, cb);
+          }
+        }
+
+        document.getElementById("resetBtn").addEventListener("click", () => {
+          if (!confirm("모든 변경 사항을 초기화할까요?")) return;
+          // 다시 토큰 값으로 리셋
+          profilePictureArea.innerHTML = defaultImg
+            ? '<img src="' + defaultImg + '" alt="profile">'
+            : '<i class="bi bi-camera"></i>';
+          currentImageBase64 = payload.pictureBase64 || "";
+          bioTextarea.value = payload.bio || "";
+          bioCharCount.textContent = bioTextarea.value.length + "/100";
+          if (openRadio) openRadio.checked = true;
+        });
+
+        document
+          .getElementById("profileForm")
+          .addEventListener("submit", (e) => {
+            e.preventDefault();
+            const body = {
+              pictureBase64: currentImageBase64,
+              bio: bioTextarea.value.trim(),
+              isOpen: document.querySelector('input[name="isOpen"]:checked')
+                .value,
+            };
+
+            axios
+              .post(contextPath + "/profile/updateMyProfile", body)
+              .then((res) => {
+                if (res.data === "success") {
+                  window.location.href = contextPath + "/challenge/chalMain";
+                } else {
+                  alert("프로필 갱신 실패");
+                }
+              })
+              .catch((err) => {
+                console.error(err);
+                alert("오류가 발생했습니다.");
+              });
+          });
+      });
+    </script>
   </body>
 </html>

@@ -9,7 +9,7 @@
 			ATTACHMENT_NO
 			,REF_NO
 			,REF_TABLE
-			,FILE
+			,FILE_CONTENT
 			,FILE_SIZE
 			,FILE_NAME
 			)
@@ -17,7 +17,7 @@
 			SEQ_ATTACHMENT
 			,#{refNo}
 			,'C'
-			,#{file}
+			,#{fileContent}
 			,#{fileSize}
 			,#{fileName}
 			)

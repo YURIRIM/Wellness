@@ -47,7 +47,7 @@ public class FileSanitizer {
 		}
 
 		// 저장!
-		at = Attachment.builder().file(file.getBytes()).fileName(sanitizedFilename).fileSize((int) file.getSize())
+		at = Attachment.builder().fileContent(file.getBytes()).fileName(sanitizedFilename).fileSize((int) file.getSize())
 				.build();
 		return true;
 	}

@@ -3,6 +3,7 @@ package com.kh.spring.util.challenge;
 import java.sql.Timestamp;
 
 import com.kh.spring.challenge.model.vo.SearchChallenge;
+import com.kh.spring.challenge.model.vo.SearchMyChallenge;
 import com.kh.spring.util.common.Regexp;
 
 public class SearchChallengeValidator {
@@ -73,5 +74,15 @@ public class SearchChallengeValidator {
 		
 		return true;
 	}
-
+	
+	
+	//챌린지 유효성 검사
+	public static boolean searchMyChallenge(SearchMyChallenge smc){
+		if(smc.getSearchType()==null
+				|| !smc.getSearchType().matches(Regexp.SMC_SEARCH_TYPE)
+				)return false;
+		if(smc.getCurrentPage()<0) return false;
+		
+		return true;
+	}
 }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.kh.spring.challenge.model.vo.ChallengeRequest;
 import com.kh.spring.challenge.model.vo.ChallengeResponse;
 import com.kh.spring.challenge.model.vo.SearchChallenge;
+import com.kh.spring.challenge.model.vo.SearchMyChallenge;
 
 @Repository
 public class ChallengeDao {
@@ -19,5 +20,12 @@ public class ChallengeDao {
 	public int newChal(SqlSessionTemplate sqlSession, ChallengeRequest chal) {
 		return sqlSession.insert("challengeMapper.newChal", chal);
 	}
-	
+
+	public List<ChallengeResponse> selectMyChal(SqlSessionTemplate sqlSession, SearchMyChallenge smc) {
+		return sqlSession.selectList("challengeMapper.selectMyChal",smc);
+	}
+
+	public ChallengeResponse chalDetail(SqlSessionTemplate sqlSession, int chalNo) {
+		return sqlSession.selectOne("challengeMapper.chalDetail", chalNo);
+	}
 }
