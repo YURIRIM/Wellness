@@ -33,24 +33,38 @@ public class MeetingController {
         return "meeting/createMeeting";
     }
     
-    // 모임 생성 (생성 후 채팅방 이동)
+ // 모임 생성 (생성 후 채팅방 이동)
     @PostMapping("/create")
     public String createMeeting(@ModelAttribute Meeting meeting, 
                                HttpSession session, 
                                RedirectAttributes redirectAttributes) {
         
         Integer userNo = (Integer) session.getAttribute("userNo");
-        if (userNo != null) {
-            meeting.setUserNo(userNo);
+        
+        // 로그인 상태 확인
+        if (userNo == null) {
+            redirectAttributes.addFlashAttribute("errorMsg", "로그인이 필요합니다.");
+            return "redirect:/user/login";
         }
         
-        int result = meetingService.insertMeeting(meeting);
+        meeting.setUserNo(userNo);
         
-        if (result > 0) {
-            redirectAttributes.addFlashAttribute("alertMsg", "모임이 생성되었습니다! 첫 번째 대화를 시작해보세요.");
-            return "redirect:/chat/room/" + meeting.getMeetingNo();
-        } else {
-            redirectAttributes.addFlashAttribute("errorMsg", "모임 생성에 실패했습니다.");
+        try {
+            int result = meetingService.insertMeeting(meeting);
+            
+            if (result > 0) {
+                redirectAttributes.addFlashAttribute("alertMsg", "모임이 생성되었습니다! 첫 번째 대화를 시작해보세요.");
+                return "redirect:/chat/room/" + meeting.getMeetingNo();
+            } else {
+                redirectAttributes.addFlashAttribute("errorMsg", "모임 생성에 실패했습니다.");
+                return "redirect:/meeting/create";
+            }
+        } catch (Exception e) {
+            // 로그 출력으로 디버깅
+            System.out.println("모임 생성 오류: " + e.getMessage());
+            System.out.println("사용자 번호: " + userNo);
+            
+            redirectAttributes.addFlashAttribute("errorMsg", "모임 생성 중 오류가 발생했습니다. 로그인 상태를 확인해주세요.");
             return "redirect:/meeting/create";
         }
     }
