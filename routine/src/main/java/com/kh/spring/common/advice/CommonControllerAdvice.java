@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 
 import com.kh.spring.challenge.model.service.ChallengeService;
 import com.kh.spring.challenge.model.vo.ChallengeCategory;
+import com.kh.spring.user.model.vo.User;
 import com.kh.spring.util.common.Dummy;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 
@@ -19,18 +21,18 @@ public class CommonControllerAdvice {
 	@Autowired
 	private ChallengeService chalService;
 	
-//	@ModelAttribute("loginUser")
-//	public Member addLoginUser(HttpSession session) {
-//		if(session.getAttribute("loginUser") != null) {
-//			return (Member) session.getAttribute("loginUser");
-//		} else {
-//			return null;
-//		}
-//	}
+	@ModelAttribute("loginUser")
+	public User addLoginUser(HttpSession session) {
+		if(session.getAttribute("loginUser") != null) {
+			return (User) session.getAttribute("loginUser");
+		} else {
+			return null;
+		}
+	}
 	
 	//ChallengeCategory 넣어주기
 	@ModelAttribute("ChallengeCategory")
-	public List<ChallengeCategory> addLoginUser(HttpSession session) {
+	public List<ChallengeCategory> addChallengeCategory(HttpSession session) {
 		List<ChallengeCategory> ccList = new ArrayList<>();
 		try {
 			if(session.getAttribute("ChallengeCategory") == null
@@ -47,4 +49,18 @@ public class CommonControllerAdvice {
 		}
 		return (List<ChallengeCategory>) session.getAttribute("ChallengeCategory");
 	}
+	
+	//root-context 넣기
+	@ModelAttribute("rootContextPath")
+	public String getRoot(HttpSession session, HttpServletRequest request) {
+		try {
+	        String contextPath = request.getContextPath();
+	        session.setAttribute("rootContextPath", contextPath);
+	        return contextPath;
+		} catch (Exception e) {
+			return "/routine";
+		}
+	}
+	
+	
 }

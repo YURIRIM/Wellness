@@ -15,17 +15,23 @@ import com.kh.spring.challenge.model.vo.Attachment;
  * 해당 파일 위치를 환경 변수 경로로 잡기 
  */
 public class Exiftool {
-
+	
 	//exiftool 작동 하니?
-	public static boolean exiftoolCheck() throws Exception {
-		ProcessBuilder pbCheck = new ProcessBuilder("exiftool", "-ver");
-		Process procCheck = pbCheck.start();
-		int checkResult = procCheck.waitFor();
-		
-		//exiftool 안 열리는데요??
-		if (checkResult != 0) return false; 
-		
-		return true;
+	public static final boolean EXIFTOOL = checkExiftool();
+	
+	public static boolean checkExiftool(){
+		try {
+			ProcessBuilder pbCheck = new ProcessBuilder("exiftool", "-ver");
+			Process procCheck = pbCheck.start();
+			int checkResult = procCheck.waitFor();
+			
+			//exiftool 안 열리는데요??
+			if (checkResult != 0) return false;
+			
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 	
 	/*
@@ -98,7 +104,7 @@ public class Exiftool {
 		//소각된 파일을 다시 byte[]로 읽어 Attachment.file에 슛
 		byte[] sanitizedData = Files.readAllBytes(tempInput.toPath());
 
-		//이제 볼일 없는 임시파일 가세요라 처리
+		//이제 볼일 없는 임시파일 가세요라
 		tempInput.delete();
 		
 		return sanitizedData;
