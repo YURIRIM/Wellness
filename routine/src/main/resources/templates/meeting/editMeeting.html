@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>모임 수정</title>
+    <th:block th:replace="~{common/fragment :: library}"></th:block>
+</head>
+<body>
+    <div th:replace="~{common/fragment :: header}"></div>
+    <th:block th:replace="~{common/fragment :: alertScript}"></th:block>
+    
+    <div class="container mt-4">
+        <h2>모임 정보 수정</h2>
+        
+        <form th:action="@{/meeting/edit}" method="post" th:object="${meeting}">
+            <input type="hidden" th:field="*{meetingNo}">
+            
+            <div class="mb-3">
+                <label for="title" class="form-label">모임 제목</label>
+                <input type="text" class="form-control" th:field="*{title}" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">모임 소개</label>
+                <textarea class="form-control" th:field="*{description}" rows="4"></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label for="location" class="form-label">지역/관심 분야</label>
+                <input type="text" class="form-control" th:field="*{location}">
+            </div>
+            
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">수정 완료</button>
+                <a th:href="@{/meeting/detail/{meetingNo}(meetingNo=${meeting.meetingNo})}" class="btn btn-secondary">취소</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
