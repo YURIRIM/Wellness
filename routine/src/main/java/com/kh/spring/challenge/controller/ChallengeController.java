@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.kh.spring.challenge.model.service.ChallengeService;
 import com.kh.spring.challenge.model.vo.ChallengeRequest;
 import com.kh.spring.challenge.model.vo.SearchChallenge;
+import com.kh.spring.challenge.model.vo.SearchMyChallenge;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -60,12 +61,6 @@ public class ChallengeController {
 		//반환값은 메인 조각을 보내 처리
 		return "/challenge/chalMain-center :: chalMain-center";
 	}
-	
-	//챌린지 세부 화면으로
-	@GetMapping("/chalDetail")
-	public String goChalDetail() {
-		return "/challenge/chalDetail :: chalDetail";
-	}
 
 	//새로운 챌린지 생성하기
 	@GetMapping("/newChal")
@@ -73,17 +68,33 @@ public class ChallengeController {
 		return "/challenge/newChal :: newChal";
 	}
 	
-	//내가 생성한 챌린지로
-	@GetMapping("/createdChal")
-	public String goCreatedChal() {
-		return "/challenge/createdChal :: createdChal";
+	//내가 생성 혹은 참여한 챌린지로 이동
+	@GetMapping("/goMyChal")
+	@ResponseBody
+	public String goMyChal(HttpSession session, Model model, String searchType) {
+		try {
+			SearchMyChallenge smc = new SearchMyChallenge().builder()
+					.currentPage(0).searchType(searchType).build();
+			service.myChal(session,model,smc);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "/challenge/chalMain-center :: chalMain-center";
 	}
 	
-	//내가 참여한 챌린지로
-	@GetMapping("/joinedChal")
-	public String goJoinedChal() {
-		return "/challenge/joinedChal :: joinedChal";
+	//비동기 - 내가 생성 혹은 참여한 챌린지
+	@GetMapping("/myChal")
+	@ResponseBody
+	public String myChal(HttpSession session, Model model, SearchMyChallenge smc) {
+		try {
+			service.myChal(session,model,smc);
+			return "success";
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "fail";
 	}
+	
 	
 	//새로운 챌린지 생성하기
 	@PostMapping("/newChal")
@@ -100,5 +111,15 @@ public class ChallengeController {
 		return "redirect:/challenge/chalDetail?chalNo="+chalNo;
 	}
 	
-	//비동기 - 댓글 생성 중 사진 메타데이터 검증
+	//챌린지 세부 화면으로
+	@GetMapping("/chalDetail")
+	public String goChalDetail(Model model, int chalNo) {
+		try {
+			service.chalDetail(chalNo,model);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "/common/errorPage";
+		}
+		return "/challenge/chalDetail";
+	}
 }

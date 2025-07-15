@@ -249,8 +249,13 @@
 		    <version>0.11.5</version>
 		    <scope>runtime</scope>
 		</dependency>
-
 		
+		<!--cropper.js-->
+		<dependency>
+		    <groupId>org.webjars.npm</groupId>
+		    <artifactId>cropperjs</artifactId>
+		    <version>1.6.2</version>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -1,6 +1,7 @@
 package com.kh.spring.util.challenge;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.kh.spring.challenge.model.vo.ChallengeRequest;
@@ -49,27 +50,15 @@ public class ChallengeValidator {
 	     * 221 : 매달
 	     */
 		
-		//시작일, 종료일은 사용자가 입력하지 않으면 해당 input을 삭제하고 보냄 -&gt; null 담김
-		Timestamp sd = chal.getStartDate();
-		Timestamp ed = chal.getEndDate();
+		//시작일이 과거면 뭐냐 넌 과거에서 왔냐?
+		if (chal.getStartDate()!=null && 
+				chal.getStartDate().isBefore(LocalDate.now()))
+			return false;
 		
-		
-		if(sd==null) {} //시작일이 null이면 시작일 == 현재 시간
-		else if(sd.toLocalDateTime().toLocalDate().equals(Regexp.DOWNFALL)) {
-			//날짜가 14530529면 null
-			chal.setStartDate(null);
-		}
-		else if(sd.before(Timestamp.valueOf(LocalDateTime.now())))
-			return false; //시작일이 과거면 뭐냐 넌 과거에서 왔냐?
-		
-		
-		if(ed ==null) {} //종료일이 null이면 종료일 없음
-		else if(ed.toLocalDateTime().toLocalDate().equals(Regexp.DOWNFALL)) {
-			//날짜가 14530529면 null
-			chal.setEndDate(null);
-		}
-		else if(ed.before(Timestamp.valueOf(LocalDateTime.now().plusWeeks(1))))
-			return false; //종료일이 1주일도 안 되면 왜 함??
+		//종료일이 1주일도 안 되면 왜 함??
+		if(chal.getEndDate()!=null && 
+				chal.getEndDate().isBefore(LocalDate.now().plusWeeks(1)))
+			return false;
 		
 		/*
 		 * 카테고리도 검증해야 하는데 귀찮네

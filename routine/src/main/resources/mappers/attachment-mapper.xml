@@ -9,17 +9,19 @@
 			ATTACHMENT_NO
 			,REF_NO
 			,REF_TABLE
-			,FILE
+			,FILE_CONTENT
 			,FILE_SIZE
 			,FILE_NAME
+			,STATUS
 			)
 		VALUES (
-			SEQ_ATTACHMENT
+			SEQ_ATTACHMENT.NEXTVAL
 			,#{refNo}
 			,'C'
-			,#{file}
+			,#{fileContent}
 			,#{fileSize}
 			,#{fileName}
+			,'Y'
 			)
 	</insert>
 

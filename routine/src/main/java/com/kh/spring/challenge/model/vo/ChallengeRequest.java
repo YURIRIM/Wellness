@@ -1,6 +1,6 @@
 package com.kh.spring.challenge.model.vo;
 
-import java.sql.Timestamp;
+import java.time.LocalDate;
 
 import com.kh.spring.common.annotation.NoHtmlEscape;
 
@@ -28,8 +28,8 @@ public class ChallengeRequest {
     
     //"yyyy-MM-dd HH:mm:ss" 포맷이여야 Timestamp자동 맵핑
     private int verifyCycle;
-    private Timestamp startDate;
-    private Timestamp endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private String status; //Y:활성화 N:종료됨 D:삭제됨
     private String pictureRequired; //I:필수(도용 불가) Y:필수 O:선택 N:불가
     private String replyRequired; //Y:필수 O:선택 N:불가
