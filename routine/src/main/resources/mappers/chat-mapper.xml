@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="chatMessageMapper">
+
+    <!-- 채팅 메시지 등록 -->
+    <insert id="insertChatMessage" parameterType="ChatMessage">
+        <selectKey keyProperty="messageNo" resultType="int" order="BEFORE">
+            SELECT SEQ_MESSAGE_NO.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO chat_messages (
+            message_no, meeting_no, user_no, message_content, 
+            message_type, file_url, file_name
+        ) VALUES (
+            #{messageNo}, #{meetingNo}, #{userNo}, #{messageContent}, 
+            #{messageType}, #{fileUrl}, #{fileName}
+        )
+    </insert>
+
+    <!-- 채팅 메시지 수정 -->
+    <update id="updateChatMessage" parameterType="ChatMessage">
+        UPDATE chat_messages 
+        SET message_content = #{messageContent}, 
+            message_type = #{messageType}, 
+            file_url = #{fileUrl}, 
+            file_name = #{fileName}
+        WHERE message_no = #{messageNo}
+    </update>
+
+    <!-- 채팅 메시지 삭제 -->
+    <delete id="deleteChatMessage" parameterType="int">
+        DELETE FROM chat_messages WHERE message_no = #{messageNo}
+    </delete>
+
+    <!-- 채팅 메시지 조회 (limit으로 전체/최근 통합) -->
+    <select id="selectChatMessages" parameterType="map" resultType="ChatMessage">
+        <![CDATA[
+        SELECT * FROM (
+            SELECT * FROM chat_messages 
+            WHERE meeting_no = #{meetingNo} 
+            ORDER BY sent_at DESC
+        ) 
+        ]]>
+        <if test="limit != null and limit > 0">
+            <![CDATA[ WHERE ROWNUM <= #{limit} ]]>
+        </if>
+        ORDER BY sent_at ASC
+    </select>
+
+    <!-- 안읽은 수 계산 (메시지별) -->
+    <select id="selectUnreadCount" parameterType="int" resultType="int">
+        <![CDATA[
+        SELECT (
+            -- 전체 참가자 - 1 (전송자 제외)
+            SELECT COUNT(*) - 1
+            FROM meeting_part 
+            WHERE meeting_no = (SELECT meeting_no FROM chat_messages WHERE message_no = #{messageNo})
+        ) - (
+            -- 읽은 사람 수 (전송자 제외)
+            SELECT COUNT(*) 
+            FROM meeting_part mp 
+            WHERE mp.meeting_no = (SELECT meeting_no FROM chat_messages WHERE message_no = #{messageNo})
+            AND mp.user_no != (SELECT user_no FROM chat_messages WHERE message_no = #{messageNo})
+            AND mp.last_read_at >= (SELECT sent_at FROM chat_messages WHERE message_no = #{messageNo})
+        ) AS unread_count
+        FROM DUAL
+        ]]>
+    </select>
+
+    <!-- 읽음 처리 통합 (사용자별 또는 전송자 자동) -->
+    <update id="updateReadTime" parameterType="map">
+        UPDATE meeting_part 
+        SET last_read_at = SYSDATE
+        WHERE meeting_no = #{meetingNo} 
+        <choose>
+            <when test="messageNo != null">
+                <!-- 전송자 자동 읽음 (messageNo 기준) -->
+                AND user_no = (SELECT user_no FROM chat_messages WHERE message_no = #{messageNo})
+            </when>
+            <when test="userNo != null">
+                <!-- 특정 사용자 읽음 -->
+                AND user_no = #{userNo}
+            </when>
+        </choose>
+    </update>
+
+</mapper>
