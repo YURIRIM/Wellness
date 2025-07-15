@@ -84,6 +84,8 @@ public class Exiftool {
 
 	//메타데이터 소각 
 	public static byte[] sanitizeMetadata(byte[] picture) throws Exception {
+		System.out.println("exiftool로 메타데이터 때치때치 중... 사진 길이 = "+picture.length);
+		
 		//임시 파일 생성 및 byte[] 저장
 		File tempInput = File.createTempFile("input_", ".webp");
 		try (FileOutputStream fos = new FileOutputStream(tempInput)) {

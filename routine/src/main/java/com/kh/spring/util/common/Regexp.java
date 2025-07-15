@@ -15,7 +15,7 @@ public class Regexp {
 	public static final int CHAL_SHOW_LIMIT = 20;
 	
 	//페이지당 노출될 챌린지 댓글 수
-	public static final int COMMENT_SHOW_LIMIT = 20;
+	public static final int COMMENT_SHOW_LIMIT = 10;
 	
 	//SearchChallenge
 	public static final String SC_ORDERBY = "^[PS]?$";

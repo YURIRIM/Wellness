@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import com.kh.spring.challenge.model.service.ChallengeService;
+import com.kh.spring.challenge.model.service.ProfileService;
 import com.kh.spring.challenge.model.vo.ChallengeCategory;
+import com.kh.spring.challenge.model.vo.ProfileResponse;
 import com.kh.spring.user.model.vo.User;
 import com.kh.spring.util.common.Dummy;
 
@@ -20,6 +22,8 @@ import jakarta.servlet.http.HttpSession;
 public class CommonControllerAdvice {
 	@Autowired
 	private ChallengeService chalService;
+	@Autowired
+	private ProfileService profileService;
 	
 	@ModelAttribute("loginUser")
 	public User addLoginUser(HttpSession session) {
@@ -59,6 +63,22 @@ public class CommonControllerAdvice {
 	        return contextPath;
 		} catch (Exception e) {
 			return "/routine";
+		}
+	}
+	
+	
+	//myProfile 넣기
+	@ModelAttribute("myProfile")
+	public ProfileResponse goMyProfile(HttpSession session, HttpServletRequest request) {
+		try {
+			if(session.getAttribute("myProfile") == null) {
+				int result = profileService.selectMyProfile(session);
+				if (result!=1) return null;
+			}
+			return (ProfileResponse) session.getAttribute("myProfile");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
 		}
 	}
 	

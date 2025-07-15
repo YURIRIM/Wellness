@@ -1,450 +1,238 @@
+//==========================chalMain-right==========================
 document.addEventListener("DOMContentLoaded", function () {
-  //==========================chalMain-right==========================
-  const centerDiv = document.getElementById("main-challenge-list");
+  const rightContainer = document.querySelector("#main-right");
+  if (!loginUserNo) {
+    return;
+  }
 
-  function loadFragment(url) {
+  // '프로필 생성 영역' 선택
+  const profileSection = rightContainer.querySelector(
+    "#right-chal-right .list-group"
+  );
+  if (!profileSection) {
+    console.error("프로필 생성 영역을 찾을 수 없습니다.");
+    return;
+  }
+
+  // 프로필 컨테이너 생성
+  const profileDiv = document.createElement("div");
+  profileDiv.id = "profile-info";
+  profileDiv.classList.add("p-3", "border", "mb-3");
+
+  if (!myProfile) {
+    // 프로필이 없으면 '프로필 추가하기' 버튼만 렌더링
+    const addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.className = "btn btn-primary w-100";
+    addBtn.textContent = "프로필 추가하기";
+    addBtn.addEventListener("click", () => {
+      window.location.href = `${contextPath}/profile/insertMyProfile`;
+    });
+    profileDiv.appendChild(addBtn);
+    profileSection.parentNode.insertBefore(profileDiv, profileSection);
+    return;
+  }
+
+  // 프로필 사진 영역
+  const picDiv = document.createElement("div");
+  picDiv.style.textAlign = "center";
+  picDiv.style.height = "104px"; // 이미지 100px + 약간 padding
+  picDiv.style.display = "flex";
+  picDiv.style.justifyContent = "center";
+  picDiv.style.alignItems = "center";
+
+  if (
+    typeof myProfile.pictureBase64 === "string" &&
+    myProfile.pictureBase64.length > 0
+  ) {
+    const img = document.createElement("img");
+    img.alt = "profile picture";
+    img.width = 100;
+    img.height = 100;
+    img.style.objectFit = "cover";
+    img.style.borderRadius = "50%";
+    img.src = "data:image/webp;base64," + myProfile.pictureBase64;
+    picDiv.appendChild(img);
+  } else {
+    // 프로필 사진 미존재 시, 부트스트랩 아이콘(svg) 사용
+    const icon = document.createElement("i");
+    icon.className = "bi bi-person-circle fs-1 text-secondary";
+    icon.style.fontSize = "70px";
+    icon.title = "프로필 사진 없음";
+    picDiv.appendChild(icon);
+  }
+  profileDiv.appendChild(picDiv);
+
+  // 닉네임, bio
+  const nickEl = document.createElement("h5");
+  nickEl.className = "mt-2 text-center";
+  nickEl.textContent = myProfile.nick || loginUserNick || "";
+  profileDiv.appendChild(nickEl);
+
+  if (myProfile.bio) {
+    const bioEl = document.createElement("p");
+    bioEl.className = "text-center text-muted small";
+    bioEl.textContent = myProfile.bio;
+    profileDiv.appendChild(bioEl);
+  }
+
+  // 공개 상태 및 워터마크 뱃지
+  const statusEl = document.createElement("div");
+  statusEl.className = "d-flex justify-content-center gap-2 my-2 flex-wrap";
+
+  let openText = "";
+  let openColor = "";
+  switch (myProfile.isOpen) {
+    case "Y":
+      openText = "공개";
+      openColor = "primary";
+      break;
+    case "N":
+      openText = "참여 챌린지 비공개";
+      openColor = "secondary";
+      break;
+    case "A":
+      openText = "익명";
+      openColor = "warning";
+      break;
+    default:
+      openText = "-";
+      openColor = "light";
+  }
+  const openBadge = `<span class="badge rounded-pill bg-${openColor} px-3 py-2">
+    <i class="bi bi-eye${
+      myProfile.isOpen === "A" ? "-slash" : ""
+    } me-1"></i>${openText}
+  </span>`;
+
+  let wmText = "";
+  let wmColor = "";
+  switch (myProfile.watermarkType) {
+    case "D":
+      wmText = "디폴트";
+      wmColor = "info";
+      break;
+    case "F":
+      wmText = "개인";
+      wmColor = "success";
+      break;
+    case "N":
+      wmText = "없음";
+      wmColor = "light";
+      break;
+    default:
+      wmText = "-";
+      wmColor = "light";
+  }
+  const wmBadge = `<span class="badge rounded-pill bg-${wmColor} px-3 py-2">
+    <i class="bi bi-droplet-half me-1"></i>${wmText}
+  </span>`;
+
+  statusEl.innerHTML = openBadge + wmBadge;
+  profileDiv.appendChild(statusEl);
+
+  // 참여 현황 다이어그램
+  const total = myProfile.chalParticiapteCount;
+  if (total > 0) {
+    const successPct = Math.floor((myProfile.successRatio || 0) * 100);
+    const failPct = Math.floor((myProfile.failRatio || 0) * 100);
+    const otherPct = 100 - successPct - failPct;
+
+    const barContainer = document.createElement("div");
+    barContainer.className = "progress";
+    barContainer.style.height = "16px";
+    barContainer.style.cursor = "pointer";
+
+    const makeBar = (color, pct, count) => {
+      const seg = document.createElement("div");
+      seg.className = "progress-bar";
+      seg.style.width = pct + "%";
+      seg.style.backgroundColor = color;
+      seg.setAttribute("data-count", count);
+      seg.setAttribute("title", count);
+      seg.addEventListener("mouseenter", (e) => {
+        e.target.textContent = `${count}`;
+      });
+      seg.addEventListener("mouseleave", (e) => {
+        e.target.textContent = "";
+      });
+      return seg;
+    };
+
+    barContainer.appendChild(
+      makeBar("#0d6efd", successPct, myProfile.successCount)
+    );
+    barContainer.appendChild(
+      makeBar(
+        "#6c757d",
+        otherPct,
+        total - myProfile.successCount - myProfile.failCount
+      )
+    );
+    barContainer.appendChild(makeBar("#dc3545", failPct, myProfile.failCount));
+
+    profileDiv.appendChild(barContainer);
+  }
+
+  // 프로필 수정 버튼
+  const editBtn = document.createElement("button");
+  editBtn.type = "button";
+  editBtn.className = "btn btn-outline-secondary w-100 mt-2";
+  editBtn.textContent = "프로필 수정";
+  editBtn.addEventListener("click", () => {
+    window.location.href = `${contextPath}/profile/updateMyProfile`;
+  });
+  profileDiv.appendChild(editBtn);
+
+  // 렌더링 위치: 프로필 생성 영역 바로 위
+  profileSection.parentNode.insertBefore(profileDiv, profileSection);
+
+  //==========================버튼 맵핑==========================
+  const centerTarget = document.querySelector("#main-challenge-list");
+
+  function loadCenterFragment(url, callback) {
     axios
-      .get(url)
-      .then(function (response) {
-        // 서버에서 반환된 Thymeleaf fragment(html) 전체가 아니라
-        // chalMain-center 프래그먼트(<div id="main-challenge-list">...</div>)만 담겨 있다고 가정
-        centerDiv.innerHTML = response.data;
-
-        // 새로 삽입된 HTML에 스크립트가 필요하면 초기화
-        if (centerDiv.querySelector("#new-form")) {
-          newChalScript();
+      .get(contextPath + url, {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        responseType: "text", // 텍스트 응답 받기
+      })
+      .then((res) => {
+        centerTarget.innerHTML = res.data;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        if (typeof callback === "function") {
+          callback();
         }
       })
-      .catch(function (error) {
-        console.error("Error loading fragment:", error);
+      .catch((err) => {
+        console.error("중앙 조각 로딩 실패", err);
+        alert("콘텐츠를 불러오는 중 오류가 발생했습니다.");
       });
   }
 
-  // 오른쪽 사이드바 버튼들에 클릭 이벤트 등록
-  ["right-newChal", "right-createdChal", "right-joinedChal"].forEach(function (
-    id
-  ) {
-    const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener("click", function (e) {
-        e.preventDefault();
-        loadFragment(this.getAttribute("href"));
-      });
-    }
-  });
-
-  // 프로필 영역 렌더링 함수
-  async function renderProfile() {
-    const profileArea = document.getElementById("right-profile-area");
-    let profileData = null;
-
-    // JWT 토큰 확인
-    const jwt = localStorage.getItem("jwtToken");
-    let loginUserNo = /*[[${loginUser.userNo}]]*/ 0;
-    let loginUserName = /*[[${loginUser.name}]]*/ "사용자";
-
-    if (jwt) {
-      const payload = JSON.parse(atob(jwt.split(".")[1]));
-      if (payload.userNo == loginUserNo) {
-        profileData = payload;
-      }
-    }
-
-    // JWT 없거나 userNo 불일치 시 서버로부터 프로필 fetch
-    if (!profileData) {
-      try {
-        const res = await axios.post(contextPath + "/profile/selectMyProfile");
-        if (res.data.status === "success") {
-          const payload = JSON.parse(atob(res.data.data.split(".")[1]));
-          profileData = payload;
-        } else if (res.data.status === "noProfile") {
-          profileArea.innerHTML = `
-            <div id="right-no-profile" class="text-center">
-              <p>프로필이 없습니다.</p>
-              <button id="right-create-profile" class="btn btn-primary btn-sm">프로필 생성하기</button>
-            </div>
-          `;
-          document.getElementById("right-create-profile").onclick =
-            function () {
-              window.location.href = contextPath + "/profile/insertMyProfile";
-            };
-          return;
-        } else {
-          profileArea.innerHTML = "";
-          return;
-        }
-      } catch (e) {
-        profileArea.innerHTML = "";
-        return;
-      }
-    }
-
-    //------프로필 렌더링------
-    const pictureBase64 = profileData.pictureBase64;
-    let imgSrc = "";
-    if (pictureBase64) {
-      imgSrc = `data:image/png;base64,${pictureBase64}`;
-    } else {
-      const localImg = localStorage.getItem("challengeWriterImage");
-      if (localImg) {
-        imgSrc = localImg;
-      } else {
-        console.log("challengeWriterImage 접근 불가");
-        imgSrc = "/img/default-profile.png";
-      }
-    }
-
-    const successRatio = Number(profileData.successRatio || 0);
-    const failRatio = Number(profileData.failRatio || 0);
-    const progressRatio = Math.max(0, 100 - successRatio - failRatio);
-
-    profileArea.innerHTML = `
-      <div id="right-profile" class="mb-3 text-center">
-        <div id="right-profile-img-wrap" class="mx-auto mb-2" style="width:80px;height:80px;">
-          <img id="right-profile-img" src="${imgSrc}" alt="프로필" class="rounded-circle border" style="width:100%;height:100%;object-fit:cover;">
-        </div>
-        <div id="right-profile-name" class="fw-bold mb-1">${loginUserName}</div>
-        <div id="right-profile-bio" class="mb-2" style="min-height:32px;word-break:break-all;">${
-          profileData.bio || ""
-        }</div>
-        <div id="right-profile-bar" class="mb-2">
-          <div class="progress" style="height:22px;">
-            <div class="progress-bar bg-primary" role="progressbar"
-              style="width:${successRatio}%" title="성공 ${
-      profileData.successCount
-    }/${profileData.chalParticiapteCount}">
-              ${successRatio.toFixed(2)}%
-            </div>
-            <div class="progress-bar bg-success" role="progressbar"
-              style="width:${progressRatio}%" title="진행중 ${
-      profileData.chalParticiapteCount -
-      profileData.successCount -
-      profileData.failCount
-    }">
-              ${progressRatio.toFixed(2)}%
-            </div>
-            <div class="progress-bar bg-danger" role="progressbar"
-              style="width:${failRatio}%" title="실패 ${profileData.failCount}">
-              ${failRatio.toFixed(2)}%
-            </div>
-          </div>
-        </div>
-        <div id="right-profile-isopen" class="mb-2">
-          <span class="badge bg-secondary">
-            ${
-              profileData.isOpen === "Y"
-                ? "공개"
-                : profileData.isOpen === "N"
-                ? "비공개"
-                : "익명"
-            }
-          </span>
-        </div>
-        <button id="right-update-profile" class="btn btn-outline-secondary btn-sm w-100">프로필 갱신하기</button>
-      </div>
-    `;
-    document.getElementById("right-update-profile").onclick = function () {
-      window.location.href = contextPath + "/profile/updateMyProfile";
-    };
-  }
-
-  renderProfile();
-});
-
-//==========================newChal==========================
-function newChalScript() {
-  /** ---------- Summernote 0.9.1 한국어 초기화 ---------- */
-  $("#new-content").summernote({
-    placeholder: "챌린지 내용을 입력하세요 (최대 1000자)",
-    height: 300,
-    width: "100%",
-    lang: "ko-KR",
-    maximumImageFileSize: 200 * 1024,
-    callbacks: {
-      onInit: function () {
-        $("#new-submit").prop("disabled", false);
-      },
-      onImageUpload: function (files) {
-        handleImages(files, this);
-      },
-    },
-  });
-
-  /** ---------- 이미지 압축 & WebP 변환 ---------- */
-  async function compressImage(file) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const max = 1200;
-        let { width, height } = img;
-        if (width > max || height > max) {
-          const ratio = Math.min(max / width, max / height);
-          width = Math.round(width * ratio);
-          height = Math.round(height * ratio);
-        }
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-        canvas.toBlob(
-          (blob) => {
-            blob.name = file.name.replace(/\.\w+$/, ".webp");
-            resolve(blob);
-          },
-          "image/webp",
-          0.85
-        );
-      };
-      img.src = URL.createObjectURL(file);
-    });
-  }
-
-  async function handleImages(files, editor) {
-    const maxCnt = 5;
-    const currentCnt = $(editor).summernote("code").match(/<img/g)?.length || 0;
-    if (currentCnt + files.length > maxCnt) {
-      alert("사진은 최대 5장까지 첨부할 수 있습니다.");
-      return;
-    }
-    for (const f of files) {
-      if (!f.type.startsWith("image/")) continue;
-      const blob = await compressImage(f);
-      if (blob.size > 200 * 1024) {
-        alert(`"${f.name}"은(는) 200KB를 초과합니다.`);
-        continue;
-      }
-      const url = URL.createObjectURL(blob);
-      $(editor).summernote("insertImage", url, blob.name);
-    }
-  }
-
-  /** ---------- 썸네일 전용 ---------- */
-  $("#new-thumb").on("change", async function () {
-    const file = this.files[0];
-    if (!file) return;
-
-    //webp로 변환 및 리사이즈
-    const blob = await compressImage(file);
-    if (blob.size > 200 * 1024) {
-      alert("썸네일은 200KB 이하만 허용됩니다.");
-      this.value = "";
-      return;
-    }
-    const url = URL.createObjectURL(blob);
-    $("#new-thumb-preview").attr("src", url).removeClass("d-none");
-
-    //Base64 변환
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const base64 = e.target.result.split(",")[1];
-      $("#new-thumb-base64").val(base64);
-    };
-    reader.readAsDataURL(blob);
-  });
-
-  $("#new-copy-first").on("click", function () {
-    const firstImg = $("#new-content").next(".note-editor").find("img").first();
-    if (firstImg.length === 0) {
-      alert("첨부한 사진이 없습니다.");
-      return;
-    }
-    $("#new-thumb-preview")
-      .attr("src", firstImg.attr("src"))
-      .removeClass("d-none");
-    fetch(firstImg.attr("src"))
-      .then((r) => r.blob())
-      .then((b) => {
-        const dt = new DataTransfer();
-        dt.items.add(new File([b], "thumbnail.webp", { type: "image/webp" }));
-        $("#new-thumb")[0].files = dt.files;
-      });
-  });
-
-  /** ---------- 카테고리 연결 ---------- */
-  $("#new-cat-parent").on("change", function () {
-    const parent = Number(this.value);
-    const childSel = $("#new-cat-child").prop("disabled", false).empty();
-    childSel.append('<option value="" selected disabled>세부 선택…</option>');
-    catAll
-      .filter(
-        (c) =>
-          Math.floor(c.categoryNo / 10) * 10 === parent &&
-          c.categoryNo % 10 !== 0
-      )
-      .forEach((c) =>
-        childSel.append(
-          `<option value="${c.categoryNo}">${c.categoryName}</option>`
-        )
-      );
-  });
-
-  /** ---------- 인증 주기 ---------- */
-  $("#new-cycle-type").on("change", function () {
-    const $opt = $("#new-cycle-options");
-    $opt.empty();
-    const type = this.value;
-
-    if (type === "day") {
-      $opt.html(
-        createRadios("verifyCycle", [201, "매일"], [202, "이틀"], [203, "사흘"])
-      );
-    } else if (type === "week") {
-      $opt.html(
-        createCheckboxes(
-          "verifyCycleBit",
-          [1, "월"],
-          [2, "화"],
-          [4, "수"],
-          [8, "목"],
-          [16, "금"],
-          [32, "토"],
-          [64, "일"]
-        )
-      );
-    } else if (type === "weeknum") {
-      $opt.html(createRadios("verifyCycle", [211, "매주"], [212, "2주"]));
-    } else if (type === "month") {
-      $opt.html(createRadios("verifyCycle", [221, "매달"]));
-    } else {
-      $opt.html(createRadios("verifyCycle", [0, "없음"]));
-    }
-  });
-
-  function createRadios(name, ...items) {
-    return items
-      .map(
-        ([v, t], index) => `
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="${name}" id="new-${name}-${v}" value="${v}" ${
-          index === 0 ? "checked" : ""
-        }>
-            <label class="form-check-label" for="new-${name}-${v}">${t}</label>
-          </div>`
-      )
-      .join("");
-  }
-
-  function createCheckboxes(name, ...items) {
-    return items
-      .map(
-        ([v, t]) => `
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="checkbox" name="${name}" id="new-${name}-${v}" value="${v}">
-            <label class="form-check-label" for="new-${name}-${v}">${t}</label>
-          </div>`
-      )
-      .join("");
-  }
-
-  /** ---------- Bootstrap Datepicker 초기화 및 검증 ---------- */
-  const today = new Date();
-  const maxDate = new Date(today);
-  maxDate.setDate(maxDate.getDate() + 90); // 3개월 후
-
-  $("#new-start").datepicker({
-    format: "yyyy-mm-dd",
-    language: "ko",
-    autoclose: true,
-    todayHighlight: true,
-    startDate: today,
-    endDate: maxDate,
-  });
-
-  $("#new-end").datepicker({
-    format: "yyyy-mm-dd",
-    language: "ko",
-    autoclose: true,
-    todayHighlight: true,
-    startDate: today,
-    endDate: maxDate,
-  });
-
-  // 종료일을 시작일+7일로 자동 보정하는 함수
-  function validateEndDate() {
-    const startVal = $("#new-start").val();
-    const endVal = $("#new-end").val();
-    if (!startVal) return;
-
-    const startDate = new Date(startVal);
-    const minEndDate = new Date(startDate);
-    minEndDate.setDate(minEndDate.getDate() + 7);
-
-    if (endVal) {
-      const endDate = new Date(endVal);
-      if (endDate < minEndDate) {
-        // 종료일이 7일 이내면 자동 보정
-        $("#new-end").datepicker("update", minEndDate);
-      }
-    }
-    // 종료일의 최소 선택 가능일도 보정
-    $("#new-end").datepicker("setStartDate", minEndDate);
-  }
-
-  // 시작일 변경 시 종료일 검증 및 보정
-  $("#new-start").on("changeDate", function (e) {
-    validateEndDate();
-  });
-
-  // 종료일 변경 시에도 검증
-  $("#new-end").on("changeDate", function (e) {
-    validateEndDate();
-  });
-
-  $("#new-start-now").on("click", function () {
-    $("#new-start").val("").datepicker("update");
-    // 종료일도 초기화
-    $("#new-end").datepicker("setStartDate", today);
-    $("#new-end").val("").datepicker("update");
-  });
-
-  $("#new-end-none").on("click", function () {
-    $("#new-end").val("").datepicker("update");
-  });
-
-  /** ---------- 사진 필수 → 도용방지 옵션 ---------- */
-  $('input[name="pictureRequired"]').on("change", function () {
-    $("#new-anti-area").toggleClass("d-none", this.value !== "Y");
-    if (this.value !== "Y") $("#new-anti").prop("checked", false);
-  });
-
-  /** ---------- Bootstrap Validation ---------- */
-  $("#new-form").on("submit", function (e) {
-    if (!this.checkValidity()) {
+  // 새로운 챌린지 생성하기
+  document
+    .getElementById("right-newChal")
+    ?.addEventListener("click", function (e) {
       e.preventDefault();
-      e.stopPropagation();
-      $(this).addClass("was-validated");
-      return;
-    }
+      loadCenterFragment("/challenge/newChal", newChalScript);
+    });
 
-    //시작일 / 종료일 없으면 지우기
-    if (!$("#new-start").val()) $("#new-start").remove();
-    if (!$("#new-end").val()) $("#new-end").remove();
+  // 내가 생성한 챌린지
+  document
+    .getElementById("right-createdChal")
+    ?.addEventListener("click", function (e) {
+      e.preventDefault();
+      loadCenterFragment("/challenge/goMyChal?searchType=O", myChalScript);
+    });
 
-    // 유효성 통과 시 로딩 표시
-    $("#new-submit-text").addClass("d-none");
-    $("#new-submit-spinner").removeClass("d-none");
-    $("#new-submit").prop("disabled", true);
-  });
-
-  /** ---------- 초기화 확인 ---------- */
-  $("#new-reset").on("click", function (e) {
-    e.preventDefault();
-    if (confirm("모든 입력을 초기화할까요?")) {
-      $("#new-form")[0].reset();
-      $("#new-thumb-preview").addClass("d-none");
-      $("#new-cycle-type").trigger("change");
-      $("#new-anti-area").addClass("d-none");
-      $("#new-content").summernote("reset");
-      $("#new-start").datepicker("update", "");
-      $("#new-end").datepicker("update", "");
-    }
-  });
-
-  // 페이지 로드 시 초기 설정
-  $(document).ready(function () {
-    $("#new-cycle-type").trigger("change");
-  });
-}
+  // 내가 참여한 챌린지
+  document
+    .getElementById("right-joinedChal")
+    ?.addEventListener("click", function (e) {
+      e.preventDefault();
+      loadCenterFragment("/challenge/goMyChal?searchType=J", myChalScript);
+    });
+});
 
 //==========================chalMain-left==========================
 function chalMainLeftScript() {
@@ -452,7 +240,7 @@ function chalMainLeftScript() {
   document
     .getElementById("left-back-btn")
     .addEventListener("click", function () {
-      window.history.go(-1);
+      location.href = contextPath;
     });
 
   // 세부 검색 버튼
@@ -660,6 +448,320 @@ function chalMainLeftScript() {
       document.getElementById("left-verify-cycle").value = "0";
     });
 }
+
+//==========================newChal==========================
+function newChalScript() {
+  /** ---------- Summernote 0.9.1 한국어 초기화 ---------- */
+  $("#new-content").summernote({
+    placeholder: "챌린지 내용을 입력하세요 (최대 1000자)",
+    height: 300,
+    width: "100%",
+    lang: "ko-KR",
+    maximumImageFileSize: 200 * 1024,
+    callbacks: {
+      onInit: function () {
+        $("#new-submit").prop("disabled", false);
+      },
+      onImageUpload: function (files) {
+        handleImages(files, this);
+      },
+    },
+  });
+
+  /** ---------- 이미지 압축 & WebP 변환 ---------- */
+  async function compressImage(file) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const max = 1200;
+        let { width, height } = img;
+        if (width > max || height > max) {
+          const ratio = Math.min(max / width, max / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            blob.name = file.name.replace(/\.\w+$/, ".webp");
+            resolve(blob);
+          },
+          "image/webp",
+          0.85
+        );
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  }
+
+  async function handleImages(files, editor) {
+    const maxCnt = 5;
+    const currentCnt = $(editor).summernote("code").match(/<img/g)?.length || 0;
+    if (currentCnt + files.length > maxCnt) {
+      alert("사진은 최대 5장까지 첨부할 수 있습니다.");
+      return;
+    }
+    for (const f of files) {
+      if (!f.type.startsWith("image/")) continue;
+      const blob = await compressImage(f);
+      if (blob.size > 200 * 1024) {
+        alert(`"${f.name}"은(는) 200KB를 초과합니다.`);
+        continue;
+      }
+      const url = URL.createObjectURL(blob);
+      $(editor).summernote("insertImage", url, blob.name);
+    }
+  }
+
+  /** ---------- 썸네일 ---------- */
+  $("#new-thumb").on("change", async function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    const blob = await compressImage(file);
+    if (blob.size > 200 * 1024) {
+      alert("썸네일은 200KB 이하만 허용됩니다.");
+      this.value = "";
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    $("#new-thumb-preview").attr("src", url).removeClass("d-none");
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const base64 = e.target.result.split(",")[1];
+      const safeBase64 = base64
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+      $("#new-thumb-base64").val(safeBase64);
+    };
+    reader.readAsDataURL(blob);
+  });
+
+  $("#new-copy-first").on("click", async function () {
+    const firstImg = $("#new-content").next(".note-editor").find("img").first();
+    if (firstImg.length === 0) {
+      alert("첨부한 사진이 없습니다.");
+      return;
+    }
+
+    const imageUrl = firstImg.attr("src");
+    const resp = await fetch(imageUrl);
+    const blob = await resp.blob();
+
+    const thumbUrl = URL.createObjectURL(blob);
+    $("#new-thumb-preview").attr("src", thumbUrl).removeClass("d-none");
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const base64 = e.target.result.split(",")[1];
+      const safeBase64 = base64
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+      $("#new-thumb-base64").val(safeBase64);
+    };
+    reader.readAsDataURL(blob);
+  });
+
+  /** ---------- 카테고리 연결 ---------- */
+  $("#new-cat-parent").on("change", function () {
+    const parent = Number(this.value);
+    const childSel = $("#new-cat-child").prop("disabled", false).empty();
+    childSel.append('<option value="" selected disabled>세부 선택…</option>');
+    catAll
+      .filter(
+        (c) =>
+          Math.floor(c.categoryNo / 10) * 10 === parent &&
+          c.categoryNo % 10 !== 0
+      )
+      .forEach((c) =>
+        childSel.append(
+          `<option value="${c.categoryNo}">${c.categoryName}</option>`
+        )
+      );
+  });
+
+  /** ---------- 인증 주기 ---------- */
+  $("#new-cycle-type").on("change", function () {
+    const $opt = $("#new-cycle-options");
+    $opt.empty();
+    const type = this.value;
+
+    if (type === "day") {
+      $opt.html(
+        createRadios("verifyCycle", [201, "매일"], [202, "이틀"], [203, "사흘"])
+      );
+    } else if (type === "week") {
+      $opt.html(
+        createCheckboxes(
+          "verifyCycleBit",
+          [1, "월"],
+          [2, "화"],
+          [4, "수"],
+          [8, "목"],
+          [16, "금"],
+          [32, "토"],
+          [64, "일"]
+        )
+      );
+    } else if (type === "weeknum") {
+      $opt.html(createRadios("verifyCycle", [211, "매주"], [212, "2주"]));
+    } else if (type === "month") {
+      $opt.html(createRadios("verifyCycle", [221, "매달"]));
+    } else {
+      $opt.html(createRadios("verifyCycle", [0, "없음"]));
+    }
+  });
+
+  function createRadios(name, ...items) {
+    return items
+      .map(
+        ([v, t], index) => `
+        <div class="form-check form-check-inline">
+          <input type="radio" class="form-check-input" name="${name}" value="${v}" id="new-${name}-${v}" ${
+          index === 0 ? "checked" : ""
+        }>
+          <label class="form-check-label" for="new-${name}-${v}">${t}</label>
+        </div>`
+      )
+      .join("");
+  }
+
+  function createCheckboxes(name, ...items) {
+    return items
+      .map(
+        ([v, t]) => `
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" name="${name}" id="new-${name}-${v}" value="${v}">
+          <label class="form-check-label" for="new-${name}-${v}">${t}</label>
+        </div>`
+      )
+      .join("");
+  }
+
+  /** ---------- Bootstrap Datepicker ---------- */
+  const today = new Date();
+  const maxDate = new Date(today);
+  maxDate.setDate(maxDate.getDate() + 90);
+
+  $("#new-start").datepicker({
+    format: "yyyy-mm-dd",
+    language: "ko",
+    autoclose: true,
+    todayHighlight: true,
+    startDate: today,
+    endDate: maxDate,
+  });
+
+  $("#new-end").datepicker({
+    format: "yyyy-mm-dd",
+    language: "ko",
+    autoclose: true,
+    todayHighlight: true,
+    startDate: today,
+    endDate: maxDate,
+  });
+
+  function validateEndDate() {
+    const startVal = $("#new-start").val();
+    const endVal = $("#new-end").val();
+    if (!startVal) return;
+
+    const startDate = new Date(startVal);
+    const minEndDate = new Date(startDate);
+    minEndDate.setDate(minEndDate.getDate() + 7);
+
+    if (endVal) {
+      const endDate = new Date(endVal);
+      if (endDate < minEndDate) {
+        $("#new-end").datepicker("update", minEndDate);
+      }
+    }
+    $("#new-end").datepicker("setStartDate", minEndDate);
+  }
+
+  $("#new-start").on("changeDate", validateEndDate);
+  $("#new-end").on("changeDate", validateEndDate);
+
+  $("#new-start-now").on("click", function () {
+    $("#new-start").val("").datepicker("update");
+    $("#new-end")
+      .datepicker("setStartDate", today)
+      .val("")
+      .datepicker("update");
+  });
+
+  $("#new-end-none").on("click", function () {
+    $("#new-end").val("").datepicker("update");
+  });
+
+  /** ---------- 사진 필수 → 도용방지 옵션 ---------- */
+  $('input[name="pictureRequired"]').on("change", function () {
+    $("#new-anti-area").toggleClass("d-none", this.value !== "Y");
+    if (this.value !== "Y") $("#new-anti").prop("checked", false);
+  });
+
+  /** ---------- 폼 제출 전 검증 처리 ---------- */
+  $("#new-form").on("submit", function (e) {
+    if (!this.checkValidity()) {
+      e.preventDefault();
+      e.stopPropagation();
+      $(this).addClass("was-validated");
+      return;
+    }
+
+    // 비트마스크 처리
+    const type = $("#new-cycle-type").val();
+    if (type === "week") {
+      const bits = $("input[name='verifyCycleBit']:checked")
+        .map(function () {
+          return parseInt(this.value);
+        })
+        .get();
+      const sum = bits.reduce((a, b) => a + b, 0);
+      $("input[name='verifyCycleBit']").remove();
+      $("<input>")
+        .attr({ type: "hidden", name: "verifyCycle", value: sum })
+        .appendTo("#new-form");
+    }
+
+    // 날짜가 비었으면 name 자체 제거
+    if (!$("#new-start").val()) $("#new-start").removeAttr("name");
+    if (!$("#new-end").val()) $("#new-end").removeAttr("name");
+
+    // 로딩 처리
+    $("#new-submit-text").addClass("d-none");
+    $("#new-submit-spinner").removeClass("d-none");
+    $("#new-submit").prop("disabled", true);
+  });
+
+  /** ---------- 초기화 확인 ---------- */
+  $("#new-reset").on("click", function (e) {
+    e.preventDefault();
+    if (confirm("모든 입력을 초기화할까요?")) {
+      $("#new-form")[0].reset();
+      $("#new-thumb-preview").addClass("d-none");
+      $("#new-cycle-type").trigger("change");
+      $("#new-anti-area").addClass("d-none");
+      $("#new-content").summernote("reset");
+      $("#new-start").datepicker("update", "");
+      $("#new-end").datepicker("update", "");
+    }
+  });
+
+  $(document).ready(function () {
+    $("#new-cycle-type").trigger("change");
+  });
+}
+
+//==========================myChal(createdChal/joinedChal)==========================
+function myChalScript() {}
 
 // 조각이 로드될 때 스크립트 실행
 if (document.readyState === "loading") {

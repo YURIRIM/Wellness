@@ -15,4 +15,8 @@ public class ChallengeCommentDao {
 		return sqlSession.selectList("challengeCommentMapper.chalDetailComment",sc);
 	}
 
+	public List<ChallengeComment> chalDetailRecomment(SqlSessionTemplate sqlSession, SearchComment sc) {
+		return sqlSession.selectList("challengeCommentMapper.chalDetailRecomment",sc);
+	}
+
 }

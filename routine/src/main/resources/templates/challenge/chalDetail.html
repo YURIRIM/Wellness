@@ -33,6 +33,10 @@
     <script th:inline="javascript">
       const catAll = /*[[${ChallengeCategory}]]*/ ["안아줘요", "싫은데요"];
       const contextPath = /*[[${rootContextPath}]]*/ "/routine";
+
+      let loginUserNo = /*[[${loginUser.userNo}]]*/ 0;
+      let loginUserName =
+        /*[[${loginUser.name}]]*/ "사랑은언제나눈물이되어가슴에남아";
     </script>
     <!-- 스크립트 파일-->
     <script th:src="@{/js/challenge/chalDetail.js}"></script>

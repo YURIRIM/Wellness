@@ -12,14 +12,16 @@
 			,FILE_CONTENT
 			,FILE_SIZE
 			,FILE_NAME
+			,STATUS
 			)
 		VALUES (
-			SEQ_ATTACHMENT
+			SEQ_ATTACHMENT.NEXTVAL
 			,#{refNo}
 			,'C'
 			,#{fileContent}
 			,#{fileSize}
 			,#{fileName}
+			,'Y'
 			)
 	</insert>
 

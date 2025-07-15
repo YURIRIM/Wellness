@@ -1,6 +1,6 @@
 package com.kh.spring.challenge.model.vo;
 
-import java.sql.Timestamp;
+import java.time.LocalDate;
 
 import com.kh.spring.util.common.Regexp;
 
@@ -21,10 +21,10 @@ public class SearchChallenge {
 	
 	private int categoryNo;
 	private int verifyCycle;
-	private Timestamp startDate1; //비었을 경우 -> 1453-05-29 00:00:00
-    private Timestamp startDate2;
-    private Timestamp endDate1;
-    private Timestamp endDate2;
+	private LocalDate startDate1; //비었을 경우 -> 1453-05-29 00:00:00
+    private LocalDate startDate2;
+    private LocalDate endDate1;
+    private LocalDate endDate2;
     private String status; //Y:활성화 N:종료됨 '빈문자열':선택안함
     private String pictureRequired; //I:필수(도용 불가) Y:필수 O:선택 N:불가 '빈문자열':선택안함
     private String replyRequired; //Y:필수 O:선택 N:불가 '빈문자열':선택안함

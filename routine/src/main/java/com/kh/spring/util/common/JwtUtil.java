@@ -7,7 +7,8 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.kh.spring.challenge.model.vo.Profile;
+import com.kh.spring.challenge.model.vo.ProfileRequest;
+import com.kh.spring.challenge.model.vo.ProfileResponse;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -31,7 +32,7 @@ public class JwtUtil {
 	}
 	
 	//자신 프로필 JWT로 저장
-	public String userProfileToken(Profile userProfile) {
+	public String userProfileToken(ProfileResponse userProfile) {
 		Date now = new Date();
 		
 		Date expiryDate = new Date(now.getTime()+expiration); //현재시간+만료시간
@@ -44,8 +45,10 @@ public class JwtUtil {
 				.signWith(getSignKey()) //생성된 암호화 키로 토큰에 디지털 서명(토큰 위조 검증)
 				.claim("userNo", userProfile.getUserNo()) //추가적으로 토큰에 담을 데이터
 				.claim("bio", userProfile.getBio())
-				.claim("pictureBase64", userProfile.getPictureBase64())
+				.claim("picture", userProfile.getPicture())
 				.claim("isOpen", userProfile.getIsOpen())
+				.claim("watermark", userProfile.getWatermark())
+				.claim("watermarkType", userProfile.getWatermarkType())
 				.claim("chalParticiapteCount", userProfile.getChalParticiapteCount())
 				.claim("successCount", userProfile.getSuccessCount())
 				.claim("failCount", userProfile.getFailCount())

@@ -18,6 +18,7 @@ import com.kh.spring.challenge.model.vo.ChallengeCategory;
 import com.kh.spring.challenge.model.vo.ChallengeRequest;
 import com.kh.spring.challenge.model.vo.ChallengeResponse;
 import com.kh.spring.challenge.model.vo.SearchChallenge;
+import com.kh.spring.challenge.model.vo.SearchComment;
 import com.kh.spring.challenge.model.vo.SearchMyChallenge;
 import com.kh.spring.user.model.vo.User;
 import com.kh.spring.util.attachment.Exiftool;
@@ -25,6 +26,7 @@ import com.kh.spring.util.attachment.FileSanitizer;
 import com.kh.spring.util.attachment.ResizeWebp;
 import com.kh.spring.util.challenge.ChallengeValidator;
 import com.kh.spring.util.challenge.SearchChallengeValidator;
+import com.kh.spring.util.common.BinaryAndBase64;
 import com.kh.spring.util.common.Dummy;
 import com.kh.spring.util.common.Regexp;
 
@@ -107,6 +109,8 @@ public class ChallengeServiceImpl implements ChallengeService {
 		if (user == null)
 			user = Dummy.dummyUser(); // 로그인되지 않았으면 더미데이터
 		int result = 0;
+		
+		System.out.println("새로운 챌린지 생성 : "+chal);
 
 		// 제목 trim
 		chal.setTitle(chal.getTitle().trim());
@@ -115,15 +119,12 @@ public class ChallengeServiceImpl implements ChallengeService {
 		if (!ChallengeValidator.challenge(chal))
 			throw new Exception("challenge 유효성");
 
-		// 썸네일 있으면 Base64 디코딩, 리사이즈 및 소독
-		byte[] thumbnail = null;
-		if (chal.getThumbnailBase64() != null && !chal.getThumbnailBase64().equals("")) {
-			thumbnail = Base64.getDecoder().decode(chal.getThumbnailBase64());
-			thumbnail = ResizeWebp.resizeWebp(thumbnail);
-			if (Exiftool.EXIFTOOL) {// exiftool이 있어요!
-				thumbnail = Exiftool.sanitizeMetadata(thumbnail);
-			}
+		// 썸네일 있으면 Base64 url-safe 디코딩, 리사이즈 및 소독
+		byte[] thumbnail = BinaryAndBase64.base64ToBinary(chal.getThumbnailBase64());
+		if (thumbnail !=null) {
+			//프로필 사진 있으면 thumbnail에 넣기
 			chal.setThumbnail(thumbnail);
+			chal.setThumbnailBase64(null);
 		}
 
 		// DB저장
@@ -141,13 +142,19 @@ public class ChallengeServiceImpl implements ChallengeService {
 			if (file == null || file.isEmpty())
 				continue;
 
-			// 사진 유효성 확인 및 attachment객체로 변환
-			Attachment at = new Attachment();
-			if (!FileSanitizer.attachmentSanitizer(file, at))
+			// 사진 유효성 확인
+			if (!FileSanitizer.attachmentSanitizer(file))
 				throw new Exception("attachment 유효성");
 
-			// chalNo넣기
-			at.setRefNo(result);
+			// Attachment 넣기
+			Attachment at = Attachment.builder()
+					.refNo(chal.getChalNo())
+					.fileContent(file.getBytes())
+					.fileName(file.getOriginalFilename())
+				    .fileSize((int)file.getSize())
+				    .build();
+			
+			System.out.println("새로운 챌린지 Attachment: "+at);
 
 			// 사진 리사이즈
 			at.setFileContent(ResizeWebp.resizeWebp(at.getFileContent()));
@@ -217,7 +224,12 @@ public class ChallengeServiceImpl implements ChallengeService {
 	@Override
 	public void chalDetail(int chalNo, Model model) throws Exception {
 		ChallengeResponse chal = chalDao.chalDetail(sqlSession,chalNo);
-		commentService.chalDetailComment(chalNo,model);
+		
+		SearchComment sc = SearchComment.builder()
+				.chalNo(chalNo)
+				.currentPage(0).build();
+		
+		commentService.chalDetailComment(sc,model);
 		model.addAttribute("chalDetail", chal);
 	}
 }

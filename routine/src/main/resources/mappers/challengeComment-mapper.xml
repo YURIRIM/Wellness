@@ -5,7 +5,7 @@
 
 <mapper namespace="challengeCommentMapper">
 
-<select id="chalDetailComment" resultType="ChallengeComment" parameterType="int">
+<select id="chalDetailComment" resultType="ChallengeComment" parameterType="SearchComment">
 select *
 from(
     select a1.*, rownum rnum
@@ -23,7 +23,31 @@ from(
         and RECOMMENT_TARGET = null
         order by COMMENT_NO DESC
     ) a1
-    where rnum &lt;= (#{currentPage}+1) * #{showLimit}
+    where rownum &lt;= (#{currentPage}+1) * #{showLimit}
+)
+where rnum &gt; #{currentPage} * #{showLimit}
+</select>
+
+
+<select id="chalDetailRecomment" resultType="ChallengeComment" parameterType="SearchComment">
+select *
+from(
+    select a1.*, rownum rnum
+    from(
+        select cc.COMMENT_NO
+              ,cc.USER_NO
+              ,cc.CHAL_NO
+              ,cc.RECOMMENT_TARGET
+              ,cc.REPLY
+              ,cc.STATUS
+              ,u.NICK
+        from CHALLENGE_COMMENT cc
+        left join USERS u on(u.USER_NO = cc.USER_NO)
+        where CHAL_NO = #{chalNo}
+        and RECOMMENT_TARGET = #{recommentTarget}
+        order by COMMENT_NO
+    ) a1
+    where rownum &lt;= (#{currentPage}+1) * #{showLimit}
 )
 where rnum &gt; #{currentPage} * #{showLimit}
 </select>
