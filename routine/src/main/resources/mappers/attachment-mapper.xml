@@ -59,5 +59,26 @@
 		and STATUS = 'Y'
 		and REF_TABLE = 'R'
 	</select>
+	
+	<insert id="insertAtComment" parameterType="Attachment">
+		INSERT INTO ATTACHMENT(
+			ATTACHMENT_NO
+			,REF_TABLE
+			,UUID
+			,FILE_CONTENT
+			,FILE_SIZE
+			,FILE_NAME
+			,STATUS
+			)
+		VALUES (
+			SEQ_ATTACHMENT.NEXTVAL
+			,'R'
+			,#{uuid}
+			,#{fileContent}
+			,#{fileSize}
+			,#{fileName}
+			,'N'
+			)
+	</insert>	
 
 </mapper>

@@ -125,10 +125,10 @@ public class ChallengeController {
 	public String chalParticipate(HttpSession session, Model model, int chalNo) {
 		try {
 			service.chalParticipate(session, model, chalNo);
+			return "success";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return "success";
+			return "fail";
 		}
-		return "fail";
 	}
 }

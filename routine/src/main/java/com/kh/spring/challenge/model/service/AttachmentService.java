@@ -17,5 +17,5 @@ public interface AttachmentService {
 	
 	ResponseEntity<byte[]> selectAtComment(List<ChallengeCommentResponse> ccs) throws Exception;
 
-	String insertAtComment(HttpSession session, MultipartFile file, int chalNo);
+	String insertAtComment(HttpSession session, MultipartFile file, int chalNo) throws Exception;
 }

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.spring.challenge.model.dao.AttachmentDao;
+import com.kh.spring.challenge.model.dao.ChallengeDao;
 import com.kh.spring.challenge.model.vo.Attachment;
 import com.kh.spring.challenge.model.vo.ChallengeCommentResponse;
 import com.kh.spring.util.attachment.Exiftool;
@@ -29,6 +30,8 @@ public class AttachmentServiceImpl implements AttachmentService {
 	private SqlSessionTemplate sqlSession;
 	@Autowired
 	private AttachmentDao dao;
+	@Autowired
+	private ChallengeDao chalDao;
 
 	//비동기 - summernote에서 사진 넣기
 	@Override
@@ -139,9 +142,52 @@ public class AttachmentServiceImpl implements AttachmentService {
 	
 	//비동기 - 댓글 사진 업로드
 	@Override
-	public String insertAtComment(HttpSession session, MultipartFile file, int chalNo) {
+	public String insertAtComment(HttpSession session, MultipartFile file, int chalNo) throws Exception{
+		//파일 없는데 뭐임?
+		if (file == null || file.isEmpty()) throw new Exception("없잖아! 날 속였어!");
+
+		// 사진 유효성 확인
+		if (!FileSanitizer.attachmentSanitizer(file))
+			throw new Exception("attachment 유효성");
+
+		//uuid발급하기
+		Map<String, Object> uuidMap = UuidUtil.createUUID();
+		
+		// Attachment 넣기
+		Attachment at = Attachment.builder()
+				.uuid((byte[])uuidMap.get("uuidRaw"))
+				.fileContent(file.getBytes())
+				.fileName(file.getOriginalFilename())
+				.fileSize((int) file.getSize())
+				.build();
+
+		// 사진 리사이즈
+		at.setFileContent(ResizeWebp.resizeWebp(at.getFileContent()));
+		
+		if (Exiftool.EXIFTOOL) {
+			//사진 메타데이터 검사
+			//해당 챌린지가 꿈과 희망이 넘치게 양심을 믿는지 각박딱딱하게 법규화된 질서를 신뢰하는지 살펴보기
+			String pictureRequired = chalDao.pictureRequired(sqlSession,chalNo);
+			if(pictureRequired.equals("I")) {
+				//각박딱딱한 사람들
+				int metaInspect = Exiftool.inspectAttachment(at);
+				switch(metaInspect) {
+				case 2: return "joongBock"; //돚거는 가세요라
+				case 0: throw new Exception("개발자도 알 수 없는 오류");
+				}
+			}
+			
+			// 메타데이터 소독
+			at.setFileContent(Exiftool.sanitizeMetadata(at.getFileContent()));
+		}
+
+		// Attachment테이블에 넣자!
+		int result = dao.insertAtComment(sqlSession, at);
+		if (!(result > 0))
+			throw new Exception("at DB저장 실패");
+		
 		//uuid반환
-		return null;
+		return (String)uuidMap.get("uuid");
 	}
 
 }

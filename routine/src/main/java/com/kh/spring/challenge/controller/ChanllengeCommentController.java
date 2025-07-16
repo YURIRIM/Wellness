@@ -41,11 +41,13 @@ public class ChanllengeCommentController {
 		}
 	}
 	
+	
+	
 	//성공시 'success' 실패시 'fail' 반환
 	//joongBock : 직접 촬영한 사진 아닐 때 반환값
+	//추가(contextPath+"/chalComment/insertComment") post
 	//댓글 수정(contextPath+"/chalComment/deleteComment") post
 	//삭제(contextPath+"/chalComment/updateComment") post
-	//추가(contextPath+"/chalComment/insertComment") post
 	//대댓글 작성(contextPath+"/chalComment/insertRecomment") post
 
 	

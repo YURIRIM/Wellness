@@ -254,9 +254,19 @@ public class ChallengeServiceImpl implements ChallengeService {
 	@Override
 	public void chalParticipate(HttpSession session, Model model, int chalNo) throws Exception {
 		User loginUser = (User)session.getAttribute("loginUser");
-		int userNo = loginUser.getUserNo();
 		
-		String canParticipate = chalDao.canParticipate(sqlSession,userNo);
+		//너는 참여할 권한이 있니?
+		Map<String, Integer> map = new HashMap<>() {
+			//직렬...화? 데...쥬레 같은 건가요?
+			private static final long serialVersionUID = 1L;
+			{
+		    put("userNo", loginUser.getUserNo());
+		    put("chalNo", chalNo);
+		}};
+		String state = chalDao.loginUserIsParticipation(sqlSession,map);
+		if(state!=null) throw new Exception("이미 참여했잖아...");
 		
+		int result = chalDao.newParticipant(sqlSession,map);
+		if(!(result>0)) throw new Exception("참여 할 수 없네용 까비아깝숑");
 	}
 }

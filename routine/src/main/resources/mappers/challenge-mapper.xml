@@ -296,8 +296,20 @@
 		select STATUS
 		from CHALLENGE_PARTICIPATION
 		where CHAL_NO = #{chalNo}
-		and user_no = #{userNo}
+		and USER_NO = #{userNo}
 	</select>
 	
-
+	<insert id="newParticipant" parameterType="map">
+		insert into CHALLENGE_PARTICIPATION(CHAL_NO,USER_NO,STATUS)
+		select cp.CHAL_NO, cp.USER_NO, cp.STATUS
+		from CHALLENGE_PARTICIPATION cp
+		join CHALLENGE c on(cp.CHAL_NO = c.CHAL_NO)
+		where c.STATUS = 'Y'
+	</insert>
+	
+	<select id="pictureRequired" parameterType="int" resultType="string">
+		select PICTURE_REQUIRED
+		from CHALLENGE
+		where CHAL_NO = #{chalNo}
+	</select>
 </mapper>

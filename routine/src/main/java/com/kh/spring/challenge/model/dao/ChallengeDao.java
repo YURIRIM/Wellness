@@ -33,4 +33,12 @@ public class ChallengeDao {
 	public String loginUserIsParticipation(SqlSessionTemplate sqlSession, Map<String, Integer> map) {
 		return sqlSession.selectOne("challengeMapper.loginUserIsParticipation",map);
 	}
+
+	public int newParticipant(SqlSessionTemplate sqlSession, Map<String, Integer> map) {
+		return sqlSession.insert("challengeMapper.newParticipant",map);
+	}
+
+	public String pictureRequired(SqlSessionTemplate sqlSession, int chalNo) {
+		return sqlSession.selectOne("challengeMapper.pictureRequired",chalNo);
+	}
 }

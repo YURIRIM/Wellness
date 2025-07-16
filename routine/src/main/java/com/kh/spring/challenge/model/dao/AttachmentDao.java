@@ -23,4 +23,8 @@ public class AttachmentDao {
 	public Attachment selectAtComment(SqlSessionTemplate sqlSession, int commentNo) {
 		return sqlSession.selectOne("attachmentMapper.selectAtComment", commentNo);
 	}
+
+	public int insertAtComment(SqlSessionTemplate sqlSession, Attachment at) {
+		return sqlSession.insert("attachmentMapper.insertAtComment", at);
+	}
 }
