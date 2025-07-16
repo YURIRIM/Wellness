@@ -9,13 +9,15 @@
 	<bind name="searchPattern" value="'%' + search + '%'" />
 		select *
 		from (
-			select a1.*, P.PICTURE, rownum rnum
+			select a1.*
+			,P.PICTURE
+			,rownum rnum
+			,(SELECT THUMBNAIL FROM CHALLENGE C2 WHERE C2.CHAL_NO = a1.CHAL_NO)
 			from(
 				select
 					C.CHAL_NO
 					,C.TITLE
 					,C.CONTENT
-					,C.THUMBNAIL
 					,C.VERIFY_CYCLE
 					,C.CREATE_DATE
 					,C.START_DATE
@@ -102,7 +104,6 @@
 					C.CHAL_NO
 					,C.TITLE
 					,C.CONTENT
-					,C.THUMBNAIL
 					,C.VERIFY_CYCLE
 					,C.CREATE_DATE
 					,C.START_DATE
@@ -249,6 +250,8 @@
 				,C.REPLY_REQUIRED
 				,CC.CATEGORY_NAME
 				,U.NICK
+				,P.BIO
+				,P.IS_OPEN
 				,COUNT(cp.user_no) as PARTICIPATE_COUNT
 				,SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) as SUCCESS_COUNT
 				,SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END) as FAIL_COUNT
@@ -266,6 +269,7 @@
 			left join PROFILE p on(c.USER_NO = p.USER_NO)
 
 			where c.CHAL_NO = #{chalNo}
+			and c.STATUS != 'D'
 
 			group by
 				C.CHAL_NO
@@ -282,9 +286,30 @@
 				,C.REPLY_REQUIRED
 				,CC.CATEGORY_NAME
 				,U.NICK
+				,P.BIO
+				,P.IS_OPEN
 			) a1
 	left join PROFILE P ON a1.USER_NO = P.USER_NO
 	</select>
 	
-
+	<select id="loginUserIsParticipation" parameterType="map" resultType="string" >
+		select STATUS
+		from CHALLENGE_PARTICIPATION
+		where CHAL_NO = #{chalNo}
+		and USER_NO = #{userNo}
+	</select>
+	
+	<insert id="newParticipant" parameterType="map">
+		insert into CHALLENGE_PARTICIPATION(CHAL_NO,USER_NO,STATUS)
+		select cp.CHAL_NO, cp.USER_NO, cp.STATUS
+		from CHALLENGE_PARTICIPATION cp
+		join CHALLENGE c on(cp.CHAL_NO = c.CHAL_NO)
+		where c.STATUS = 'Y'
+	</insert>
+	
+	<select id="pictureRequired" parameterType="int" resultType="string">
+		select PICTURE_REQUIRED
+		from CHALLENGE
+		where CHAL_NO = #{chalNo}
+	</select>
 </mapper>

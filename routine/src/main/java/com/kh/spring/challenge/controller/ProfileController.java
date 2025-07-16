@@ -18,7 +18,6 @@ public class ProfileController {
 	@Autowired
 	private ProfileService service;
 	
-	
 	//내 프로필 확인하기
 	@PostMapping("/selectMyProfile")
 	@ResponseBody
@@ -66,6 +65,4 @@ public class ProfileController {
 			return "common/errorPage";
 		}
 	}
-
-	
 }

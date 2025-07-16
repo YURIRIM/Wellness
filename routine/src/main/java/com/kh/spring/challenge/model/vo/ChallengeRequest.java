@@ -31,7 +31,7 @@ public class ChallengeRequest {
     private LocalDate startDate;
     private LocalDate endDate;
     private String status; //Y:활성화 N:종료됨 D:삭제됨
-    private String pictureRequired; //I:필수(도용 불가) Y:필수 O:선택 N:불가
+    private String pictureRequired; //I:직접 촬영한 사진 필수 Y:필수 O:선택 N:불가
     private String replyRequired; //Y:필수 O:선택 N:불가
     /*
      * verifyCycle 인증 주기

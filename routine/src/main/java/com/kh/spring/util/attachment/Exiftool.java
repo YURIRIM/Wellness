@@ -39,6 +39,7 @@ public class Exiftool {
 	 * 반환값 - 1: 정상, 2: 직접 촬영 아님, 0: 기타 오류
 	 */
 	public static int inspectAttachment(Attachment at) throws Exception {
+		System.out.println("언제부터 우리는 타인을 믿지 못하게 되었는가?");
 		//임시 파일 생성
 		File tempFile = File.createTempFile("upload_", ".webp");
 		try (FileOutputStream fos = new FileOutputStream(tempFile)) {
