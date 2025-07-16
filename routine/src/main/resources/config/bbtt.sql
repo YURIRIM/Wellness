@@ -76,9 +76,6 @@ COMMENT ON COLUMN chat_messages.message_type IS '메시지 타입 (text: 텍스�
 COMMENT ON COLUMN chat_messages.file_url IS '첨부파일 저장 경로';
 COMMENT ON COLUMN chat_messages.file_name IS '첨부파일 원본 파일명';
 
-CREATE SEQUENCE SEQ_LOCATION START WITH 1 INCREMENT BY 1;
-CREATE SEQUENCE SEQ_WEATHER START WITH 1 INCREMENT BY 1;
-CREATE SEQUENCE SEQ_RECOMMEND START WITH 1 INCREMENT BY 1;
 
 -- 위치
 CREATE TABLE LOCATION (

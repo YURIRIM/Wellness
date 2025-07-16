@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
+import java.util.List;	
 
 @Controller
-@RequestMapping("/routine") 
+@RequestMapping("/") 
 public class RecommendController {
     
     @Autowired
@@ -69,4 +69,5 @@ public class RecommendController {
         
         return "recommend/result";
     }
+    
 }
