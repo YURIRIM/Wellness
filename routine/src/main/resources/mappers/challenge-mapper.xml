@@ -9,7 +9,7 @@
 	<bind name="searchPattern" value="'%' + search + '%'" />
 		select *
 		from (
-			select a.*, rownum rnum
+			select a1.*, P.PICTURE, rownum rnum
 			from(
 				select
 					C.CHAL_NO
@@ -25,18 +25,18 @@
 					,C.REPLY_REQUIRED
 					,CC.CATEGORY_NAME
 					,U.NICK
-					,P.PICTURE
 					,COUNT(cp.user_no) as PARTICIPATE_COUNT
-					,ROUND(SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END)
-						* 100.0 / COUNT(cp.user_no),2) as SUCCESS_RATIO
-					,ROUND(SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END)
-						* 100.0 / COUNT(cp.user_no),2) as FAIL_RATIO
+				    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
+				           SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) * 100.0
+				             / COUNT(cp.user_no) , 2) END AS SUCCESS_RATIO
+				    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
+				           SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END) * 100.0
+				             / COUNT(cp.user_no) , 2) END AS FAIL_RATIO
 
 				from CHALLENGE c
 				left join CHALLENGE_CATEGORY cc on(c.CATEGORY_NO = cc.CATEGORY_NO)
 				left join CHALLENGE_PARTICIPATION cp on(c.CHAL_NO = cp.CHAL_NO)
-				left join USER u on(c.USER_NO = u.USER_NO)
-				left join PROFILE p on(c.USER_NO = p.USER_NO)
+				left join USERS u on(c.USER_NO = u.USER_NO)
 
 				where 1=1
 				<if test="search != ''">
@@ -112,7 +112,6 @@
 					,C.REPLY_REQUIRED
 					,CC.CATEGORY_NAME
 					,U.NICK
-					,P.PICTURE
 				
 				order by
 				<choose>
@@ -127,8 +126,11 @@
 						C.CREATE_DATE desc
 					</otherwise>
 				</choose>
-			) a
-			where rnum &lt;= (#{currentPage}+1) * #{showLimit}
+			) a1
+
+			left join PROFILE P ON a1.USER_NO = P.USER_NO
+
+			where rownum &lt;= (#{currentPage}+1) * #{showLimit}
 		)
 		where rnum &gt; #{currentPage} * #{showLimit}
 	</select>
@@ -171,11 +173,118 @@
 				</otherwise>
 			</choose>
 			,#{endDate}
-			,#{status}
+			,'Y'
 			,#{pictureRequired}
 			,#{replyRequired}
 			)
 	</insert>
+
+	<select id="selectMyChal" parameterType="SearchMyChallenge" resultType="ChallengeResponse">
+		select *
+		from (
+			select a.*, rownum rnum
+			from(
+				select
+					C.CHAL_NO
+					,C.TITLE
+					,C.CONTENT
+					,C.THUMBNAIL
+					,C.VERIFY_CYCLE
+					,C.CREATE_DATE
+					,C.START_DATE
+					,C.END_DATE
+					,C.STATUS
+					,C.PICTURE_REQUIRED
+					,C.REPLY_REQUIRED
+					,CC.CATEGORY_NAME
+					,U.NICK
+					,P.PICTURE
+					,COUNT(cp.user_no) as PARTICIPATE_COUNT
+				    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
+				           SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) * 100.0
+				             / COUNT(cp.user_no) , 2) END AS SUCCESS_RATIO
+				    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
+				           SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END) * 100.0
+				             / COUNT(cp.user_no) , 2) END AS FAIL_RATIO
+
+				from CHALLENGE c
+				left join CHALLENGE_CATEGORY cc on(c.CATEGORY_NO = cc.CATEGORY_NO)
+				left join CHALLENGE_PARTICIPATION cp on(c.CHAL_NO = cp.CHAL_NO)
+				left join USERS u on(c.USER_NO = u.USER_NO)
+				left join PROFILE p on(c.USER_NO = p.USER_NO)
+
+				where 1=1
+				<choose>
+					<when test="searchType == 'O'">
+						and c.USER_NO = #{userNo}
+					</when>
+					<when test="searchType == 'J'">
+						and cp.USER_NO = #{userNo}
+					</when>
+				</choose>
+				
+				order by C.CREATE_DATE desc
+			) a
+			where rownum &lt;= (#{currentPage}+1) * #{showLimit}
+		)
+		where rnum &gt; #{currentPage} * #{showLimit}
+	</select>
+	
+	<select id="chalDetail" parameterType="int" resultType="ChallengeResponse">
+	select a1.*
+		,P.PICTURE
+		,(SELECT THUMBNAIL FROM CHALLENGE C2 WHERE C2.CHAL_NO = a1.CHAL_NO)
+	from (select
+				C.CHAL_NO
+				,C.USER_NO
+				,C.CATEGORY_NO
+				,C.TITLE
+				,C.CONTENT
+				,C.VERIFY_CYCLE
+				,C.CREATE_DATE
+				,C.START_DATE
+				,C.END_DATE
+				,C.STATUS
+				,C.PICTURE_REQUIRED
+				,C.REPLY_REQUIRED
+				,CC.CATEGORY_NAME
+				,U.NICK
+				,COUNT(cp.user_no) as PARTICIPATE_COUNT
+				,SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) as SUCCESS_COUNT
+				,SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END) as FAIL_COUNT
+			    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
+			           SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) * 100.0
+			             / COUNT(cp.user_no) , 2) END AS SUCCESS_RATIO
+			    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
+			           SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END) * 100.0
+			             / COUNT(cp.user_no) , 2) END AS FAIL_RATIO
+
+			from CHALLENGE c
+			left join CHALLENGE_CATEGORY cc on(c.CATEGORY_NO = cc.CATEGORY_NO)
+			left join CHALLENGE_PARTICIPATION cp on(c.CHAL_NO = cp.CHAL_NO)
+			left join USERS u on(c.USER_NO = u.USER_NO)
+			left join PROFILE p on(c.USER_NO = p.USER_NO)
+
+			where c.CHAL_NO = #{chalNo}
+
+			group by
+				C.CHAL_NO
+				,C.USER_NO
+				,C.CATEGORY_NO
+				,C.TITLE
+				,C.CONTENT
+				,C.VERIFY_CYCLE
+				,C.CREATE_DATE
+				,C.START_DATE
+				,C.END_DATE
+				,C.STATUS
+				,C.PICTURE_REQUIRED
+				,C.REPLY_REQUIRED
+				,CC.CATEGORY_NAME
+				,U.NICK
+			) a1
+	left join PROFILE P ON a1.USER_NO = P.USER_NO
+	</select>
 	
 
 </mapper>

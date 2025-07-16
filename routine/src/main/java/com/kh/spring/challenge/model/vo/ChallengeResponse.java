@@ -1,6 +1,7 @@
 package com.kh.spring.challenge.model.vo;
 
-import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,11 +19,10 @@ public class ChallengeResponse {
     private byte[] thumbnail;
     private String thumbnailBase64; //프론트와 base64로 썸네일 파일 통신
     
-    //"yyyy-MM-dd HH:mm:ss" 포맷이여야 Timestamp자동 맵핑
-    private Timestamp createDate;
+    private LocalDateTime createDate;
     private int verifyCycle;
-    private Timestamp startDate;
-    private Timestamp endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private String status; //Y:활성화 N:종료됨 D:삭제됨
     private String pictureRequired; //I:필수(도용 불가) Y:필수 O:선택 N:불가
     private String replyRequired; //Y:필수 O:선택 N:불가
@@ -37,14 +37,13 @@ public class ChallengeResponse {
     
     private int participateCount; //challenge_participation
     private Double successRatio; //challenge_participation, 백분율
-    
+    private Double failRatio; //challenge_participation, 백분율
     
     //-----세부 조회용 요소-----
     private int userNo;
     private int categoryNo;
     private int successCount; //challenge_participation
     private int failCount; //challenge_participation
-    private Double failRatio; //challenge_participation, 백분율
     
     /*
      * verifyCycle 인증 주기

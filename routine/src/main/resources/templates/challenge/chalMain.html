@@ -12,37 +12,32 @@
       th:href="@{/webjars/summernote/0.9.1/dist/summernote-bs5.min.css}"
       rel="stylesheet"
     />
-    <link rel="stylesheet" th:href="@{/css/challenge/challMain.css}" />
+    <link rel="stylesheet" th:href="@{/css/challenge/chalMain.css}" />
   </head>
   <body>
     <th:block th:replace="~{/common/fragment :: header}"></th:block>
     <div id="main-container" class="container-fluid">
       <div id="main-row" class="row">
         <div id="main-left" class="col-3">
-          왼쪽: 검색/필터
           <th:block
             th:replace="~{/challenge/chalMain-left :: chalMain-left}"
           ></th:block>
-          <div id="main-sidebar-left" class="sidebar-bottom">
-            좌측 사이드바 아래 영역(비워둘꺼임)
-          </div>
+          <div id="main-sidebar-left" class="sidebar-bottom"></div>
         </div>
         <div id="main-center" class="col-6">
           <div id="main-challenge-list" class="challenge-list">
-            중앙: 챌린지 목록 (무한 스크롤 영역)
             <th:block
               th:replace="~{/challenge/chalMain-center :: chalMain-center}"
             ></th:block>
           </div>
         </div>
         <div id="main-right" class="col-3">
-          오른쪽: 개인 영역
-          <th:block
-            th:replace="~{/challenge/chalMain-right :: chalMain-right}"
-          ></th:block>
-          <div id="main-sidebar-right" class="sidebar-bottom">
-            우측 사이드바 아래 영역(비워둘꺼임)
-          </div>
+          <th:block th:if="${loginUser != null}">
+            <th:block
+              th:replace="~{/challenge/chalMain-right :: chalMain-right}"
+            ></th:block>
+          </th:block>
+          <div id="main-sidebar-right" class="sidebar-bottom"></div>
           <!-- 오른쪽 하단에는 깨알같은 맨 위로가기 버튼 -->
         </div>
       </div>
@@ -52,8 +47,14 @@
     <script th:inline="javascript">
       const catAll = /*[[${ChallengeCategory}]]*/ ["안아줘요", "싫은데요"];
       const contextPath = /*[[${rootContextPath}]]*/ "/routine";
+      const loginUserNo = /*[[${loginUser.userNo}]]*/ 14530529;
+      const loginUserName =
+        /*[[${loginUser.name}]]*/ "사랑은언제나눈물이되어가슴에남아";
+      const loginUserNick =
+        /*[[${loginUser.nick}]]*/ "떠나지도못한채또길을멈추네우리";
+      const myProfile = /*[[${myProfile}]]*/ "프로필";
     </script>
     <!-- 스크립트 파일-->
-    <script th:src="@{/js/challenge/challMain.js}"></script>
+    <script th:src="@{/js/challenge/chalMain.js}"></script>
   </body>
 </html>

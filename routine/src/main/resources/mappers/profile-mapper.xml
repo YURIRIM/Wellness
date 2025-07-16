@@ -5,27 +5,46 @@
 
 <mapper namespace="profileMapper">
 
-<select id="selectMyProfile" resultType="Profile">
-  select p.USER_NO
-        ,p.PICTURE
-        ,p.BIO
-        ,p.IS_OPEN
-        ,count(cp.CHAL_NO) as chal_particiapte_count
-        ,SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) as success_count
-        ,SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END) as fail_count
-        ,ROUND(SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END)
-          * 100.0 / COUNT(cp.user_no),2) as SUCCESS_RATIO
-        ,ROUND(SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END)
-          * 100.0 / COUNT(cp.user_no),2) as FAIL_RATIO
-
-  from PROFILE p
-  left join CHALLENGE_PARTICIPATION cp on(cp.USER_NO = p.USER_NO)
-  where p.user_no = #{userNo}
-  group by p.USER_NO
-          ,p.PICTUR
-          ,p.BIO
-          ,p.IS_OPEN
+<select id="selectMyProfile" resultType="ProfileResponse">
+  select a1.*, P.PICTURE, P.WATERMARK
+  from (
+	  select p.USER_NO
+	        ,p.BIO
+	        ,p.IS_OPEN
+	        ,p.WATERMARK_TYPE
+	        ,count(cp.CHAL_NO) as chal_particiapte_count
+	        ,SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) as success_count
+	        ,SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END) as fail_count
+		    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
+		           SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) * 100.0
+		             / COUNT(cp.user_no) , 2) END AS SUCCESS_RATIO
+		    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
+		           SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END) * 100.0
+		             / COUNT(cp.user_no) , 2) END AS FAIL_RATIO
+	  from PROFILE p
+	  left join CHALLENGE_PARTICIPATION cp on(cp.USER_NO = p.USER_NO)
+	  where p.user_no = #{userNo}
+	  group by p.USER_NO
+	          ,p.BIO
+	          ,p.IS_OPEN
+	          ,p.WATERMARK_TYPE
+	  ) a1
+  left join PROFILE P ON a1.USER_NO = P.USER_NO
 </select>
-	
+
+<insert id="insertMyProfile" parameterType="ProfileRequest">
+  insert into PROFILE(USER_NO, PICTURE, BIO, IS_OPEN, WATERMARK_TYPE, WATERMARK)
+  values(#{userNo},#{picture},#{bio},#{isOpen},#{watermarkType},#{watermark})
+</insert>
+
+<update id="updateMyProfile" parameterType="ProfileRequest">
+  update PROFILE
+  set PICTURE = #{picture}
+      ,BIO = #{bio}
+      ,IS_OPEN = #{isOpen}
+      ,WATERMARK_TYPE = #{watermarkType}
+      ,WATERMARK = #{watermark}
+  where USER_NO = #{userNo}
+</update>
 
 </mapper>
