@@ -11,8 +11,6 @@ public class Recommend {
     private int recommendNo;        
     private int weatherNo;          
     
-    private String exerciseType;    
-    private String description;     
-    private String locationType;   
-    private String reason;         
+    private String exerciseType;     //운동 종류
+    private String locationType;     //추천 장소
 }

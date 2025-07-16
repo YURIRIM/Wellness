@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>운동 추천 결과</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        
+        <!-- 에러 메시지 -->
+        <div th:if="${error}" class="alert alert-danger" role="alert">
+            <strong>오류!</strong> <span th:text="${error}"></span>
+        </div>
+        
+        <!-- 정상 결과 -->
+        <div th:if="${error == null}">
+            
+            <!-- 위치 정보 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header text-center">
+                            <h3>📍 현재 위치</h3>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 th:text="${location.locationName}">현재 위치</h5>
+                            <p class="text-muted" th:text="${location.address}">주소 정보</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 날씨 정보 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header text-center">
+                            <h3>🌤️ 날씨 정보</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <h5>온도</h5>
+                                        <span class="badge bg-info fs-6" th:text="${weather.temperature} + '°C'">25°C</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <h5>습도</h5>
+                                        <span class="badge bg-success fs-6" th:text="${weather.humidity} + '%'">60%</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <h5>강수확률</h5>
+                                        <span class="badge bg-warning fs-6" th:text="${weather.rainProbability} + '%'">30%</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <h5>미세먼지</h5>
+                                        <span class="badge fs-6" 
+                                              th:classappend="${weather.airGrade == '좋음'} ? 'bg-success' : 
+                                                             (${weather.airGrade == '보통'} ? 'bg-warning' : 'bg-danger')"
+                                              th:text="${weather.pm10} + ' (' + ${weather.airGrade} + ')'">45 (보통)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <span class="badge bg-primary fs-6" th:text="${weather.weatherCondition}">맑음</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 추천 운동 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header text-center">
+                            <h3>💪 추천 운동</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div th:each="recommend : ${recommendations}" class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title" th:text="${recommend.exerciseType}">운동 종류</h5>
+                                            <span class="badge"
+                                                  th:classappend="${recommend.locationType == 'OUTDOOR'} ? 'bg-success' : 'bg-info'"
+                                                  th:text="${recommend.locationType == 'OUTDOOR'} ? '실외' : '실내'">실외</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-12 text-center">
+                    <a href="/routine/recommend" class="btn btn-primary btn-lg">
+                        다시 추천받기
+                    </a>
+                    <a href="/routine/test" class="btn btn-secondary btn-lg ms-2">
+                        테스트 해보기
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
