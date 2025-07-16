@@ -1,7 +1,5 @@
 package com.kh.spring.challenge.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,7 +7,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.spring.challenge.model.service.ChallengeService;
 import com.kh.spring.challenge.model.vo.ChallengeRequest;
@@ -73,7 +70,7 @@ public class ChallengeController {
 	@ResponseBody
 	public String goMyChal(HttpSession session, Model model, String searchType) {
 		try {
-			SearchMyChallenge smc = new SearchMyChallenge().builder()
+			SearchMyChallenge smc = SearchMyChallenge.builder()
 					.currentPage(0).searchType(searchType).build();
 			service.myChal(session,model,smc);
 		} catch (Exception e) {
@@ -99,10 +96,10 @@ public class ChallengeController {
 	//새로운 챌린지 생성하기
 	@PostMapping("/newChal")
 	public String newChall(HttpSession session ,Model model
-			,ChallengeRequest chal, List<MultipartFile> files) {
+			,ChallengeRequest chal) {
 		int chalNo=0;
 		try {
-			service.newChal(session, model, chal, files);
+			service.newChal(session, model, chal);
 			chalNo = chal.getChalNo();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -113,13 +110,25 @@ public class ChallengeController {
 	
 	//챌린지 세부 화면으로
 	@GetMapping("/chalDetail")
-	public String goChalDetail(Model model, int chalNo) {
+	public String goChalDetail(HttpSession session, Model model, int chalNo) {
 		try {
-			service.chalDetail(chalNo,model);
+			service.chalDetail(session, model, chalNo);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return "/common/errorPage";
 		}
 		return "/challenge/chalDetail";
+	}
+	
+	//비동기 - 챌린지 참여하기
+	@PostMapping("/participate")
+	public String chalParticipate(HttpSession session, Model model, int chalNo) {
+		try {
+			service.chalParticipate(session, model, chalNo);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "success";
+		}
+		return "fail";
 	}
 }

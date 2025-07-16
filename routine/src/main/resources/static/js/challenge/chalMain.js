@@ -1,7 +1,7 @@
 //==========================chalMain-right==========================
 document.addEventListener("DOMContentLoaded", function () {
   const rightContainer = document.querySelector("#main-right");
-  if (!loginUserNo) {
+  if (!loginUser.userNo) {
     return;
   }
 
@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // 닉네임, bio
   const nickEl = document.createElement("h5");
   nickEl.className = "mt-2 text-center";
-  nickEl.textContent = myProfile.nick || loginUserNick || "";
+  nickEl.textContent = myProfile.nick || loginUser.nick || "";
   profileDiv.appendChild(nickEl);
 
   if (myProfile.bio) {
@@ -458,6 +458,17 @@ function newChalScript() {
     width: "100%",
     lang: "ko-KR",
     maximumImageFileSize: 200 * 1024,
+    toolbar: [
+      // 기본 툴바에서 동영상 버튼('video')을 빼고 선언
+      ["style", ["style"]],
+      ["font", ["bold", "italic", "underline", "clear"]],
+      ["fontname", ["fontname"]],
+      ["color", ["color"]],
+      ["para", ["ul", "ol", "paragraph"]],
+      ["table", ["table"]],
+      ["insert", ["picture", "link"]], // video 제거
+      ["view", ["fullscreen", "codeview", "help"]],
+    ],
     callbacks: {
       onInit: function () {
         $("#new-submit").prop("disabled", false);
@@ -486,7 +497,7 @@ function newChalScript() {
         canvas.getContext("2d").drawImage(img, 0, 0, width, height);
         canvas.toBlob(
           (blob) => {
-            blob.name = file.name.replace(/\.\w+$/, ".webp");
+            // toBlob에서 새로운 파일명으로 만들지 않음 (이름은 서버에서 관리)
             resolve(blob);
           },
           "image/webp",
@@ -497,6 +508,7 @@ function newChalScript() {
     });
   }
 
+  /** ---------- Summernote 이미지 업로드(서버 url 삽입) ---------- */
   async function handleImages(files, editor) {
     const maxCnt = 5;
     const currentCnt = $(editor).summernote("code").match(/<img/g)?.length || 0;
@@ -506,13 +518,51 @@ function newChalScript() {
     }
     for (const f of files) {
       if (!f.type.startsWith("image/")) continue;
-      const blob = await compressImage(f);
-      if (blob.size > 200 * 1024) {
+
+      let finalFile = f;
+      try {
+        // compressImage 함수가 있으면 사용 (리사이즈 기능), 없으면 원본 그대로
+        if (typeof compressImage === "function") {
+          const blob = await compressImage(f);
+          // blob의 type이나 name이 원본 파일과 다를 수 있어 name 맞춤
+          finalFile = new File([blob], f.name.replace(/\.\w+$/, ".webp"), {
+            type: "image/webp",
+          });
+        }
+      } catch (e) {
+        // 만약 리사이즈 에러 발생 시 원본 파일 사용
+        finalFile = f;
+      }
+
+      // 200KB 초과 시 업로드 거부
+      if (finalFile.size > 200 * 1024) {
         alert(`"${f.name}"은(는) 200KB를 초과합니다.`);
         continue;
       }
-      const url = URL.createObjectURL(blob);
-      $(editor).summernote("insertImage", url, blob.name);
+
+      // 서버에 직접 업로드
+      const formData = new FormData();
+      formData.append("file", finalFile);
+      let uuid = "fail";
+      try {
+        const resp = await axios.post(
+          contextPath + "/attachment/insert",
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+        uuid = resp.data;
+      } catch (e) {
+        uuid = "fail";
+      }
+      if (!uuid || uuid === "fail") {
+        alert("이미지 업로드에 실패했습니다.");
+        continue;
+      }
+      // 서버 url 삽입: contextPath + "/attachment/select?at=" + uuid
+      const imgUrl = contextPath + "/attachment/select?at=" + uuid;
+      $(editor).summernote("insertImage", imgUrl, finalFile.name);
     }
   }
 
@@ -521,7 +571,11 @@ function newChalScript() {
     const file = this.files[0];
     if (!file) return;
 
-    const blob = await compressImage(file);
+    let blob = file;
+    if (typeof compressImage === "function") {
+      blob = await compressImage(file);
+    }
+
     if (blob.size > 200 * 1024) {
       alert("썸네일은 200KB 이하만 허용됩니다.");
       this.value = "";

@@ -1,7 +1,5 @@
 package com.kh.spring.util.common;
 
-import java.time.LocalDate;
-
 //정규식 저장소           
 public class Regexp {
 	//Challenge
@@ -9,7 +7,9 @@ public class Regexp {
 	public static final String CHAL_CONTENT = "^.{1,1000}$";
 	public static final String CHAL_PICTURE_REQUIRED = "^[IYON]$";
 	public static final String CHAL_REPLY_REQUIRED = "^[YON]$";
-	public static final LocalDate DOWNFALL = LocalDate.of(1453, 5, 29);
+	
+	//challenge content 중에서 이미지 링크 연결하기
+	public static final String CHAL_CONTENT_ATTACHMENT = "/attachment/select\\?at=([a-fA-F0-9]+)";
 	
 	//페이지당 노출될 챌린지 게시글 수
 	public static final int CHAL_SHOW_LIMIT = 20;

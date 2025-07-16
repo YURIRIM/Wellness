@@ -47,11 +47,8 @@
     <script th:inline="javascript">
       const catAll = /*[[${ChallengeCategory}]]*/ ["안아줘요", "싫은데요"];
       const contextPath = /*[[${rootContextPath}]]*/ "/routine";
-      const loginUserNo = /*[[${loginUser.userNo}]]*/ 14530529;
-      const loginUserName =
-        /*[[${loginUser.name}]]*/ "사랑은언제나눈물이되어가슴에남아";
-      const loginUserNick =
-        /*[[${loginUser.nick}]]*/ "떠나지도못한채또길을멈추네우리";
+      const loginUser =
+        /*[[${loginUser} != null ? ${loginUser} : null]]*/ "로그인한 회원";
       const myProfile = /*[[${myProfile}]]*/ "프로필";
     </script>
     <!-- 스크립트 파일-->

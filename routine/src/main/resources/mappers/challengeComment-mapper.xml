@@ -15,13 +15,17 @@ from(
               ,cc.CHAL_NO
               ,cc.RECOMMENT_TARGET
               ,cc.REPLY
+              ,cc.CREATE_DATE
               ,cc.STATUS
               ,u.NICK
+              ,p.PICTURE
+              ,p.IS_OPEN
         from CHALLENGE_COMMENT cc
         left join USERS u on(u.USER_NO = cc.USER_NO)
-        where CHAL_NO = #{chalNo}
-        and RECOMMENT_TARGET = null
-        order by COMMENT_NO DESC
+        left join PROFILE p on(cc.USER_NO = p.USER_NO)
+        where cc.CHAL_NO = #{chalNo}
+        and cc.RECOMMENT_TARGET = null
+        order by cc.COMMENT_NO DESC
     ) a1
     where rownum &lt;= (#{currentPage}+1) * #{showLimit}
 )
@@ -39,17 +43,21 @@ from(
               ,cc.CHAL_NO
               ,cc.RECOMMENT_TARGET
               ,cc.REPLY
+              ,cc.CREATE_DATE
               ,cc.STATUS
               ,u.NICK
+              ,p.PICTURE
+              ,p.IS_OPEN
         from CHALLENGE_COMMENT cc
         left join USERS u on(u.USER_NO = cc.USER_NO)
-        where CHAL_NO = #{chalNo}
-        and RECOMMENT_TARGET = #{recommentTarget}
-        order by COMMENT_NO
+        left join PROFILE p on(cc.USER_NO = p.USER_NO)
+        where cc.CHAL_NO = #{chalNo}
+        and cc.RECOMMENT_TARGET = #{recommentTarget}
+        order by cc.CREATE_DATE
     ) a1
-    where rownum &lt;= (#{currentPage}+1) * #{showLimit}
+    where rownum &lt;= (#{currentRecommentPage}+1) * #{showLimit}
 )
-where rnum &gt; #{currentPage} * #{showLimit}
+where rnum &gt; #{currentRecommentPage} * #{showLimit}
 </select>
 	
 
