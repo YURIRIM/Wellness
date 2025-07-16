@@ -36,10 +36,10 @@ public class UserController {
         System.out.println("DB에서 조회된 사용자: " + loginUser);
         System.out.println("사용자가 입력한 비밀번호: " + u.getPassword());
         
+        session.setAttribute("loginUser", loginUser);
         // 비밀번호 검증
         if (loginUser != null && passwordEncoder.matches(u.getPassword(), loginUser.getPassword())) {
             session.setAttribute("alertMsg", "로그인 성공!");
-            session.setAttribute("loginUser", loginUser);
             return "redirect:/";
         } else {
             model.addAttribute("errorMsg", "아이디 또는 비밀번호가 일치하지 않습니다.");

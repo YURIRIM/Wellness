@@ -19,8 +19,9 @@ public class HabitDao {
 		return sqlSession.selectList("habitMapper.habitList");
 	}
 
-	public int insertRepeat(SqlSessionTemplate sqlSession,HabitRepeat repeat, String weekDaysStr) {
-		return sqlSession.insert("habitMapper.habitList");
+	public int insertHabitRepeat(SqlSessionTemplate sqlSession, HabitRepeat repeat) {
+	    return sqlSession.insert("habitMapper.insertHabitRepeat", repeat);
 	}
+
 
 }
