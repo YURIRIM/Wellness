@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>습관 체크 달력</title>
+  <link rel="stylesheet" th:href="@{/css/habit.css}">
+</head>
+<body>
+  <h2 th:text="${#dates.format(#dates.createNow(), 'yyyy년 MM월')} + ' 습관 달력'"></h2>
+
+  <div class="calendar">
+    <div class="calendar-header">
+      <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+    </div>
+
+    <div class="calendar-body">
+      <div th:each="week : ${weeks}">
+        <div class="calendar-row">
+          <div class="calendar-cell"
+               th:each="day : ${week}"
+               th:classappend="${day != null} ? 'active' : 'inactive'"
+               th:text="${day != null ? day.dayOfMonth : ''}"
+               th:style="${checkMap[habit.habitNo]?.get(day)?.booleanValue()} ? 'background-color: #8fd18f;' : ''">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

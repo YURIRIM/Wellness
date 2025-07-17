@@ -1,6 +1,9 @@
 package com.kh.spring.habit.service;
 
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.spring.habit.dao.HabitDao;
 import com.kh.spring.habit.model.vo.Habit;
+import com.kh.spring.habit.model.vo.HabitCheck;
 import com.kh.spring.habit.model.vo.HabitRepeat;
 
 @Service
@@ -43,5 +47,12 @@ public class HabitServiceImpl implements HabitService {
 		// TODO Auto-generated method stub
 		return dao.habitList(sqlSession);
 	}
+
+	@Override
+	public List<Habit> getHabitsByUser(int userNo) {
+		// TODO Auto-generated method stub
+		return dao.selectHabitsByUser(sqlSession,userNo);
+	}
+
 
 }
