@@ -73,6 +73,46 @@
 		window.addEventListener("DOMContentLoaded", function () {
 			onRepeatTypeChange(); 
 		});
+		
+		
+		
+		
+		
+		
+		
+		function onGoalChange() {
+		    const select = document.getElementById("goalSelect");
+		    const value = select.value;
+		    const newGoalDiv = document.getElementById("newGoalInputDiv");
+		    const selectedGoalText = document.getElementById("selectedGoalText");
+
+		    if (value === "new") {
+		      newGoalDiv.style.display = "block";
+		      selectedGoalText.textContent = ""; // 초기화
+		    } else if (value !== "") {
+		      newGoalDiv.style.display = "none";
+		      const selectedText = select.options[select.selectedIndex].text;
+		      selectedGoalText.textContent = `목표 : ${selectedText}`;
+		    } else {
+		      newGoalDiv.style.display = "none";
+		      selectedGoalText.textContent = "";
+		    }
+		  }
+
+		  function updateSelectedGoal() {
+		    const input = document.getElementById("newGoalInput").value.trim();
+		    const selectedGoalText = document.getElementById("selectedGoalText");
+		    if (input) {
+		      selectedGoalText.textContent = `목표 : ${input}`;
+		    } else {
+		      selectedGoalText.textContent = "";
+		    }
+		  }
+		
+		
+		
+		
+		
 	</script>
 </head>
 
@@ -80,6 +120,23 @@
 	<h2>습관 등록</h2>
 
 	<form th:action="@{/habit/add}" method="post">
+		
+		<label for="goalSelect"></label>
+		<select id="goalSelect" name="goalNo" onchange="onGoalChange()">
+		  <option value="">-- 목표 선택 --</option>
+		  <option value="1">운동하기</option>
+		  <option value="2">책 읽기</option>
+		  <option value="new">+ 새 목표 입력 +</option>
+		</select>
+
+		<!-- 새 목표 입력 필드 (기본은 숨김) -->
+		<div id="newGoalInputDiv" style="margin-top: 8px; display: none;">
+		  <input type="text" id="newGoalInput" placeholder="목표를 입력하세요" oninput="updateSelectedGoal()" />
+		</div>
+
+		<!-- 목표 표시 -->
+		<p id="selectedGoalText" style="font-weight: bold; margin-top: 8px;"></p>
+		
 		<!-- 습관 이름 -->
 		<div>
 			<label>습관 이름</label>
@@ -187,7 +244,7 @@
 
 		<div id="timeSection">
 			<label>반복 시간</label>
-			<input type="time" name="repeat.repeatTime">
+			<input type="time" name="repeat.repeatTime" step="300">
 		</div>
 
 		<br>
@@ -199,4 +256,4 @@
 
 </body>
 
-</htm>
+</html>

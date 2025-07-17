@@ -23,7 +23,7 @@ public class HabitController {
 	@Autowired
 	private HabitService service;
 
-	@GetMapping("/habitList")
+	@GetMapping("/list")
 	public String habitList(HttpSession session, Model model) {
 		List<Habit> list = service.habitList();
 		model.addAttribute("habit", list);
