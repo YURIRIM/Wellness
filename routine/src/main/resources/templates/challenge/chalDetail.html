@@ -2,223 +2,1080 @@
 <html xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
-    <title>챌린지</title>
+    <title th:text="${chalDetail.title}">챌린지</title>
     <th:block th:replace="~{/common/fragment :: library}"></th:block>
+    <style>
+      .profile-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      .profile-img-large {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      .comment-img {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 8px;
+        margin: 10px 0;
+      }
+      .thumbnail-img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+      }
+      .comment-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: #fff;
+      }
+      .reply-card {
+        border-left: 3px solid #007bff;
+        margin-left: 30px;
+        padding-left: 15px;
+      }
+      .chart-container {
+        width: 300px;
+        height: 300px;
+        margin: 20px auto;
+      }
+      .comment-form {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #f8f9fa;
+      }
+      .text-count {
+        font-size: 12px;
+        color: #6c757d;
+        text-align: right;
+      }
+      .hidden {
+        display: none;
+      }
+      .comment-actions {
+        margin-top: 10px;
+      }
+      .comment-actions button {
+        margin-right: 5px;
+        font-size: 12px;
+        padding: 2px 8px;
+      }
+      .verify-cycle {
+        font-size: 14px;
+        color: #6c757d;
+        margin-top: 5px;
+      }
+      #loadingSpinner {
+        text-align: center;
+        padding: 20px;
+        display: none;
+      }
+    </style>
   </head>
   <body>
     <th:block th:replace="~{/common/fragment :: header}"></th:block>
 
-    <!--
-    부트스트랩 등의 라이브러리는 선언되어 있다고 가정
-    적절한 부트스트랩 아이콘 등으로 간단하게 꾸미기
+    <div class="container-fluid mt-4">
+      <div class="row">
+        <!-- 좌측: 챌린지 상세 -->
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <!-- 뒤로가기 및 버튼들 -->
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  onclick="goBack()"
+                >
+                  <i class="bi bi-arrow-left"></i> 뒤로가기
+                </button>
+                <div
+                  th:if="${loginUser != null and loginUser.userNo == chalDetail.userNo and chalDetail.status == 'Y'}"
+                >
+                  <a
+                    th:href="@{/challenge/updateChal(chalNo=${chalDetail.chalNo})}"
+                    class="btn btn-outline-primary btn-sm"
+                    >수정하기</a
+                  >
+                  <button
+                    type="button"
+                    class="btn btn-outline-warning btn-sm"
+                    onclick="closeChal()"
+                  >
+                    종료하기
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-danger btn-sm"
+                    onclick="deleteChal()"
+                  >
+                    삭제하기
+                  </button>
+                </div>
+              </div>
 
-    챌린지 상세보기
-    크게 좌/우로 구분된 두 영역 - 챌린지, 댓글 리스트
+              <!-- 챌린지 제목 및 상태 -->
+              <div class="mb-3">
+                <h2 class="card-title" th:text="${chalDetail.title}">
+                  챌린지 제목
+                </h2>
+                <div class="d-flex align-items-center">
+                  <span
+                    th:if="${chalDetail.status == 'N'}"
+                    class="badge bg-warning text-dark"
+                    >종료</span
+                  >
+                  <span
+                    class="badge bg-secondary ms-2"
+                    th:text="${chalDetail.categoryName}"
+                    >카테고리</span
+                  >
+                </div>
+              </div>
 
-    챌린지 객체 : 
-    public class ChallengeResponse {
-        private int chalNo;
-        private String title;
-        private String content;
-        private byte[] thumbnail;
-        private String thumbnailBase64; //프론트와 base64로 썸네일 파일 통신
-        
-        private LocalDateTime createDate;
-        private int verifyCycle;
-        private LocalDate startDate;
-        private LocalDate endDate;
-        private String status; //Y:활성화 N:종료됨 D:삭제됨
-        private String pictureRequired; //I:직접 촬영한 사진 필수 Y:필수 O:선택 N:불가
-        private String replyRequired; //Y:필수 O:선택 N:불가
-        
-        private String categoryName; //challenge_category
+              <!-- 썸네일 이미지 -->
+              <div th:if="${chalDetail.thumbnailBase64 != null}" class="mb-3">
+                <img
+                  th:src="'data:image/webp;base64,' + ${chalDetail.thumbnailBase64}"
+                  class="thumbnail-img"
+                  alt="썸네일"
+                />
+              </div>
 
-        private String nick; //member
-        
-        private byte[] picture; //profile
-        private String pictureBase64;
-        
-        private int participateCount; //challenge_participation
-        private Double successRatio; //challenge_participation, 백분율
-        private Double failRatio; //challenge_participation, 백분율
-        
-        //-----세부 조회용 요소-----
-        private int userNo;
-        private int categoryNo;
-        
-        private int successCount; //challenge_participation
-        private int failCount;
-        
-        private String bio; //profile
-        private String isOpen; //Y:공개, N:참여한 챌린지 비공개, A:익명
-        
-        //이 챌린지에 현재 접속한 사람이 참여중임?
-        private String loginUserIsParticipation;
-          // Y:참여중, S:성공, F:실패, N:미참여, U:로그인 안함
-        
-        /*
-        * verifyCycle 인증 주기
-        * 0 : 없음
-        * 1~127 : 특정 요일 선택(비트마스크)
-        * -월요일 : 1, 화요일 : 2, ..., 일요일 : 64
-        * 
-        * 201 : 매일
-        * 202 : 이틀
-        * 203 : 사흘
-        * 211 : 매주
-        * 212 : 2주
-        * 221 : 매달
-        * 
-        */
-    }
+              <!-- 챌린지 내용 -->
+              <div class="mb-3">
+                <p class="card-text" th:text="${chalDetail.content}">
+                  챌린지 내용
+                </p>
+              </div>
 
-    챌린지 게시글 상세보기 배치
-    ChallengeResponse 객체가 model의 chalDetail에 담김
-    -------------------------------------
-    뒤로 가기(goback(-1)) 버튼 / model의 loginUser가 존재할 경우, loginUser.userNo와 chalDetail.userNo가 동일할 경우 '수정하기' @{/challenge/updateChal}, '삭제하기' @{/challenge/deleteChal} get버튼 두기
-    제목(title) /상태(status) : Y:(표시하지 않음) N:종료 / 카테고리 이름(categoryName) / 썸네일(thumbnailBase64) : base64로 인코딩된 webp바이너리 데이터 
-    내용(content)
-    작성일(createDate) / 시작일(startDate) / 종료일(endDate) : null일 경우 종료일 표시하지 않음
-    인증 주기(verifyCycle) : 0일 경우 표시하지 않음, 위 객체 주석 참고해서 표시하기 
-      / 인증 사진 필수 여부(pictureRequired) : I:직접 촬영한 사진 필수 Y:필수 O:선택 N:불가
-      / 인증 텍스트 필수 여부(replyRequired) : Y:필수 O:선택 N:불가
-    --------------------------------------
-    참여 회원 영역 - participateCount가 0일 경우, '아무도 참여하지 않았어요' 만 표시
-    도넛 모양 다이어그램 사용, 성공률(successRatio) : 파란색
-      / 진행률(100-failRatio-successRatio) : 초록색
-      / 실패율(failRatio) : 빨간색
-    각 비율은 서버에서 소숫점 두 자리까지 백분률로 조회됨
-    성공률, 진행률, 실패율을 마우스 호버링하면 각각 participateCount, participateCount-successCount-failCount 표시
-    --------------------------------------
-    챌린지 작성자 영역 - isOpen가 A인 경우, '익명의 ROUTINE유저가 생성했어요' 만 표시
-    닉네임(nick) / 프로필 사진(profilePictureBase64) : 작은 원형 액자에 base64로 인코딩된 프로필 사진 넣기
-    자기소개(bio) : 최대 100자까지 서버에서 보냄
-    isOpen이 Y일 경우, 작성자 영역을 클릭하면 '@{/profile/profileDetail}'로 동기식 get요청
-    --------------------------------------
+              <!-- 챌린지 정보 -->
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <small class="text-muted"
+                    >작성일:
+                    <span
+                      th:text="${#temporals.format(chalDetail.createDate, 'yyyy-MM-dd HH:mm')}"
+                      >2024-01-01 00:00</span
+                    ></small
+                  >
+                </div>
+                <div class="col-md-6">
+                  <small class="text-muted"
+                    >시작일:
+                    <span
+                      th:text="${#temporals.format(chalDetail.startDate, 'yyyy-MM-dd')}"
+                      >2024-01-01</span
+                    ></small
+                  >
+                </div>
+              </div>
 
+              <div class="row mb-3" th:if="${chalDetail.endDate != null}">
+                <div class="col-md-6">
+                  <small class="text-muted"
+                    >종료일:
+                    <span
+                      th:text="${#temporals.format(chalDetail.endDate, 'yyyy-MM-dd')}"
+                      >2024-01-01</span
+                    ></small
+                  >
+                </div>
+              </div>
 
-    ===========좌 : 챌린지 게시글 | 우 : 댓글 리스트=======
-    좌/우는 각각 별개의 스크립트 함수로 감싸기
+              <!-- 인증 정보 -->
+              <div class="verify-cycle" th:if="${chalDetail.verifyCycle != 0}">
+                <strong>인증 주기:</strong> <span id="verifyCycleText"></span
+                ><br />
+                <strong>인증 사진:</strong>
+                <span th:if="${chalDetail.pictureRequired == 'I'}"
+                  >직접 촬영한 사진 필수</span
+                >
+                <span th:if="${chalDetail.pictureRequired == 'Y'}">필수</span>
+                <span th:if="${chalDetail.pictureRequired == 'O'}">선택</span>
+                <span th:if="${chalDetail.pictureRequired == 'N'}">불가</span
+                ><br />
+                <strong>인증 텍스트:</strong>
+                <span th:if="${chalDetail.replyRequired == 'Y'}">필수</span>
+                <span th:if="${chalDetail.replyRequired == 'O'}">선택</span>
+                <span th:if="${chalDetail.replyRequired == 'N'}">불가</span>
+              </div>
 
-    챌린지 참여/댓글 카드 순으로 보인다.
+              <!-- 참여 현황 -->
+              <div class="mt-4">
+                <h5>참여 현황</h5>
+                <div th:if="${chalDetail.participateCount == 0}">
+                  <p class="text-muted">아무도 참여하지 않았어요</p>
+                </div>
+                <div th:unless="${chalDetail.participateCount == 0}">
+                  <div class="chart-container">
+                    <canvas id="participationChart"></canvas>
+                  </div>
+                  <div class="text-center mt-2">
+                    <small class="text-muted"
+                      >총 참여자:
+                      <span th:text="${chalDetail.participateCount}">0</span
+                      >명</small
+                    >
+                  </div>
+                </div>
+              </div>
 
-    챌린지 참여 영역
-    ------------------------------------
-    chalDetail.loginUserIsParticipation 값에 따라 표시되는 내용이 다름
-    Y: 댓글 작성 영역 표시. 
-      먼저 로그인한 유저 프로필사진(myProfile.pictureBase64) - base64로 인코딩됨 / 유저 닉네임 loginUser.nick 표시
-      사진 첨부 영역. 사진 첨부하면 해당 사진 썸네일 표시
-        - chalDetail.pictureRequired가 I/Y 이면 사진 첨부 필수, O 이면 선택, N 이면 사진 첨부 영역 표시하지 않음.
-        - 사진은 업로드되는 즉시 리사이즈(1200x1200px이하, 200kb이하)
-        - 리사이즈 후 바로 axios로 contextPath+'/attachment/insertComment' axios 비동기POST요청
-        - 파라미터 : 사진은 MultipartFile, chalDetail.chalNo를 chalNo라는 이름으로 보냄
-        - 응답으로 uuid를 보냄. 해당 uuid를 댓글 텍스트를 제출할 때 함께 제출
-        - 응답으로 "joongBock"을 받을 경우, '직접 촬영한 사진만 올려주세요' 경고 모달 창 표시
-        - 응답으로 "fail" : 500err
-        - 응답이 오기 전까지 댓글 작성 버튼 비활성화
-      댓글 텍스트 작성 영역. 최대 1000글자 작성 가능. 현재 작성 글자수/최대 작성 글자수 표시
-        - chalDetail.replyRequired가 Y이면 댓글 내용 필수, O이면 선택, N이면 텍스트 작성 영역 표시하지 않음
-        - 만일 대댓글이라면 chalDetailComment.commentNo를 recommentTarget이라는 파라미터 추가
-      댓글 작성(contextPath+'/comment/insertComment' 비동기 POST요청, 성공시 'success' 실패시 'fail' 반환) / 댓글 초기화 버튼
+              <!-- 챌린지 작성자 정보 -->
+              <div class="mt-4">
+                <h5>챌린지 작성자</h5>
+                <div th:if="${chalDetail.isOpen == 'A'}">
+                  <p class="text-muted">익명의 ROUTINE유저가 생성했어요</p>
+                </div>
+                <div th:unless="${chalDetail.isOpen == 'A'}">
+                  <div
+                    class="d-flex align-items-center p-3 bg-light rounded cursor-pointer"
+                    th:onclick="${chalDetail.isOpen == 'Y'} ? 'location.href=\'' + @{/profile/profileDetail} + '\'' : ''"
+                  >
+                    <img
+                      th:if="${chalDetail.pictureBase64 != null}"
+                      th:src="'data:image/webp;base64,' + ${chalDetail.pictureBase64}"
+                      class="profile-img-large me-3"
+                      alt="프로필"
+                    />
+                    <div th:unless="${chalDetail.pictureBase64 != null}">
+                      <i class="bi bi-person-circle fs-1 me-3"></i>
+                    </div>
+                    <div>
+                      <h6 class="mb-1" th:text="${chalDetail.nick}">닉네임</h6>
+                      <p class="mb-0 text-muted" th:text="${chalDetail.bio}">
+                        자기소개
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      댓글 요청 객체
-      public class ChallengeCommentRequest {
-        private int chalNo;
-        private int recommentTarget;
-        private String reply;
-        private byte[] uuid; //사진 연결용 uuid
-      }
-    S : '완료한 챌린지에요!'와 함께 적절한 아이콘(혹은 부트스트랩 아이콘) 표시
-    F : '실패한 챌린지에요...'와 함께 적절한 아이콘 표시
-    N : '참여하기' 버튼 표시. 해당 버튼 누르면 확인 모달창 으로 검증 후 contextPath+'/challenge/insertComment'로 post axios비동기 요청
-      파라미터 : chalDetail.chalNo / 응답 : 성공시 "success", 실패 시 "fail"
-    U : 챌린지 참여 영역 표시하지 않음
-    ------------------------------------
+        <!-- 우측: 댓글 리스트 -->
+        <div class="col-md-6">
+          <!-- 챌린지 참여 영역 -->
+          <div th:if="${chalDetail.loginUserIsParticipation != 'U'}">
+            <div
+              th:if="${chalDetail.loginUserIsParticipation == 'Y'}"
+              class="comment-form"
+            >
+              <h5>인증하기</h5>
+              <div class="d-flex align-items-center mb-3">
+                <img
+                  th:if="${myProfile != null and myProfile.pictureBase64 != null}"
+                  th:src="'data:image/webp;base64,' + ${myProfile.pictureBase64}"
+                  class="profile-img me-2"
+                  alt="내 프로필"
+                />
+                <div
+                  th:unless="${myProfile != null and myProfile.pictureBase64 != null}"
+                >
+                  <i class="bi bi-person-circle fs-4 me-2"></i>
+                </div>
+                <strong th:text="${loginUser.nick}">닉네임</strong>
+              </div>
 
+              <!-- 사진 첨부 영역 -->
+              <div th:if="${chalDetail.pictureRequired != 'N'}" class="mb-3">
+                <label class="form-label">
+                  인증 사진
+                  <span
+                    th:if="${chalDetail.pictureRequired == 'I' or chalDetail.pictureRequired == 'Y'}"
+                    class="text-danger"
+                    >*</span
+                  >
+                </label>
+                <input
+                  type="file"
+                  class="form-control"
+                  id="commentImage"
+                  accept="image/*"
+                  onchange="uploadCommentImage(this)"
+                />
+                <div id="imagePreview" class="mt-2"></div>
+              </div>
 
-    댓글 객체
-    public class ChallengeCommentResponse {
-      private int commentNo;
-      private int userNo;
-      private int chalNo;
-      private int recommentTarget;
-      private LocalDateTime createDate;
-      private String reply;
-      private String status; //Y:활성, N:비활성, M:수정됨
+              <!-- 댓글 텍스트 영역 -->
+              <div th:if="${chalDetail.replyRequired != 'N'}" class="mb-3">
+                <label class="form-label">
+                  인증 내용
+                  <span
+                    th:if="${chalDetail.replyRequired == 'Y'}"
+                    class="text-danger"
+                    >*</span
+                  >
+                </label>
+                <textarea
+                  class="form-control"
+                  id="commentText"
+                  rows="3"
+                  maxlength="1000"
+                  placeholder="인증 내용을 입력하세요..."
+                  oninput="updateCharCount(this)"
+                ></textarea>
+                <div class="text-count"><span id="charCount">0</span>/1000</div>
+              </div>
 
-      private String nick;//member
-      
-      private byte[] picture; //profile
-      private String pictureBase64; //프론트와 base64로 소통
-      private String isOpen; //Y:공개, N:참여한 챌린지 비공개, A:익명
-    }
-    List<ChallengeCommentResponse>가 model의 chalDetailComment에 담김
-    
-    모든 댓글은 동적 생성된 카드에 담김
-    카드는 1열, 세로로 나열. 무한 스크롤 구현.
-    스크롤이 거의 밑에 다다르면 contextPath+"/chalComment/selectComment"로 get 비동기 요청
-    응답 : zip으로 압축된 댓글 사진들이 반환됨.
-      예) ResponseEntity.ok()
-            .header("Content-Type", "application/zip")
-            .header("Content-Disposition", "attachment; filename=\"comment_images.zip\"")
-            .body(zipBytes)
-      사진은 webp형식, 각 사진 이름은 (commentNo)+'_'로 시작함. commentNo는 사진 대상 댓글.
-    요청할 때 사용하는 파라미터 ->
-      chalNo=chalDetail.chalNo,
-      currentPage : model의 currentPage에 현재 페이지를 담아 둠. 해당 값을 읽어와 +1해서 보내기
-    
-    댓글 카드 양식 : status가 D이면 '삭제된 댓글이네요'만 표시
-    -------------------------------
-    프로필 사진(pictureBase64) / 닉네임(nick) : 이 두 요소는 isOpen이 A인 경우, '익명의 ROUTINE유저가 작성했어요'만 표시
-    댓글 사진 : 응답받은 zip파일에서 알아내기
-    댓글 내용(reply)
-    작성일(createDate) / 수정됨(status) : status가 M일 때만 표시
-    댓글 수정(contextPath+"/chalComment/deleteComment"),삭제(contextPath+"/chalComment/updateComment")버튼
-      -이 버튼은 chalDetailComment.userNo == loginUser.userNo 일 때만 보인다.
-      -삭제 버튼을 누르면 확인 모달로 검증 후 post axios비동기 요청. 성공시 success, 실패시 fail 응답받음
-        파라미터 : chalDetailComment.commentNo 이름 commentNo
-      -수정 버튼을 누르면 위의 '댓글 작성 영역'과 동일한 영역이 동적으로 생성됨
-        input의 value는 기존 댓글 내용 사용. 사진 업로드/댓글 텍스트 제출 방식은 '댓글 작성 영역'로직과 동일.
-        다만 댓글 작성 취소 버튼을 두고 이를 누르면, input value가 초기화되고 수정 영역 숨김 처리
-        (영역 삭제 금지 - 영역 삭제하면 수정하기를 다시 눌러도 영역이 동적 생성되지 않음.)
-        axios 비동기 post요청, 성공시 success, 실패시 fail 응답받음
-        파라미터 : chalDetailComment.commentNo 이름 commentNo
-    대댓글 작성(contextPath+"/chalComment/insertRecomment") 버튼
-      -이 버튼을 누르면 위의 '댓글 작성 영역'과 동일한 영역이 동적으로 생성됨
-        사진 업로드/댓글 텍스트 제출 방식은 '댓글 작성 영역'로직과 동일.
-        다만 댓글 작성 취소 버튼을 두고 이를 누르면, input value가 초기화되고 대댓글 작성 영역 숨김 처리
-        (영역 삭제 금지 - 영역 삭제하면 수정하기를 다시 눌러도 영역이 동적 생성되지 않음.)
-        axios 비동기 post요청, 성공시 success, 실패시 fail 응답받음
-        파라미터 : chalDetailComment.commentNo 이름 recommentTarget
-    -------------------------------
+              <div class="d-flex justify-content-end">
+                <button
+                  type="button"
+                  class="btn btn-secondary me-2"
+                  onclick="resetCommentForm()"
+                >
+                  초기화
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  id="submitCommentBtn"
+                  onclick="submitComment()"
+                >
+                  인증하기
+                </button>
+              </div>
+            </div>
 
-    대댓글 카드 양식은 댓글 카드 양식과 동일.
-      chalDetailComment.recommentTarget이 있을 경우(0보다 클 경우) 대댓글임
-      recommentTarget은 대댓글 대상 댓글의 commentNo을 뜻함
-      댓글 밑에 다음 댓글 앞서 대댓글 표시
-      대댓글은 한번에 10개씩 조회됨
-      요청 경로 : contextPath+"/chalComment/selectRecomment", currentRecommentPage에 1을 더해 보내기
-      currentRecommentPage는 직접 계산. 초기값은 0으로, 대댓글 10개 이후부터 1씩 늘어나는 방식으로 구현
-      ex) 하나의 댓글에 대댓글 14개->currentRecommentPage=1, 대댓글 45개->currentRecommentPage=4
-      서버에서 별도로 조회되지 않은 대댓글이 남았는지 알려주지 않음. 대댓글이 10의 배수가 아니라면 
-        '대댓글 더 보기' 버튼을 두고, 해당 버튼을 누르면 추가로 요청하는 방식
-      응답 : 댓글 내용은 model/사진은 압축되어 보내짐. 파싱 방법은 댓글 조회와 동일.
-      대댓글에 대댓글 작성은 불가능
-      삭제된 댓글(status가 D)에도 대댓글 표시
-      대댓글의 status가 D이면 '삭제된 댓글이네요'만 표시
-      
-      
+            <div
+              th:if="${chalDetail.loginUserIsParticipation == 'S'}"
+              class="alert alert-success text-center"
+            >
+              <i class="bi bi-check-circle-fill fs-3 text-success"></i>
+              <p class="mb-0 mt-2">완료한 챌린지에요!</p>
+            </div>
 
+            <div
+              th:if="${chalDetail.loginUserIsParticipation == 'F'}"
+              class="alert alert-danger text-center"
+            >
+              <i class="bi bi-x-circle-fill fs-3 text-danger"></i>
+              <p class="mb-0 mt-2">실패한 챌린지에요...</p>
+            </div>
 
+            <div
+              th:if="${chalDetail.loginUserIsParticipation == 'N'}"
+              class="text-center mb-3"
+            >
+              <button
+                type="button"
+                class="btn btn-primary btn-lg"
+                onclick="participateChallenge()"
+              >
+                참여하기
+              </button>
+            </div>
+          </div>
 
-    -->
+          <!-- 댓글 리스트 -->
+          <div id="commentList"></div>
+
+          <!-- 로딩 스피너 -->
+          <div id="loadingSpinner">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 확인 모달 -->
+    <div
+      class="modal fade"
+      id="confirmModal"
+      tabindex="-1"
+      aria-labelledby="confirmModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="confirmModalLabel">확인</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body" id="confirmModalBody">
+            정말 실행하시겠습니까?
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              취소
+            </button>
+            <button type="button" class="btn btn-primary" id="confirmAction">
+              확인
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 경고 모달 -->
+    <div
+      class="modal fade"
+      id="alertModal"
+      tabindex="-1"
+      aria-labelledby="alertModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="alertModalLabel">알림</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body" id="alertModalBody">메시지</div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-bs-dismiss="modal"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script th:inline="javascript">
       const catAll = /*[[${ChallengeCategory}]]*/ ["안아줘요", "싫은데요"];
       const contextPath = /*[[${rootContextPath}]]*/ "/routine";
-      const loginUser =
-        /*[[${loginUser} != null ? ${loginUser} : null]]*/ "로그인한 회원";
-      const myProfile = /*[[${myProfile}]]*/ "프로필";
+      const loginUser = /*[[${loginUser} != null ? ${loginUser} : null]]*/ null;
+      const myProfile = /*[[${myProfile}]]*/ null;
+      const chalDetail = /*[[${chalDetail}]]*/ null;
+
+      let currentPage = 0;
+      let isLoading = false;
+      let hasMoreComments = true;
+      let currentImageUuid = null;
+
+      // 좌측 챌린지 영역 관련 함수들
+      function initializeChallengeArea() {
+        // 인증 주기 텍스트 설정
+        if (chalDetail.verifyCycle !== 0) {
+          document.getElementById("verifyCycleText").textContent =
+            getVerifyCycleText(chalDetail.verifyCycle);
+        }
+
+        // 도넛 차트 그리기
+        if (chalDetail.participateCount > 0) {
+          drawParticipationChart();
+        }
+      }
+
+      function getVerifyCycleText(cycle) {
+        if (cycle === 201) return "매일";
+        if (cycle === 202) return "이틀";
+        if (cycle === 203) return "사흘";
+        if (cycle === 211) return "매주";
+        if (cycle === 212) return "2주";
+        if (cycle === 221) return "매달";
+
+        // 요일 비트마스크 처리
+        if (cycle >= 1 && cycle <= 127) {
+          const days = [];
+          if (cycle & 1) days.push("월");
+          if (cycle & 2) days.push("화");
+          if (cycle & 4) days.push("수");
+          if (cycle & 8) days.push("목");
+          if (cycle & 16) days.push("금");
+          if (cycle & 32) days.push("토");
+          if (cycle & 64) days.push("일");
+          return days.join(", ") + "요일";
+        }
+
+        return "없음";
+      }
+
+      function drawParticipationChart() {
+        const ctx = document
+          .getElementById("participationChart")
+          .getContext("2d");
+        const progressRatio =
+          100 - chalDetail.failRatio - chalDetail.successRatio;
+
+        new Chart(ctx, {
+          type: "doughnut",
+          data: {
+            labels: ["성공", "진행중", "실패"],
+            datasets: [
+              {
+                data: [
+                  chalDetail.successRatio,
+                  progressRatio,
+                  chalDetail.failRatio,
+                ],
+                backgroundColor: ["#007bff", "#28a745", "#dc3545"],
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+              tooltip: {
+                callbacks: {
+                  afterLabel: function (context) {
+                    if (context.dataIndex === 0) {
+                      return "성공자: " + chalDetail.successCount + "명";
+                    } else if (context.dataIndex === 1) {
+                      return (
+                        "진행자: " +
+                        (chalDetail.participateCount -
+                          chalDetail.successCount -
+                          chalDetail.failCount) +
+                        "명"
+                      );
+                    } else {
+                      return "실패자: " + chalDetail.failCount + "명";
+                    }
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      function goBack() {
+        window.history.back();
+      }
+
+      function closeChal() {
+        showConfirmModal("챌린지를 종료하시겠습니까?", function () {
+          axios
+            .post(contextPath + "/challenge/closeChal", {
+              chalNo: chalDetail.chalNo,
+            })
+            .then((response) => {
+              if (response.data === "success") {
+                goBack();
+              } else {
+                showAlert("챌린지 종료에 실패했습니다.");
+              }
+            })
+            .catch((error) => {
+              showAlert("챌린지 종료에 실패했습니다.");
+            });
+        });
+      }
+
+      function deleteChal() {
+        showConfirmModal("챌린지를 삭제하시겠습니까?", function () {
+          axios
+            .post(contextPath + "/challenge/deleteChal", {
+              chalNo: chalDetail.chalNo,
+            })
+            .then((response) => {
+              if (response.data === "success") {
+                goBack();
+              } else {
+                showAlert("챌린지 삭제에 실패했습니다.");
+              }
+            })
+            .catch((error) => {
+              showAlert("챌린지 삭제에 실패했습니다.");
+            });
+        });
+      }
+
+      // 우측 댓글 영역 관련 함수들
+      function initializeCommentArea() {
+        loadComments();
+        setupInfiniteScroll();
+      }
+
+      function uploadCommentImage(input) {
+        if (input.files && input.files[0]) {
+          const file = input.files[0];
+
+          // 파일 크기 및 타입 체크
+          if (file.size > 5 * 1024 * 1024) {
+            showAlert("파일 크기는 5MB 이하여야 합니다.");
+            return;
+          }
+
+          if (!file.type.startsWith("image/")) {
+            showAlert("이미지 파일만 업로드 가능합니다.");
+            return;
+          }
+
+          // 이미지 리사이즈
+          resizeImage(file, 1200, 1200, 0.8).then((resizedFile) => {
+            // 서버에 이미지 업로드
+            const formData = new FormData();
+            formData.append("file", resizedFile);
+            formData.append("chalNo", chalDetail.chalNo);
+
+            document.getElementById("submitCommentBtn").disabled = true;
+
+            axios
+              .post(contextPath + "/attachment/insertComment", formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              })
+              .then((response) => {
+                if (response.data === "joongBock") {
+                  showAlert("직접 촬영한 사진만 올려주세요");
+                } else if (response.data === "fail") {
+                  showAlert("이미지 업로드에 실패했습니다.");
+                } else {
+                  currentImageUuid = response.data;
+                  // 미리보기 표시
+                  const reader = new FileReader();
+                  reader.onload = function (e) {
+                    document.getElementById("imagePreview").innerHTML =
+                      '<img src="' +
+                      e.target.result +
+                      '" class="comment-img" alt="미리보기">';
+                  };
+                  reader.readAsDataURL(resizedFile);
+                }
+                document.getElementById("submitCommentBtn").disabled = false;
+              })
+              .catch((error) => {
+                showAlert("이미지 업로드에 실패했습니다.");
+                document.getElementById("submitCommentBtn").disabled = false;
+              });
+          });
+        }
+      }
+
+      function resizeImage(file, maxWidth, maxHeight, quality) {
+        return new Promise((resolve) => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          const img = new Image();
+
+          img.onload = function () {
+            let { width, height } = img;
+
+            // 비율 계산
+            if (width > height) {
+              if (width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width *= maxHeight / height;
+                height = maxHeight;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(resolve, "image/jpeg", quality);
+          };
+
+          img.src = URL.createObjectURL(file);
+        });
+      }
+
+      function updateCharCount(textarea) {
+        const count = textarea.value.length;
+        document.getElementById("charCount").textContent = count;
+      }
+
+      function resetCommentForm() {
+        document.getElementById("commentText").value = "";
+        document.getElementById("commentImage").value = "";
+        document.getElementById("imagePreview").innerHTML = "";
+        document.getElementById("charCount").textContent = "0";
+        currentImageUuid = null;
+      }
+
+      function submitComment(recommentTarget = null) {
+        const commentText = document.getElementById("commentText");
+        const commentImage = document.getElementById("commentImage");
+
+        // 필수 입력 검증
+        if (
+          chalDetail.replyRequired === "Y" &&
+          (!commentText || !commentText.value.trim())
+        ) {
+          showAlert("댓글 내용을 입력해주세요.");
+          return;
+        }
+
+        if (
+          (chalDetail.pictureRequired === "I" ||
+            chalDetail.pictureRequired === "Y") &&
+          !currentImageUuid
+        ) {
+          showAlert("사진을 업로드해주세요.");
+          return;
+        }
+
+        const requestData = {
+          chalNo: chalDetail.chalNo,
+          reply: commentText ? commentText.value : "",
+          uuidStr: currentImageUuid || "",
+        };
+
+        if (recommentTarget) {
+          requestData.recommentTarget = recommentTarget;
+        }
+
+        axios
+          .post(contextPath + "/comment/insertComment", requestData)
+          .then((response) => {
+            if (response.data === "success") {
+              resetCommentForm();
+              // 댓글 목록 새로고침
+              currentPage = 0;
+              document.getElementById("commentList").innerHTML = "";
+              loadComments();
+            } else {
+              showAlert("댓글 등록에 실패했습니다.");
+            }
+          })
+          .catch((error) => {
+            showAlert("댓글 등록에 실패했습니다.");
+          });
+      }
+
+      function participateChallenge() {
+        showConfirmModal("챌린지에 참여하시겠습니까?", function () {
+          axios
+            .post(contextPath + "/challenge/insertParticipation", {
+              chalNo: chalDetail.chalNo,
+            })
+            .then((response) => {
+              if (response.data === "success") {
+                location.reload();
+              } else {
+                showAlert("챌린지 참여에 실패했습니다.");
+              }
+            })
+            .catch((error) => {
+              showAlert("챌린지 참여에 실패했습니다.");
+            });
+        });
+      }
+
+      function loadComments() {
+        if (isLoading || !hasMoreComments) return;
+
+        isLoading = true;
+        document.getElementById("loadingSpinner").style.display = "block";
+
+        axios
+          .get(contextPath + "/chalComment/selectComment", {
+            params: {
+              chalNo: chalDetail.chalNo,
+              currentPage: currentPage,
+            },
+            responseType: "json",
+          })
+          .then((response) => {
+            const comments = response.data.comments || [];
+
+            if (comments.length === 0) {
+              hasMoreComments = false;
+            } else {
+              renderComments(comments);
+              currentPage++;
+            }
+
+            isLoading = false;
+            document.getElementById("loadingSpinner").style.display = "none";
+          })
+          .catch((error) => {
+            console.error("댓글 로드 실패:", error);
+            isLoading = false;
+            document.getElementById("loadingSpinner").style.display = "none";
+          });
+      }
+
+      function renderComments(comments) {
+        const commentList = document.getElementById("commentList");
+
+        comments.forEach((comment) => {
+          const commentCard = createCommentCard(comment);
+          commentList.appendChild(commentCard);
+        });
+      }
+
+      function createCommentCard(comment) {
+        const card = document.createElement("div");
+        card.className = "comment-card";
+        card.dataset.commentNo = comment.commentNo;
+
+        if (comment.status === "D") {
+          card.innerHTML = '<p class="text-muted">삭제된 댓글이네요</p>';
+          return card;
+        }
+
+        let profileHtml = "";
+        if (comment.isOpen === "A") {
+          profileHtml =
+            '<div class="d-flex align-items-center mb-2"><i class="bi bi-person-circle fs-4 me-2"></i><small class="text-muted">익명의 ROUTINE유저가 작성했어요</small></div>';
+        } else {
+          const profileImg = comment.pictureBase64
+            ? `<img src="data:image/webp;base64,${comment.pictureBase64}" class="profile-img me-2" alt="프로필">`
+            : '<i class="bi bi-person-circle fs-4 me-2"></i>';
+          profileHtml = `<div class="d-flex align-items-center mb-2">${profileImg}<strong>${comment.nick}</strong></div>`;
+        }
+
+        const commentImageHtml = comment.pictureBase64
+          ? `<img src="data:image/webp;base64,${comment.pictureBase64}" class="comment-img" alt="댓글 사진">`
+          : "";
+
+        const replyHtml = comment.reply
+          ? `<p class="mb-2">${comment.reply}</p>`
+          : "";
+
+        const dateHtml = `<small class="text-muted">${new Date(
+          comment.createDate
+        ).toLocaleString()}</small>`;
+        const editedHtml =
+          comment.status === "M"
+            ? '<span class="badge bg-info ms-2">수정됨</span>'
+            : "";
+
+        let actionsHtml = "";
+        if (loginUser && loginUser.userNo === comment.userNo) {
+          actionsHtml = `
+                    <div class="comment-actions">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="editComment(${comment.commentNo})">수정</button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteComment(${comment.commentNo})">삭제</button>
+                    </div>
+                `;
+        }
+
+        const replyButtonHtml = `
+                <div class="comment-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="showReplyForm(${comment.commentNo})">대댓글</button>
+                </div>
+            `;
+
+        card.innerHTML = `
+                ${profileHtml}
+                ${commentImageHtml}
+                ${replyHtml}
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>${dateHtml}${editedHtml}</div>
+                </div>
+                ${actionsHtml}
+                ${replyButtonHtml}
+                <div id="replyForm${comment.commentNo}" class="hidden mt-3"></div>
+                <div id="editForm${comment.commentNo}" class="hidden mt-3"></div>
+            `;
+
+        return card;
+      }
+
+      function deleteComment(commentNo) {
+        showConfirmModal("댓글을 삭제하시겠습니까?", function () {
+          axios
+            .post(contextPath + "/chalComment/deleteComment", {
+              commentNo: commentNo,
+            })
+            .then((response) => {
+              if (response.data === "success") {
+                // 댓글 카드 업데이트
+                const card = document.querySelector(
+                  `[data-comment-no="${commentNo}"]`
+                );
+                if (card) {
+                  card.innerHTML =
+                    '<p class="text-muted">삭제된 댓글이네요</p>';
+                }
+              } else {
+                showAlert("댓글 삭제에 실패했습니다.");
+              }
+            })
+            .catch((error) => {
+              showAlert("댓글 삭제에 실패했습니다.");
+            });
+        });
+      }
+
+      function editComment(commentNo) {
+        const editForm = document.getElementById(`editForm${commentNo}`);
+        if (editForm.classList.contains("hidden")) {
+          editForm.classList.remove("hidden");
+          editForm.innerHTML = `
+                    <div class="border p-3 bg-light rounded">
+                        <div class="mb-3">
+                            <label class="form-label">사진 수정</label>
+                            <input type="file" class="form-control" accept="image/*" onchange="uploadEditImage(this, ${commentNo})">
+                            <div id="editImagePreview${commentNo}" class="mt-2"></div>
+                        </div>
+                        <div class="mb-3">
+                            <textarea class="form-control" id="editCommentText${commentNo}" rows="3" maxlength="1000" 
+                                      placeholder="댓글 내용을 수정하세요..."></textarea>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-secondary me-2" onclick="cancelEdit(${commentNo})">취소</button>
+                            <button type="button" class="btn btn-primary" onclick="updateComment(${commentNo})">수정</button>
+                        </div>
+                    </div>
+                `;
+        } else {
+          editForm.classList.add("hidden");
+        }
+      }
+
+      function cancelEdit(commentNo) {
+        const editForm = document.getElementById(`editForm${commentNo}`);
+        editForm.classList.add("hidden");
+      }
+
+      function updateComment(commentNo) {
+        const commentText = document.getElementById(
+          `editCommentText${commentNo}`
+        ).value;
+
+        axios
+          .post(contextPath + "/chalComment/updateComment", {
+            commentNo: commentNo,
+            reply: commentText,
+            uuidStr: currentImageUuid || "1", // 이미지 변경 안함
+          })
+          .then((response) => {
+            if (response.data === "success") {
+              // 댓글 목록 새로고침
+              currentPage = 0;
+              document.getElementById("commentList").innerHTML = "";
+              loadComments();
+            } else {
+              showAlert("댓글 수정에 실패했습니다.");
+            }
+          })
+          .catch((error) => {
+            showAlert("댓글 수정에 실패했습니다.");
+          });
+      }
+
+      function showReplyForm(commentNo) {
+        const replyForm = document.getElementById(`replyForm${commentNo}`);
+        if (replyForm.classList.contains("hidden")) {
+          replyForm.classList.remove("hidden");
+          replyForm.innerHTML = `
+                    <div class="border p-3 bg-light rounded reply-card">
+                        <div class="mb-3">
+                            <label class="form-label">사진 첨부</label>
+                            <input type="file" class="form-control" accept="image/*" onchange="uploadReplyImage(this, ${commentNo})">
+                            <div id="replyImagePreview${commentNo}" class="mt-2"></div>
+                        </div>
+                        <div class="mb-3">
+                            <textarea class="form-control" id="replyCommentText${commentNo}" rows="3" maxlength="1000" 
+                                      placeholder="대댓글을 입력하세요..."></textarea>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="btn btn-secondary me-2" onclick="cancelReply(${commentNo})">취소</button>
+                            <button type="button" class="btn btn-primary" onclick="submitReply(${commentNo})">등록</button>
+                        </div>
+                    </div>
+                `;
+        } else {
+          replyForm.classList.add("hidden");
+        }
+      }
+
+      function cancelReply(commentNo) {
+        const replyForm = document.getElementById(`replyForm${commentNo}`);
+        replyForm.classList.add("hidden");
+      }
+
+      function submitReply(commentNo) {
+        const commentText = document.getElementById(
+          `replyCommentText${commentNo}`
+        ).value;
+
+        axios
+          .post(contextPath + "/chalComment/insertComment", {
+            chalNo: chalDetail.chalNo,
+            reply: commentText,
+            uuidStr: currentImageUuid || "",
+            recommentTarget: commentNo,
+          })
+          .then((response) => {
+            if (response.data === "success") {
+              cancelReply(commentNo);
+              // 댓글 목록 새로고침
+              currentPage = 0;
+              document.getElementById("commentList").innerHTML = "";
+              loadComments();
+            } else {
+              showAlert("대댓글 등록에 실패했습니다.");
+            }
+          })
+          .catch((error) => {
+            showAlert("대댓글 등록에 실패했습니다.");
+          });
+      }
+
+      function setupInfiniteScroll() {
+        window.addEventListener("scroll", function () {
+          if (
+            window.innerHeight + window.scrollY >=
+            document.body.offsetHeight - 1000
+          ) {
+            loadComments();
+          }
+        });
+      }
+
+      // 모달 관련 함수들
+      function showConfirmModal(message, callback) {
+        document.getElementById("confirmModalBody").textContent = message;
+        document.getElementById("confirmAction").onclick = function () {
+          callback();
+          bootstrap.Modal.getInstance(
+            document.getElementById("confirmModal")
+          ).hide();
+        };
+        new bootstrap.Modal(document.getElementById("confirmModal")).show();
+      }
+
+      function showAlert(message) {
+        document.getElementById("alertModalBody").textContent = message;
+        new bootstrap.Modal(document.getElementById("alertModal")).show();
+      }
+
+      // 페이지 로드 시 초기화
+      document.addEventListener("DOMContentLoaded", function () {
+        initializeChallengeArea();
+        initializeCommentArea();
+      });
     </script>
   </body>
 </html>

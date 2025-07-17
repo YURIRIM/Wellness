@@ -28,4 +28,12 @@ public interface ChallengeService {
 	void chalDetail(HttpSession session, Model model, int chalNo) throws Exception;
 
 	void chalParticipate(HttpSession session, Model model, int chalNo) throws Exception;
+
+	void goUpdateChal(Model model, int chalNo) throws Exception;
+
+	void deleteChal(HttpSession session, int chalNo) throws Exception;
+
+	void closeChal(HttpSession session, int chalNo) throws Exception;
+
+	void updateChal(HttpSession session, Model model, ChallengeRequest chal) throws Exception;
 }

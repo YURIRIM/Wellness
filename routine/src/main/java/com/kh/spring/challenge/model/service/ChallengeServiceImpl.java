@@ -138,10 +138,11 @@ public class ChallengeServiceImpl implements ChallengeService {
 		Matcher matcher = pattern.matcher(chal.getContent());
 		
 		while (matcher.find()) {
+			//uuid로 모든 사진 연결하기
 			String uuidStr = matcher.group(1);
 			byte[] uuid = UuidUtil.strToByteArr(uuidStr);
 			
-			result = atDao.connectChalToAt(sqlSession,uuid);
+			result = atDao.connectAtbyUuid(sqlSession,uuid);
 			
 			if (!(result>0)) throw new Exception("사진 연결 실패");
 		}
@@ -214,7 +215,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 			    put("userNo", loginUser.getUserNo());
 			    put("chalNo", chal.getChalNo());
 			}};
-			String result = chalDao.loginUserIsParticipation(sqlSession,map);
+			String result = chalDao.loginUserIsParticipant(sqlSession,map);
 			if(result==null) result = "N";
 			chal.setLoginUserIsParticipation(result);
 		}
@@ -239,6 +240,9 @@ public class ChallengeServiceImpl implements ChallengeService {
 			chal.setPicture(null);
 		}
 		
+		model.addAttribute("chalDetail", chal);
+		
+		
 		//댓글 조회
 		SearchComment sc = SearchComment.builder()
 				.chalNo(chalNo)
@@ -246,8 +250,6 @@ public class ChallengeServiceImpl implements ChallengeService {
 				.currentRecommentPage(0)
 				.build();
 		commentService.selectComment(model,sc);
-		
-		model.addAttribute("chalDetail", chal);
 	}
 
 	//비동기 - 챌린지 참여하기
@@ -263,10 +265,75 @@ public class ChallengeServiceImpl implements ChallengeService {
 		    put("userNo", loginUser.getUserNo());
 		    put("chalNo", chalNo);
 		}};
-		String state = chalDao.loginUserIsParticipation(sqlSession,map);
+		String state = chalDao.loginUserIsParticipant(sqlSession,map);
 		if(state!=null) throw new Exception("이미 참여했잖아...");
 		
 		int result = chalDao.newParticipant(sqlSession,map);
 		if(!(result>0)) throw new Exception("참여 할 수 없네용 까비아깝숑");
+	}
+
+	//챌린지 수정 페이지로
+	@Override
+	public void goUpdateChal(Model model, int chalNo) throws Exception{
+		//여기서 별도 유효성 검사는 하지 않음. 수정해서 요청할 때 검사하기
+		
+		//챌린지를 받아서 모달에 담아 넘기기
+		//요청용 객체에 담자
+		ChallengeRequest chal = chalDao.goUpdateChal(sqlSession,chalNo);
+		
+		byte[] thumbnail = chal.getThumbnail();
+		if(thumbnail!=null) {
+			chal.setThumbnailBase64(Base64.getEncoder().encodeToString(thumbnail));
+			chal.setThumbnail(null);
+		}
+		
+		model.addAttribute("updateChal",chal);
+	}
+	
+	//챌린지 수정
+	@Override
+	public void updateChal(HttpSession session, Model model, ChallengeRequest chal) throws Exception {
+		
+	}
+	
+
+	//비동기 - 챌린지 삭제
+	@Override
+	public void deleteChal(HttpSession session, int chalNo) throws Exception{
+		//권한 확인
+		User loginUser = (User)session.getAttribute("loginUser");
+		Map<String, Integer> map = new HashMap<>() {
+			private static final long serialVersionUID = 1L;
+			{
+		    put("userNo", loginUser.getUserNo());
+		    put("chalNo", chalNo);
+		}};
+		int loginUserIsWriter = chalDao.loginUserIsWriter(sqlSession,map);
+		
+		if(!(loginUserIsWriter>0)) throw new Exception("접근 권한이 없습니다.");
+		
+		//삭제하기
+		int result = chalDao.deleteChal(sqlSession,chalNo);
+		if(!(result>0)) throw new Exception("챌린지 삭제 실패");
+	}
+	
+	//비동기 - 챌린지 종료
+	@Override
+	public void closeChal(HttpSession session, int chalNo) throws Exception {
+		//권한 확인
+		User loginUser = (User)session.getAttribute("loginUser");
+		Map<String, Integer> map = new HashMap<>() {
+			private static final long serialVersionUID = 1L;
+			{
+		    put("userNo", loginUser.getUserNo());
+		    put("chalNo", chalNo);
+		}};
+		int loginUserIsWriter = chalDao.loginUserIsWriter(sqlSession,map);
+		
+		if(!(loginUserIsWriter>0)) throw new Exception("접근 권한이 없습니다.");
+		
+		//종료하기
+		int result = chalDao.closeChal(sqlSession,chalNo);
+		if(!(result>0)) throw new Exception("챌린지 종료 실패");
 	}
 }

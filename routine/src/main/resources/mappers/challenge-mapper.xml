@@ -292,7 +292,7 @@
 	left join PROFILE P ON a1.USER_NO = P.USER_NO
 	</select>
 	
-	<select id="loginUserIsParticipation" parameterType="map" resultType="string" >
+	<select id="loginUserIsParticipant" parameterType="map" resultType="string" >
 		select STATUS
 		from CHALLENGE_PARTICIPATION
 		where CHAL_NO = #{chalNo}
@@ -312,4 +312,45 @@
 		from CHALLENGE
 		where CHAL_NO = #{chalNo}
 	</select>
+	
+	<select id="goUpdateChal" parameterType="int" resultType="ChallengeRequest">
+		select CHAL_NO
+			,USER_NO
+			,CATEGORY_NO
+			,TITLE
+			,CONTENT
+			,THUMBNAIL
+			,VERIFY_CYCLE
+			,START_DATE
+			,END_DATE
+			,STATUS
+			,PICTURE_REQUIRED
+			,REPLY_REQUIRED
+		from CHALLENGE
+		where CHAL_NO = #{chalNo}
+		and status = 'Y'
+	</select>
+	
+	<select id="loginUserIsWriter" parameterType="map" resultType="int" >
+		select count(*)
+		from CHALLENGE_PARTICIPATION
+		where CHAL_NO = #{chalNo}
+		and USER_NO = #{userNo}
+	</select>
+	
+	<update id="deleteChal" parameterType="int">
+		update CHALLENGE
+		set STATUS = 'D'
+		where CHAL_NO = #{chalNo}
+		and STATUS = 'Y'
+	</update>
+	
+	<update id="closeChal" parameterType="int">
+		update CHALLENGE
+		set STATUS = 'N'
+		where CHAL_NO = #{chalNo}
+		and STATUS = 'Y'
+	</update>
+	
+	
 </mapper>

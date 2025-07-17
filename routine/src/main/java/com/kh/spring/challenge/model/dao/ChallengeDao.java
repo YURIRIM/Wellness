@@ -30,8 +30,8 @@ public class ChallengeDao {
 		return sqlSession.selectOne("challengeMapper.chalDetail", chalNo);
 	}
 	
-	public String loginUserIsParticipation(SqlSessionTemplate sqlSession, Map<String, Integer> map) {
-		return sqlSession.selectOne("challengeMapper.loginUserIsParticipation",map);
+	public String loginUserIsParticipant(SqlSessionTemplate sqlSession, Map<String, Integer> map) {
+		return sqlSession.selectOne("challengeMapper.loginUserIsParticipant",map);
 	}
 
 	public int newParticipant(SqlSessionTemplate sqlSession, Map<String, Integer> map) {
@@ -40,5 +40,21 @@ public class ChallengeDao {
 
 	public String pictureRequired(SqlSessionTemplate sqlSession, int chalNo) {
 		return sqlSession.selectOne("challengeMapper.pictureRequired",chalNo);
+	}
+
+	public ChallengeRequest goUpdateChal(SqlSessionTemplate sqlSession, int chalNo) {
+		return sqlSession.selectOne("challengeMapper.goUpdateChal",chalNo);
+	}
+
+	public int loginUserIsWriter(SqlSessionTemplate sqlSession, Map<String, Integer> map) {
+		return sqlSession.selectOne("challengeMapper.loginUserIsWriter", map);
+	}
+
+	public int deleteChal(SqlSessionTemplate sqlSession, int chalNo) {
+		return sqlSession.update("challengeMapper.deleteChal", chalNo);
+	}
+
+	public int closeChal(SqlSessionTemplate sqlSession, int chalNo) {
+		return sqlSession.update("challengeMapper.closeChal", chalNo);
 	}
 }

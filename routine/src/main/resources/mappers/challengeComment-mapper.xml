@@ -5,7 +5,7 @@
 
 <mapper namespace="challengeCommentMapper">
 
-<select id="chalDetailComment" resultType="ChallengeComment" parameterType="SearchComment">
+<select id="chalDetailComment" resultType="ChallengeCommentResponse" parameterType="SearchComment">
 select *
 from(
     select a1.*, rownum rnum
@@ -33,7 +33,7 @@ where rnum &gt; #{currentPage} * #{showLimit}
 </select>
 
 
-<select id="chalDetailRecomment" resultType="ChallengeComment" parameterType="SearchComment">
+<select id="chalDetailRecomment" resultType="ChallengeCommentResponse" parameterType="SearchComment">
 select *
 from(
     select a1.*, rownum rnum
@@ -60,5 +60,37 @@ from(
 where rnum &gt; #{currentRecommentPage} * #{showLimit}
 </select>
 	
+<insert id="insertComment" parameterType="ChallengeCommentRequest">
+	insert into CHALLENGE_COMMENT(
+		COMMENT_NO
+		,USER_NO
+		,CHAL_NO
+		,RECOMMENT_TARGET
+		,REPLY
+		,CREATE_DATE
+		,STATUS
+		)
+	values(
+		SEQ_CHALLENGE_COMMENT.nextval
+		,#{userNo}
+		,#{chalNo}
+		,#{recommentTarget}
+		,#{reply}
+		,SYSDATE
+		,'Y'
+		)
+</insert>
 
+<update id="updateComment" parameterType="ChallengeCommentRequest">
+	update CHALLENGE_COMMENT
+	set REPLY = #{reply}
+		,STATUS = 'M'
+	where COMMENT_NO = {commentNo}
+</update>
+
+<update id="deleteComment" parameterType="ChallengeCommentRequest">
+	update CHALLENGE_COMMENT
+	set STATUS = 'D'
+	where COMMENT_NO = {commentNo}
+</update>
 </mapper>

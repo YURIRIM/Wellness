@@ -1,8 +1,6 @@
 package com.kh.spring.util.challenge;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import com.kh.spring.challenge.model.vo.ChallengeRequest;
 import com.kh.spring.util.common.Regexp;

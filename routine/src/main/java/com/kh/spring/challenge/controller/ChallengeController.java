@@ -71,7 +71,9 @@ public class ChallengeController {
 	public String goMyChal(HttpSession session, Model model, String searchType) {
 		try {
 			SearchMyChallenge smc = SearchMyChallenge.builder()
-					.currentPage(0).searchType(searchType).build();
+					.currentPage(0)
+					.searchType(searchType)
+					.build();
 			service.myChal(session,model,smc);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -99,6 +101,7 @@ public class ChallengeController {
 			,ChallengeRequest chal) {
 		int chalNo=0;
 		try {
+			System.out.println(chal);
 			service.newChal(session, model, chal);
 			chalNo = chal.getChalNo();
 		} catch (Exception e) {
@@ -118,13 +121,68 @@ public class ChallengeController {
 			return "/common/errorPage";
 		}
 		return "/challenge/chalDetail";
-	}
+	}	
 	
 	//비동기 - 챌린지 참여하기
 	@PostMapping("/participate")
 	public String chalParticipate(HttpSession session, Model model, int chalNo) {
 		try {
 			service.chalParticipate(session, model, chalNo);
+			return "success";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "fail";
+		}
+	}
+	
+	//챌린지 수정 화면으로
+	@GetMapping("/updateChal")
+	public String goUpdateChal(Model model, int chalNo) {
+		try {
+			service.goUpdateChal(model,chalNo);
+			return "challenge/updateChal";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "common/errorPage";
+		}
+	}
+	
+	//챌린지 수정
+	@ResponseBody
+	@PostMapping("/updateChal")
+	public String updateChal(HttpSession session, Model model
+			,ChallengeRequest chal) {
+		try {
+			service.updateChal(session, model, chal);
+			
+			return "success";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "fail";
+		}
+		
+	}
+	
+	
+	//비동기 - 챌린지 삭제
+	@ResponseBody
+	@GetMapping("/deleteChal")
+	public String deleteChal(HttpSession session, int chalNo) {
+		try {
+			service.deleteChal(session, chalNo);
+			return "success";
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "fail";
+		}
+	}
+	
+	//비동기 - 챌린지 종료
+	@ResponseBody
+	@GetMapping("/closeChal")
+	public String closeChal(HttpSession session, int chalNo) {
+		try {
+			service.closeChal(session,chalNo);
 			return "success";
 		} catch (Exception e) {
 			e.printStackTrace();

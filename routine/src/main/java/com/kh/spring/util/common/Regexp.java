@@ -9,7 +9,8 @@ public class Regexp {
 	public static final String CHAL_REPLY_REQUIRED = "^[YON]$";
 	
 	//challenge content 중에서 이미지 링크 연결하기
-	public static final String CHAL_CONTENT_ATTACHMENT = "/attachment/select\\?at=([a-fA-F0-9]+)";
+	public static final String CHAL_CONTENT_ATTACHMENT =
+		    "/attachment/select\\?at=([a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12})";
 	
 	//페이지당 노출될 챌린지 게시글 수
 	public static final int CHAL_SHOW_LIMIT = 20;
@@ -30,6 +31,8 @@ public class Regexp {
 	//SearchMyChallenge
 	public static final String SMC_SEARCH_TYPE = "^[OJ]?$";
 	
+	//ChallengeComment
+	public static final String CHAL_COMMENT_REPLY = "^.{1,1000}$";
 	
 	//Attachment
 	//모든 언어의 글자, 숫자, 언더스코어, 마침표, 하이픈 허가
@@ -41,7 +44,7 @@ public class Regexp {
 	//profile
 	public static final String PROFIEL_BIO = "^.{0,100}$";
 	public static final String PROFILE_IS_OPEN = "^[YNA]$";
-	public static final String PROFILE_WATERMARK_TYPE = "^[DFN]$";
+	public static final String PROFILE_WATERMARK_TYPE = "^[DCN]$";
 	
 	
 	//VideoCall
