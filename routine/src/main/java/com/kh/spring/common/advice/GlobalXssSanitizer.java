@@ -13,39 +13,40 @@ import com.kh.spring.common.annotation.NoXssSanitizer;
 
 @ControllerAdvice
 public class GlobalXssSanitizer {
-	private static final PolicyFactory POLICY = Sanitizers.FORMATTING.and(Sanitizers.LINKS).and(Sanitizers.BLOCKS);
 
-	@InitBinder
-	public void initBinder(WebDataBinder binder) {
-		// String 타입 전체에 커스텀 에디터 등록
-		binder.registerCustomEditor(String.class, new PropertyEditorSupport() {
-			@Override
-			public void setAsText(String text) {
-				Object target = binder.getTarget();
-				if (target != null) {
-					// 모든 declared fields 순회
-					for (Field field : target.getClass().getDeclaredFields()) {
-						// 필드가 String 타입 + setAccessible! (private 변수도 검사)
-						if (field.getType() == String.class) {
-							field.setAccessible(true);
-							try {
-								Object value = field.get(target);
-								if (value == text) {
-									// 해당 필드에 NoXssSanitizer가 붙어 있으면 원본 값 반환(소독 생략)
-									if (field.isAnnotationPresent(NoXssSanitizer.class)) {
-										setValue(text);
-										return;
-									}
-								}
-							} catch (Exception e) {
-								// 무시
-							}
-						}
-					}
-				}
-				// 기본(어노테이션 없으면 무조건 소독)
-				setValue(text == null ? null : POLICY.sanitize(text));
-			}
-		});
-	}
+    private static final PolicyFactory POLICY =
+            Sanitizers.FORMATTING.and(Sanitizers.LINKS).and(Sanitizers.BLOCKS);
+
+    private static class XssSanitizerEditor extends PropertyEditorSupport {
+        @Override
+        public void setAsText(String text) {
+            setValue(text == null ? null : POLICY.sanitize(text));
+        }
+    }
+
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        Object target = binder.getTarget();   // 현재 바인딩 중인 객체(예: Board, Member 등)
+
+        if (target == null) {
+            return;
+        }
+
+        Class<?> clazz = target.getClass();
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.getType() != String.class) {
+                continue;
+            }
+
+            if (field.isAnnotationPresent(NoXssSanitizer.class)) {
+                continue;
+            }
+
+            binder.registerCustomEditor(
+                    String.class,               // 적용 타입
+                    field.getName(),            // property path(필드명)
+                    new XssSanitizerEditor()    // 수행 로직
+            );
+        }
+    }
 }

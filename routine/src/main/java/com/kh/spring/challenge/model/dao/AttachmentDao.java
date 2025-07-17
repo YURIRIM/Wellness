@@ -18,7 +18,7 @@ public class AttachmentDao {
 	public int connectAtbyUuid(SqlSessionTemplate sqlSession, byte[] uuid) {
 		Map<String, Object> param = new HashMap<>();
 		param.put("uuid", uuid);
-		return sqlSession.update("attachmentMapper.connectChalToAt", param);
+		return sqlSession.update("attachmentMapper.connectAtbyUuid", param);
 	}
 	
 	public Attachment selectAtChal(SqlSessionTemplate sqlSession, byte[] uuid) {

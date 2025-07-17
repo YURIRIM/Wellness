@@ -101,7 +101,6 @@ public class ChallengeController {
 			,ChallengeRequest chal) {
 		int chalNo=0;
 		try {
-			System.out.println(chal);
 			service.newChal(session, model, chal);
 			chalNo = chal.getChalNo();
 		} catch (Exception e) {
