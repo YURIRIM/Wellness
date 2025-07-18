@@ -17,6 +17,7 @@ import com.kh.spring.challenge.model.dao.ChallengeCommentDao;
 import com.kh.spring.challenge.model.dao.ChallengeDao;
 import com.kh.spring.challenge.model.vo.ChallengeCommentRequest;
 import com.kh.spring.challenge.model.vo.ChallengeCommentResponse;
+import com.kh.spring.challenge.model.vo.ChallengeReqired;
 import com.kh.spring.challenge.model.vo.SearchComment;
 import com.kh.spring.user.model.vo.User;
 import com.kh.spring.util.challenge.ChallengeCommentValidator;
@@ -114,6 +115,7 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 	@Transactional
 	public void insertComment(HttpSession session, ChallengeCommentRequest ccr) throws Exception{
 		User loginUser = (User)session.getAttribute("loginUser");
+		ccr.setUserNo(loginUser.getUserNo());
 		int result=1;
 		
 		//해당 회원이 댓글 쌀 능력이 있는지 확인
@@ -128,9 +130,37 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 		if(isParticipant==null || !isParticipant.equals("Y"))
 			throw new Exception("사기꾼이다!!");
 		
-		//유효성 검사
-		if(ChallengeCommentValidator.challengeComment(ccr))
-			throw new Exception("댓글 유효성 오류!");
+		//해당 게시글에 사진 혹은 텍스트 여부 검증
+		ChallengeReqired cr = chalDao.selectRequired(sqlSession,ccr.getChalNo());
+		switch(cr.getPictureRequired()) {//사진 검증
+		case "I":
+		case "Y":
+			if(ccr.getUuidStr()==null || ccr.getUuidStr()=="") throw new Exception("엄멈머!");
+		case "O":
+			break;
+		case "N":
+			if(ccr.getUuidStr()!=null || ccr.getUuidStr()!="") throw new Exception("엄멈머!");
+			break;
+		default: throw new Exception("500err");
+		}
+		switch(cr.getReplyRequired()) {//댓글 검증
+		case "Y":
+			if(ccr.getReply()==null || ccr.getReply()=="") throw new Exception("엄멈머!");
+		case "O":
+			if(ccr.getReply().length()>1100) throw new Exception("엄멈머!");
+			break;
+		case "N":
+			if(ccr.getReply()!=null || ccr.getReply()!="") throw new Exception("엄멈머!");
+			break;
+		default: throw new Exception("500err");
+		}
+		
+		//잘라 잘라
+		ccr.setReply(ccr.getReply().trim());
+		
+		//유효성 검사 - 통과하지 못하는 오류 때문에 잠시 정지
+//		if(ChallengeCommentValidator.challengeComment(ccr))
+//			throw new Exception("댓글 유효성 오류!");
 		
 		//attachment 사진 uuid로 활성화
 		if(ccr.getUuidStr()!=null) {

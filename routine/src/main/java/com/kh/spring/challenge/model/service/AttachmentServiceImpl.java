@@ -32,6 +32,7 @@ import jakarta.servlet.http.HttpSession;
 
 @Service
 public class AttachmentServiceImpl implements AttachmentService {
+
 	@Autowired
 	private SqlSessionTemplate sqlSession;
 	@Autowired
@@ -179,7 +180,7 @@ public class AttachmentServiceImpl implements AttachmentService {
 		// 사진 리사이즈
 		at.setFileContent(ResizeWebp.resizeWebp(at.getFileContent()));
 
-		String pictureRequired = chalDao.pictureRequired(sqlSession, chalNo);
+		String pictureRequired = chalDao.selectRequired(sqlSession, chalNo).getPictureRequired();
 		if (Exiftool.EXIFTOOL) {
 			// 사진 메타데이터 검사
 			// 해당 챌린지가 꿈과 희망이 넘치게 양심을 믿는지 각박딱딱하게 법규화된 질서를 신뢰하는지 살펴보기

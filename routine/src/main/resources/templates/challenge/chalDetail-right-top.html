@@ -1,0 +1,108 @@
+<th:block th:fragment="chalDetail-right-top">
+  <div id="right-top-container" class="card p-3 mb-3">
+    <!-- 참여 상태별 분기 -->
+    <div th:switch="${chalDetail.loginUserIsParticipation}">
+      <!-- Y: 댓글 작성 영역 -->
+      <div th:case="'Y'">
+        <div class="d-flex align-items-start mb-3">
+          <img
+            id="right-top-profile-img"
+            class="rounded-circle me-2"
+            th:src="${(myProfile != null and myProfile.pictureBase64 != null and myProfile.pictureBase64 != '') ? 'data:image/webp;base64,' + myProfile.pictureBase64 : '/static/img/profile-default.webp'}"
+            alt="프로필"
+            style="width: 48px; height: 48px"
+          />
+          <strong id="right-top-nickname" th:text="${loginUser.nick}"
+            >닉네임</strong
+          >
+        </div>
+
+        <!-- 사진 첨부 영역 -->
+        <div th:if="${chalDetail.pictureRequired != 'N'}" class="mb-3">
+          <label for="right-top-file-input" class="form-label">
+            사진 첨부
+            <span
+              th:if="${chalDetail.pictureRequired == 'I'}"
+              class="text-danger"
+              >*</span
+            >
+            <span
+              th:if="${chalDetail.pictureRequired == 'O'}"
+              class="text-muted"
+              >(선택)</span
+            >
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            class="form-control"
+            id="right-top-file-input"
+            th:disabled="true"
+          />
+          <div id="right-top-thumb-container" class="mt-2"></div>
+        </div>
+
+        <!-- 댓글 텍스트 작성 영역 -->
+        <div th:if="${chalDetail.replyRequired != 'N'}" class="mb-3">
+          <label for="right-top-reply-text" class="form-label">
+            댓글
+            <span th:if="${chalDetail.replyRequired == 'Y'}" class="text-danger"
+              >*</span
+            >
+            <span th:if="${chalDetail.replyRequired == 'O'}" class="text-muted"
+              >(선택)</span
+            >
+          </label>
+          <textarea
+            class="form-control"
+            id="right-top-reply-text"
+            rows="3"
+            maxlength="1000"
+            placeholder="댓글을 작성하세요"
+          ></textarea>
+          <div class="text-end mt-1">
+            <small id="right-top-char-count">0/1000</small>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn-primary w-100"
+          id="right-top-submit-btn"
+          disabled
+        >
+          댓글 작성
+        </button>
+      </div>
+
+      <!-- S: 완료한 챌린지 -->
+      <div th:case="'S'" class="text-center text-success">
+        <i class="bi bi-check-circle-fill fs-2"></i>
+        <p class="mt-2 mb-0">완료한 챌린지에요!</p>
+      </div>
+
+      <!-- F: 실패한 챌린지 -->
+      <div th:case="'F'" class="text-center text-danger">
+        <i class="bi bi-x-circle-fill fs-2"></i>
+        <p class="mt-2 mb-0">실패한 챌린지에요...</p>
+      </div>
+
+      <!-- N: 참여하기 버튼 -->
+      <div th:case="'N'" class="text-center">
+        <button
+          type="button"
+          class="btn btn-success"
+          id="right-top-participate-btn"
+        >
+          참여하기
+        </button>
+      </div>
+
+      <!-- U: 로그인 필요 -->
+      <div th:case="'U'" class="text-center text-secondary">
+        <i class="bi bi-person-lock-fill fs-2"></i>
+        <p class="mt-2 mb-0">로그인을 해 주세요</p>
+      </div>
+    </div>
+  </div>
+</th:block>

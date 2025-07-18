@@ -64,5 +64,44 @@ public class ChallengeValidator {
 		 */
 		return true;
 	}
+	
+	public static boolean challengeUpdate(ChallengeRequest chal) {
+		if(chal.getTitle() == null
+				|| !chal.getTitle().matches(Regexp.CHAL_TITLE)
+				|| chal.getContent() == null
+				|| !chal.getContent().matches(Regexp.CHAL_CONTENT)
+				|| chal.getPictureRequired() ==null
+				|| !chal.getPictureRequired().matches(Regexp.CHAL_PICTURE_REQUIRED)
+				|| chal.getReplyRequired() ==null
+				|| !chal.getReplyRequired().matches(Regexp.CHAL_REPLY_REQUIRED)
+				)return false;
+		
+		int verifyCycle = chal.getVerifyCycle();
+		if(verifyCycle<0 || verifyCycle>221) return false;
+		else if(verifyCycle>127) {
+			switch(verifyCycle) {
+			case 201:
+			case 202:
+			case 203:
+			case 211:
+			case 212:
+			case 221:
+				break;
+			default : return false;
+			}
+		}
+		
+		//시작일이 과거면 뭐냐 넌 과거에서 왔냐?
+		if (chal.getStartDate()!=null && 
+				chal.getStartDate().isBefore(LocalDate.now()))
+			return false;
+		
+		//종료일이 과거면 뭐냐 너도 과거에서 왔냐?
+		if(chal.getEndDate()!=null && 
+				chal.getEndDate().isBefore(LocalDate.now()))
+			return false;
+		
+		return true;
+	}
 
 }

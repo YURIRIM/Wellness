@@ -235,6 +235,9 @@
 	select a1.*
 		,P.PICTURE
 		,(SELECT THUMBNAIL FROM CHALLENGE C2 WHERE C2.CHAL_NO = a1.CHAL_NO)
+		,(SELECT CC2.CATEGORY_NAME FROM CHALLENGE_CATEGORY CC2
+         	WHERE CC2.CATEGORY_NO = a1.MAJOR_CATEGORY_NO
+       		) AS CATEGORY_MAJOR_NAME
 	from (select
 				C.CHAL_NO
 				,C.USER_NO
@@ -249,6 +252,7 @@
 				,C.PICTURE_REQUIRED
 				,C.REPLY_REQUIRED
 				,CC.CATEGORY_NAME
+				,(TRUNC(C.CATEGORY_NO / 10) * 10) AS MAJOR_CATEGORY_NO
 				,U.NICK
 				,P.BIO
 				,P.IS_OPEN
@@ -301,14 +305,11 @@
 	
 	<insert id="newParticipant" parameterType="map">
 		insert into CHALLENGE_PARTICIPATION(CHAL_NO,USER_NO,STATUS)
-		select cp.CHAL_NO, cp.USER_NO, cp.STATUS
-		from CHALLENGE_PARTICIPATION cp
-		join CHALLENGE c on(cp.CHAL_NO = c.CHAL_NO)
-		where c.STATUS = 'Y'
+		values(#{chalNo},#{userNo},'Y')
 	</insert>
 	
-	<select id="pictureRequired" parameterType="int" resultType="string">
-		select PICTURE_REQUIRED
+	<select id="selectRequired" parameterType="int" resultType="ChallengeReqired">
+		select PICTURE_REQUIRED, REPLY_REQUIRED
 		from CHALLENGE
 		where CHAL_NO = #{chalNo}
 	</select>
@@ -331,7 +332,7 @@
 		and status = 'Y'
 	</select>
 	
-	<select id="loginUserIsWriter" parameterType="map" resultType="int" >
+	<select id="loginUserIsWriter" parameterType="LoginUserIsWriter" resultType="int" >
 		select count(*)
 		from CHALLENGE_PARTICIPATION
 		where CHAL_NO = #{chalNo}
@@ -352,5 +353,17 @@
 		and STATUS = 'Y'
 	</update>
 	
-	
+	<update id="updateChal" parameterType="ChallengeRequest">
+		update CHALLENGE
+		set CATEGORY_NO = #{categoryNo}
+			,TITLE = #{title}
+			,CONTENT = #{content}
+			,THUMBNAIL = #{thumbnail}
+			,VERIFY_CYCLE =#{verifyCle}
+			,START_DATE = #{startDate}
+			,END_DATE = #{endDate}
+			,PICTURE_REQUIRED = #{pictureRequired}
+			,REPLY_REQUIRED = #{replyRequired}
+		where CHAL_NO = #{chalNo}
+	</update>
 </mapper>

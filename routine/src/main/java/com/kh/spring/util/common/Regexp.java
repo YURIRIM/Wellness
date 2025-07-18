@@ -32,7 +32,7 @@ public class Regexp {
 	public static final String SMC_SEARCH_TYPE = "^[OJ]?$";
 	
 	//ChallengeComment
-	public static final String CHAL_COMMENT_REPLY = "^.{1,1000}$";
+	public static final String CHAL_COMMENT_REPLY = "^.{1,1000}$";;
 	
 	//Attachment
 	//모든 언어의 글자, 숫자, 언더스코어, 마침표, 하이픈 허가

@@ -6,8 +6,10 @@ import java.util.Map;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.kh.spring.challenge.model.vo.ChallengeReqired;
 import com.kh.spring.challenge.model.vo.ChallengeRequest;
 import com.kh.spring.challenge.model.vo.ChallengeResponse;
+import com.kh.spring.challenge.model.vo.LoginUserIsWriter;
 import com.kh.spring.challenge.model.vo.SearchChallenge;
 import com.kh.spring.challenge.model.vo.SearchMyChallenge;
 
@@ -38,16 +40,16 @@ public class ChallengeDao {
 		return sqlSession.insert("challengeMapper.newParticipant",map);
 	}
 
-	public String pictureRequired(SqlSessionTemplate sqlSession, int chalNo) {
-		return sqlSession.selectOne("challengeMapper.pictureRequired",chalNo);
+	public ChallengeReqired selectRequired(SqlSessionTemplate sqlSession, int chalNo) {
+		return sqlSession.selectOne("challengeMapper.selectRequired",chalNo);
 	}
 
 	public ChallengeRequest goUpdateChal(SqlSessionTemplate sqlSession, int chalNo) {
 		return sqlSession.selectOne("challengeMapper.goUpdateChal",chalNo);
 	}
 
-	public int loginUserIsWriter(SqlSessionTemplate sqlSession, Map<String, Integer> map) {
-		return sqlSession.selectOne("challengeMapper.loginUserIsWriter", map);
+	public int loginUserIsWriter(SqlSessionTemplate sqlSession, LoginUserIsWriter liw) {
+		return sqlSession.selectOne("challengeMapper.loginUserIsWriter", liw);
 	}
 
 	public int deleteChal(SqlSessionTemplate sqlSession, int chalNo) {
@@ -57,4 +59,9 @@ public class ChallengeDao {
 	public int closeChal(SqlSessionTemplate sqlSession, int chalNo) {
 		return sqlSession.update("challengeMapper.closeChal", chalNo);
 	}
+
+	public int updateChal(SqlSessionTemplate sqlSession, ChallengeRequest chal) {
+		return sqlSession.update("challengeMapper.updateChal", chal);
+	}
+
 }

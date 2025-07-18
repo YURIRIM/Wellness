@@ -65,7 +65,9 @@ where rnum &gt; #{currentRecommentPage} * #{showLimit}
 		COMMENT_NO
 		,USER_NO
 		,CHAL_NO
-		,RECOMMENT_TARGET
+		<if test="recommentTarget != 0">
+			,RECOMMENT_TARGET
+		</if>
 		,REPLY
 		,CREATE_DATE
 		,STATUS
@@ -74,7 +76,9 @@ where rnum &gt; #{currentRecommentPage} * #{showLimit}
 		SEQ_CHALLENGE_COMMENT.nextval
 		,#{userNo}
 		,#{chalNo}
-		,#{recommentTarget}
+		<if test="recommentTarget != 0">
+			,#{recommentTarget}
+		</if>
 		,#{reply}
 		,SYSDATE
 		,'Y'

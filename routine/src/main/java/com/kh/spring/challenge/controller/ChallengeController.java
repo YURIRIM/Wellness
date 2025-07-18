@@ -13,6 +13,7 @@ import com.kh.spring.challenge.model.vo.ChallengeRequest;
 import com.kh.spring.challenge.model.vo.SearchChallenge;
 import com.kh.spring.challenge.model.vo.SearchMyChallenge;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -24,13 +25,13 @@ public class ChallengeController {
 	//챌린지 메인 화면으로
 	@GetMapping("/chalMain")
 	public String goChalMain() {
-		return "/challenge/chalMain";
+		return "challenge/chalMain";
 	}
 	
 	//챌린지 왼쪽 사이드바 불러오기
 	@GetMapping("/chalMainLeft")
 	public String getChalMainLeft() {
-		return "/challenge/chalMain-left :: chalMain-left";
+		return "challenge/chalMain-left :: chalMain-left";
 	}
 	
 	//비동기 - 챌린지 메인에서 챌린지 리스트
@@ -56,13 +57,13 @@ public class ChallengeController {
 			e.printStackTrace();
 		}
 		//반환값은 메인 조각을 보내 처리
-		return "/challenge/chalMain-center :: chalMain-center";
+		return "challenge/chalMain-center :: chalMain-center";
 	}
 
 	//새로운 챌린지 생성하기
 	@GetMapping("/newChal")
 	public String getNewChal() {
-		return "/challenge/newChal :: newChal";
+		return "challenge/newChal :: newChal";
 	}
 	
 	//내가 생성 혹은 참여한 챌린지로 이동
@@ -78,7 +79,7 @@ public class ChallengeController {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return "/challenge/chalMain-center :: chalMain-center";
+		return "challenge/chalMain-center :: chalMain-center";
 	}
 	
 	//비동기 - 내가 생성 혹은 참여한 챌린지
@@ -112,17 +113,19 @@ public class ChallengeController {
 	
 	//챌린지 세부 화면으로
 	@GetMapping("/chalDetail")
-	public String goChalDetail(HttpSession session, Model model, int chalNo) {
+	public String goChalDetail(HttpServletRequest request,
+			HttpSession session, Model model, int chalNo) {
 		try {
-			service.chalDetail(session, model, chalNo);
+			service.chalDetail(request, session, model, chalNo);
+			return "challenge/chalDetail";
 		} catch (Exception e) {
 			e.printStackTrace();
-			return "/common/errorPage";
+			return "common/errorPage";
 		}
-		return "/challenge/chalDetail";
-	}	
+	}
 	
 	//비동기 - 챌린지 참여하기
+	@ResponseBody
 	@PostMapping("/participate")
 	public String chalParticipate(HttpSession session, Model model, int chalNo) {
 		try {

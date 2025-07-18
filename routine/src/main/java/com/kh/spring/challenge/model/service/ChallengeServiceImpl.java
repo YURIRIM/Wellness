@@ -19,10 +19,11 @@ import com.kh.spring.challenge.model.dao.ChallengeDao;
 import com.kh.spring.challenge.model.vo.ChallengeCategory;
 import com.kh.spring.challenge.model.vo.ChallengeRequest;
 import com.kh.spring.challenge.model.vo.ChallengeResponse;
+import com.kh.spring.challenge.model.vo.LoginUserIsWriter;
 import com.kh.spring.challenge.model.vo.SearchChallenge;
-import com.kh.spring.challenge.model.vo.SearchComment;
 import com.kh.spring.challenge.model.vo.SearchMyChallenge;
 import com.kh.spring.user.model.vo.User;
+import com.kh.spring.util.challenge.ChallengeFix;
 import com.kh.spring.util.challenge.ChallengeValidator;
 import com.kh.spring.util.challenge.SearchChallengeValidator;
 import com.kh.spring.util.common.BinaryAndBase64;
@@ -30,6 +31,7 @@ import com.kh.spring.util.common.Dummy;
 import com.kh.spring.util.common.Regexp;
 import com.kh.spring.util.common.UuidUtil;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 @Service
@@ -42,8 +44,6 @@ public class ChallengeServiceImpl implements ChallengeService {
 	private AttachmentDao atDao;
 	@Autowired
 	private ChallengeCategoryDao ccDao;
-	@Autowired
-	private ChallengeCommentService commentService;
 
 	//controllerAdviser - CC조회
 	@Override
@@ -201,7 +201,8 @@ public class ChallengeServiceImpl implements ChallengeService {
 	
 	//챌린지 세부보기
 	@Override
-	public void chalDetail(HttpSession session, Model model, int chalNo) throws Exception {
+	public void chalDetail(HttpServletRequest request, HttpSession session
+			,Model model, int chalNo) throws Exception {
 		ChallengeResponse chal = chalDao.chalDetail(sqlSession,chalNo);
 		
 		//이 챌린지에 현재 로그인한 유저가 참여중임?
@@ -240,16 +241,13 @@ public class ChallengeServiceImpl implements ChallengeService {
 			chal.setPicture(null);
 		}
 		
+		//content의 img태그 링크 정상화 및 스크립트 주석처리
+		chal.setContent(ChallengeFix.fixScrAndScript(chal.getContent(), request));
+		
+		//verifyCycle -> verifyCycleStr
+		chal.setVerifyCycleStr(ChallengeFix.verifyCycleStr(chal.getVerifyCycle()));
+		
 		model.addAttribute("chalDetail", chal);
-		
-		
-		//댓글 조회
-		SearchComment sc = SearchComment.builder()
-				.chalNo(chalNo)
-				.currentPage(0)
-				.currentRecommentPage(0)
-				.build();
-		commentService.selectComment(model,sc);
 	}
 
 	//비동기 - 챌린지 참여하기
@@ -265,9 +263,6 @@ public class ChallengeServiceImpl implements ChallengeService {
 		    put("userNo", loginUser.getUserNo());
 		    put("chalNo", chalNo);
 		}};
-		String state = chalDao.loginUserIsParticipant(sqlSession,map);
-		if(state!=null) throw new Exception("이미 참여했잖아...");
-		
 		int result = chalDao.newParticipant(sqlSession,map);
 		if(!(result>0)) throw new Exception("참여 할 수 없네용 까비아깝숑");
 	}
@@ -293,7 +288,20 @@ public class ChallengeServiceImpl implements ChallengeService {
 	//챌린지 수정
 	@Override
 	public void updateChal(HttpSession session, Model model, ChallengeRequest chal) throws Exception {
+		//수정 권한 확인
+		User loginUser = (User)session.getAttribute("loginUser");
+		LoginUserIsWriter liw = LoginUserIsWriter.builder()
+				.userNo(loginUser.getUserNo())
+				.chalNo(chal.getChalNo())
+				.build();
+		int loginUserIsWriter = chalDao.loginUserIsWriter(sqlSession,liw);
+		if(!(loginUserIsWriter>0)) throw new Exception("접근 권한이 없습니다.");
 		
+		if(ChallengeValidator.challengeUpdate(chal)) throw new Exception("유효성 통과 못함 ㅠㅠ");
+		
+		//수정하기
+		int result = chalDao.updateChal(sqlSession,chal);
+		if(!(result>0)) throw new Exception("챌린지 수정 실패");
 	}
 	
 
@@ -302,13 +310,11 @@ public class ChallengeServiceImpl implements ChallengeService {
 	public void deleteChal(HttpSession session, int chalNo) throws Exception{
 		//권한 확인
 		User loginUser = (User)session.getAttribute("loginUser");
-		Map<String, Integer> map = new HashMap<>() {
-			private static final long serialVersionUID = 1L;
-			{
-		    put("userNo", loginUser.getUserNo());
-		    put("chalNo", chalNo);
-		}};
-		int loginUserIsWriter = chalDao.loginUserIsWriter(sqlSession,map);
+		LoginUserIsWriter liw = LoginUserIsWriter.builder()
+				.userNo(loginUser.getUserNo())
+				.chalNo(chalNo)
+				.build();
+		int loginUserIsWriter = chalDao.loginUserIsWriter(sqlSession,liw);
 		
 		if(!(loginUserIsWriter>0)) throw new Exception("접근 권한이 없습니다.");
 		
@@ -322,13 +328,11 @@ public class ChallengeServiceImpl implements ChallengeService {
 	public void closeChal(HttpSession session, int chalNo) throws Exception {
 		//권한 확인
 		User loginUser = (User)session.getAttribute("loginUser");
-		Map<String, Integer> map = new HashMap<>() {
-			private static final long serialVersionUID = 1L;
-			{
-		    put("userNo", loginUser.getUserNo());
-		    put("chalNo", chalNo);
-		}};
-		int loginUserIsWriter = chalDao.loginUserIsWriter(sqlSession,map);
+		LoginUserIsWriter liw = LoginUserIsWriter.builder()
+				.userNo(loginUser.getUserNo())
+				.chalNo(chalNo)
+				.build();
+		int loginUserIsWriter = chalDao.loginUserIsWriter(sqlSession,liw);
 		
 		if(!(loginUserIsWriter>0)) throw new Exception("접근 권한이 없습니다.");
 		

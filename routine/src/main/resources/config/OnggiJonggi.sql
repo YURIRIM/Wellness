@@ -5,6 +5,11 @@
 --grant resource, connect to ROUTINE;
 ----------------------------------------------
 
+--사진 정리하기
+delete from ATTACHMENT
+where STATUS = 'N';
+commit;
+
 --시퀀스
 CREATE SEQUENCE SEQ_CHALLENGE
     START WITH 1
@@ -13,6 +18,12 @@ CREATE SEQUENCE SEQ_CHALLENGE
     NOCYCLE;
 
 CREATE SEQUENCE SEQ_ATTACHMENT
+    START WITH 1
+    INCREMENT BY 1
+    NOCACHE
+    NOCYCLE;
+
+CREATE SEQUENCE SEQ_CHALLENGE_COMMENT
     START WITH 1
     INCREMENT BY 1
     NOCACHE
