@@ -1,37 +1,262 @@
-<!-- templates/habit/add.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset="UTF-8">
-    <title>습관 등록</title>
-</head>
-<body>
-    <h2>습관 등록</h2>
-    <form th:action="@{/habit/add}" method="post">
-		<!-- 습관 정보 -->
-        습관명: <input type="text" name="title"><br>
+	<meta charset="UTF-8">
+	<title>습관 등록</title>
 
-		<!-- 반복 정보 -->
-		반복 유형:
-		<select name="repeatType">
-			<option value="DAILY">매일</option>
-		    <option value="WEEKLY">매주</option>
-		    <option value="MONTHLY">매월</option>
-		</select><br>
+	<script>
+		function onRepeatTypeChange() {
+			const type = document.getElementById("repeatType").value;
 
-		반복일:  
-		<input type="checkbox" name="weekDays" value="MON">월
-		<input type="checkbox" name="weekDays" value="WED">화
-		<input type="checkbox" name="weekDays" value="WED">수
-		<input type="checkbox" name="weekDays" value="WED">목
-		<input type="checkbox" name="weekDays" value="FRI">금
-		<input type="checkbox" name="weekDays" value="WED">토
-		<input type="checkbox" name="weekDays" value="WED">일<br>
+			const unitMap = {
+				DAILY: "일마다",
+				WEEKLY: "주마다",
+				MONTHLY: "개월마다",
+				YEARLY: "년마다"
+			};
 
-		시간: <input type="time" name="repeatTime"><br>	
+			const maxMap = {
+				DAILY: 31,
+				WEEKLY: 52,
+				MONTHLY: 12,
+				YEARLY: 100
+			};
+
+			const unit = unitMap[type];
+			const max = maxMap[type];
+
+			const intervalInput = document.querySelector("input[name='interval']");
+			const unitElement = document.getElementById("intervalUnit");
+			
+			if (intervalInput && max) {
+			        intervalInput.max = max;
+			    }
+			
+			if (unitElement && unit) {
+				unitElement.innerText = unit;
+			}
+
+			const isWeekly = type === "WEEKLY";
+			document.getElementById("weekDaysSection").style.display = isWeekly ? "block" : "none";
+			document.getElementById("weeklyOptionSelector").style.display = isWeekly ? "block" : "none";
+			document.getElementById("nthWeekSection").style.display = "none";
+
+			if (isWeekly) {
+				onWeeklyOptionChange();
+			}
+
+			document.getElementById("dateSection").style.display = (type === "MONTHLY" || type === "YEARLY") ? "block" : "none";
+			document.getElementById("yearlySection").style.display = (type === "YEARLY") ? "block" : "none";
+		}
+
+
+		function onWeeklyOptionChange() {
+			const selected = document.querySelector('input[name="weeklyOption"]:checked');
+			if (!selected) return;
+
+			const value = selected.value;
+			document.getElementById("weeklyIntervalSection").style.display = (value === "interval") ? "block" : "none";
+			document.getElementById("nthWeekSection").style.display = (value === "nth") ? "block" : "none";
+		}
+
+		function onAllDayToggle() {
+			const isChecked = document.getElementById("allDay").checked;
+			document.getElementById("timeSection").style.display = isChecked ? "none" : "block";
+		}
+
+		function selectWeekDays(type, checked) {
+			const selector = type === 'weekdays' ? '.weekday' : '.weekend';
+			document.querySelectorAll(selector).forEach(cb => cb.checked = checked);
+		}
+
+		window.addEventListener("DOMContentLoaded", function () {
+			onRepeatTypeChange(); 
+		});
 		
-        <button type="submit">등록</button>
-    </form>
-    <a th:href="@{/habit/list}">목록으로</a>
+		
+		
+		
+		
+		
+		
+		function onGoalChange() {
+		    const select = document.getElementById("goalSelect");
+		    const value = select.value;
+		    const newGoalDiv = document.getElementById("newGoalInputDiv");
+		    const selectedGoalText = document.getElementById("selectedGoalText");
+
+		    if (value === "new") {
+		      newGoalDiv.style.display = "block";
+		      selectedGoalText.textContent = ""; // 초기화
+		    } else if (value !== "") {
+		      newGoalDiv.style.display = "none";
+		      const selectedText = select.options[select.selectedIndex].text;
+		      selectedGoalText.textContent = `목표 : ${selectedText}`;
+		    } else {
+		      newGoalDiv.style.display = "none";
+		      selectedGoalText.textContent = "";
+		    }
+		  }
+
+		  function updateSelectedGoal() {
+		    const input = document.getElementById("newGoalInput").value.trim();
+		    const selectedGoalText = document.getElementById("selectedGoalText");
+		    if (input) {
+		      selectedGoalText.textContent = `목표 : ${input}`;
+		    } else {
+		      selectedGoalText.textContent = "";
+		    }
+		  }
+		
+		
+		
+		
+		
+	</script>
+</head>
+
+<body>
+	<h2>습관 등록</h2>
+
+	<form th:action="@{/habit/add}" method="post">
+		
+		<label for="goalSelect"></label>
+		<select id="goalSelect" name="goalNo" onchange="onGoalChange()">
+		  <option value="">-- 목표 선택 --</option>
+		  <option value="1">운동하기</option>
+		  <option value="2">책 읽기</option>
+		  <option value="new">+ 새 목표 입력 +</option>
+		</select>
+
+		<!-- 새 목표 입력 필드 (기본은 숨김) -->
+		<div id="newGoalInputDiv" style="margin-top: 8px; display: none;">
+		  <input type="text" id="newGoalInput" placeholder="목표를 입력하세요" oninput="updateSelectedGoal()" />
+		</div>
+
+		<!-- 목표 표시 -->
+		<p id="selectedGoalText" style="font-weight: bold; margin-top: 8px;"></p>
+		
+		<!-- 습관 이름 -->
+		<div>
+			<label>습관 이름</label>
+			<input type="text" name="title" required>
+		</div>
+
+		<!-- 반복 유형 선택 -->
+		<div>
+			<label>반복 유형</label>
+			<select name="repeat.repeatType" id="repeatType" onchange="onRepeatTypeChange()">
+				<option value="DAILY">매일</option>
+				<option value="WEEKLY">매주</option>
+				<option value="MONTHLY">매월</option>
+				<option value="YEARLY">매년</option>
+			</select>
+		</div>
+
+		<!-- WEEKLY 옵션 선택 -->
+		<div id="weeklyOptionSelector" style="display: none;">
+			<label><input type="radio" name="weeklyOption" value="interval" checked onclick="onWeeklyOptionChange()"> N주마다 반복</label>
+			<label><input type="radio" name="weeklyOption" value="nth" onclick="onWeeklyOptionChange()"> N째주마다</label>
+		</div>
+
+		<!-- 반복 간격 -->
+		<div id="intervalSection">
+			<label>반복 간격</label>
+			<input type="number" name="repeat.interval" min="1" value="1">
+			<span id="intervalUnit">일마다</span>
+		</div>
+
+		<!-- WEEKLY: N째주 N요일 -->
+		<div id="nthWeekSection" style="display: none;">
+			<label>해당 주차 선택</label><br>
+			<label><input type="checkbox" name="repeat.nthWeeks" value="1">1째주</label>
+			<label><input type="checkbox" name="repeat.nthWeeks" value="2">2째주</label>
+			<label><input type="checkbox" name="repeat.nthWeeks" value="3">3째주</label>
+			<label><input type="checkbox" name="repeat.nthWeeks" value="4">4째주</label>
+			<label><input type="checkbox" name="repeat.nthWeeks" value="5">5째주</label>
+			<label><input type="checkbox" name="repeat.nthWeeks" value="LAST">마지막째주</label>
+			<br><br>
+
+			<label>해당 요일 선택</label><br>
+			<label><input type="checkbox" name="repeat.nthWeekDays" value="MON">월</label>
+			<label><input type="checkbox" name="repeat.nthWeekDays" value="TUE">화</label>
+			<label><input type="checkbox" name="repeat.nthWeekDays" value="WED">수</label>
+			<label><input type="checkbox" name="repeat.nthWeekDays" value="THU">목</label>
+			<label><input type="checkbox" name="repeat.nthWeekDays" value="FRI">금</label>
+			<label><input type="checkbox" name="repeat.nthWeekDays" value="SAT">토</label>
+			<label><input type="checkbox" name="repeat.nthWeekDays" value="SUN">일</label>
+		</div>
+
+		<!-- 반복 요일 선택 -->
+		<div id="weekDaysSection" style="display: none;">
+			<label>반복 요일</label><br>
+			<label><input type="checkbox" onclick="selectWeekDays('weekdays', this.checked)">평일</label>
+			<label><input type="checkbox" onclick="selectWeekDays('weekends', this.checked)">주말</label><br>
+			<label><input type="checkbox" name="repeat.weekDays" value="MON" class="weekday">월</label>
+			<label><input type="checkbox" name="repeat.weekDays" value="TUE" class="weekday">화</label>
+			<label><input type="checkbox" name="repeat.weekDays" value="WED" class="weekday">수</label>
+			<label><input type="checkbox" name="repeat.weekDays" value="THU" class="weekday">목</label>
+			<label><input type="checkbox" name="repeat.weekDays" value="FRI" class="weekday">금</label>
+			<label><input type="checkbox" name="repeat.weekDays" value="SAT" class="weekend">토</label>
+			<label><input type="checkbox" name="repeat.weekDays" value="SUN" class="weekend">일</label>
+		</div>
+
+		<!-- 날짜 선택 (MONTHLY, YEARLY) -->
+		<div id="dateSection" style="display: none;">
+			<label>날짜</label>
+			<input type="number" name="repeat.dayOfMonth" min="1" max="31">
+		</div>
+
+		<!-- 연도 반복 설정 -->
+		<div id="yearlySection" style="display: none;">
+			<label>월</label>
+			<input type="number" name="repeat.yearlyMonth" min="1" max="12">
+
+			<label>주차</label>
+			<select name="repeat.yearlyNthWeek">
+				<option value="">--선택--</option>
+				<option value="1">1째주</option>
+				<option value="2">2째주</option>
+				<option value="3">3째주</option>
+				<option value="4">4째주</option>
+				<option value="5">5째주</option>
+			</select>
+
+			<label>요일</label>
+			<select name="repeat.yearlyDayOfWeek">
+				<option value="">--선택--</option>
+				<option value="MON">월</option>
+				<option value="TUE">화</option>
+				<option value="WED">수</option>
+				<option value="THU">목</option>
+				<option value="FRI">금</option >
+				<option value="SAT">토</option>
+				<option value="SUN">일</option>
+			</select>
+		</div>
+
+		<!-- 반복 시간 -->
+		<div>
+			<label>하루 종일</label>
+			<input type="checkbox" name="repeat.allDay" id="allDay" onchange="onAllDayToggle()">
+		</div>
+
+		<div id="timeSection">
+			<label>반복 시간</label>
+			<input type="time" name="repeat.repeatTime">
+		</div>
+
+		
+		<br>
+		<button type="submit">습관 등록</button>
+		
+	</form>
+
+	<br>
+	<a th:href="@{/habit/list}">목록으로</a>
+	<a th:href="@{/habit/cal}">캘린더</a>
+
 </body>
+
 </html>
