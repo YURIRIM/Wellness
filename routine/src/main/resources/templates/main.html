@@ -1,21 +1,26 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-<meta charset="UTF-8">
-<title>Insert title here</title>
-<th:block th:replace="~{/common/fragment :: library}"></th:block>
-</head>
-<body>
-<th:block th:replace="~{/common/fragment :: header}"></th:block>
-	
-	2조 ROUTINE 메인입니다.
-	
-	http://localhost:8153/routine/
-	
-	<a th:href="@{/habit/add}">Habit</a>
-	
-	<a th:href="@{/challenge/chalMain}">OnggiJonggi개발실</a>
-	
-	
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>ROUTINE</title>
+    <th:block th:replace="~{/common/fragment :: library}"></th:block>
+  </head>
+  <body>
+    <th:block th:replace="~{/common/fragment :: header}"></th:block>
+
+    2조 ROUTINE 메인입니다.
+    <br />
+    http://localhost:8153/routine/
+    <hr />
+
+    <a th:href="@{/habit/add}">Habit</a>
+    <br />
+    <a th:href="@{/challenge/chalMain}">챌린지</a>
+    <br />
+    <a th:href="@{/videoCall/vcMain}">준비중...</a>
+    <hr />
+    <a th:href="@{/meeting/list}">모임</a>
+
+    <script th:src="@{/js/common/main.js}"></script>
+  </body>
 </html>

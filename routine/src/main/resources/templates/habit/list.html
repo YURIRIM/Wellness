@@ -23,7 +23,11 @@
                 <td th:text="${habit.title}"></td>
                 <td th:text="${habit.status}"></td>
                 <td><a th:href="@{'/habit/edit/' + ${habit.habitNo}}">수정</a></td>
-                <td><a th:href="@{'/habit/delete/' + ${habit.habitNo}}">삭제</a></td>
+                <td>
+                    <form th:action="@{'/habit/delete/' + ${habit.habitNo}}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                        <button type="submit">삭제</button>
+                    </form>
+                </td>
             </tr>
         </tbody>
     </table>

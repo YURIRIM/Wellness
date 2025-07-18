@@ -103,9 +103,29 @@
         SELECT * FROM HABIT
         WHERE USER_NO = #{userNo}
     </select>
+    
+    
+    
+    
+    
+    
+    
+    <select id="selectById" parameterType="_int" resultType="Habit">
+        SELECT * FROM HABIT WHERE HABIT_NO = #{habitNo}
+    </select>
 
+    <update id="updateHabit" parameterType="Habit">
+        UPDATE HABIT
+        SET TITLE = #{title},
+            GOAL_NO = #{goalNo},
+            UPDATED_AT = SYSDATE
+        WHERE HABIT_NO = #{habitNo}
+    </update>
 
-
+    <delete id="deleteHabit" parameterType="_int">
+        DELETE FROM HABIT 
+        WHERE HABIT_NO = #{habitNo}
+    </delete>
 
 	
 	

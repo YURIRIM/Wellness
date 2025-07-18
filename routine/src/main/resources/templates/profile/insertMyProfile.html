@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>프로필 생성하기</title>
+    <th:block th:replace="~{/common/fragment :: library}"></th:block>
+    <style>
+      .profile-container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 30px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .profile-picture-area,
+      .watermark-area {
+        text-align: center;
+        margin-bottom: 30px;
+        position: relative;
+      }
+      .profile-picture-circle,
+      .watermark-preview {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 3px dashed #ccc;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        overflow: hidden;
+        background: #f8f9fa;
+      }
+      .profile-picture-circle:hover,
+      .watermark-preview:hover {
+        border-color: #007bff;
+        background: #e3f2fd;
+      }
+      .profile-picture-circle img,
+      .watermark-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .char-count {
+        font-size: 0.9em;
+        color: #666;
+        text-align: right;
+      }
+      .cropper-wrapper {
+        width: 100%;
+        max-width: 500px;
+        margin: 20px auto;
+        padding: 10px;
+        border: 1px solid #ddd;
+        background: #fafafa;
+      }
+      .cropper-container {
+        width: 100%;
+        height: 300px;
+        overflow: hidden;
+        text-align: center;
+      }
+      .cropper-container img {
+        max-width: 100%;
+      }
+      .cropper-buttons {
+        text-align: right;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="profile-container">
+      <div class="mb-3">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          onclick="history.back()"
+        >
+          <i class="bi bi-arrow-left"></i> 뒤로가기
+        </button>
+      </div>
+      <h3 class="text-center mb-4">프로필 생성하기</h3>
+      <form
+        id="profileForm"
+        th:action="@{/profile/insertMyProfile}"
+        method="post"
+      >
+        <!-- hidden inputs to carry base64 data -->
+        <input type="hidden" name="pictureBase64" id="pictureBase64" />
+        <input type="hidden" name="watermarkBase64" id="watermarkBase64" />
+
+        <!-- 프로필 사진 영역 -->
+        <div class="profile-picture-area mb-2">
+          <div class="profile-picture-circle" id="profilePictureArea">
+            <i class="bi bi-camera"></i>
+          </div>
+          <br />
+          <button
+            type="button"
+            class="btn btn-sm btn-danger mt-2"
+            id="deleteProfileBtn"
+          >
+            사진 삭제
+          </button>
+          <input
+            type="file"
+            id="profilePictureInput"
+            accept="image/*"
+            style="display: none"
+          />
+        </div>
+
+        <!-- 프로필용 Cropper 영역 -->
+        <div
+          id="profileCropperWrapper"
+          class="cropper-wrapper"
+          style="display: none"
+        >
+          <div class="cropper-container">
+            <img id="profileCropperImage" src="" alt="Crop Profile" />
+          </div>
+          <div class="cropper-buttons">
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm"
+              id="cancelProfileCrop"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary btn-sm"
+              id="confirmProfileCrop"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+
+        <!-- 자기소개 영역 -->
+        <div class="mb-3">
+          <label for="bio" class="form-label">자기소개</label>
+          <textarea
+            class="form-control"
+            id="bio"
+            name="bio"
+            rows="3"
+            maxlength="100"
+            placeholder="자기소개를 입력하세요"
+          ></textarea>
+          <div class="char-count" id="bioCharCount">0/100</div>
+        </div>
+
+        <!-- 프로필 공개 설정 -->
+        <div class="mb-4">
+          <label class="form-label">프로필 공개 설정</label>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="isOpen"
+              id="openY"
+              value="Y"
+              checked
+            />
+            <label class="form-check-label" for="openY">공개</label>
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="isOpen"
+              id="openN"
+              value="N"
+            />
+            <label class="form-check-label" for="openN"
+              >참여한 챌린지 비공개</label
+            >
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="isOpen"
+              id="openA"
+              value="A"
+            />
+            <label class="form-check-label" for="openA">익명</label>
+          </div>
+        </div>
+
+        <!-- 워터마크 설정 영역 -->
+        <div class="watermark-area mb-4">
+          <label class="form-label">워터마크 설정</label><br />
+          <div class="watermark-preview" id="watermarkPreview">
+            <i class="bi bi-upload"></i>
+          </div>
+          <br />
+          <button
+            type="button"
+            class="btn btn-sm btn-danger mt-2"
+            id="deleteWatermarkBtn"
+          >
+            워터마크 삭제
+          </button>
+          <input
+            type="file"
+            id="watermarkInput"
+            accept="image/*"
+            style="display: none"
+          />
+
+          <!-- radio-input -->
+          <div class="mt-3">
+            <div class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="watermarkType"
+                id="wmD"
+                value="D"
+                checked
+              />
+              <label class="form-check-label" for="wmD">기본</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="watermarkType"
+                id="wmF"
+                value="F"
+              />
+              <label class="form-check-label" for="wmF">업로드한 사진</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="watermarkType"
+                id="wmN"
+                value="N"
+              />
+              <label class="form-check-label" for="wmN">없음</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button
+            type="button"
+            class="btn btn-secondary flex-fill"
+            id="resetBtn"
+          >
+            초기화
+          </button>
+          <button type="submit" class="btn btn-primary flex-fill">제출</button>
+        </div>
+      </form>
+    </div>
+
+    <script th:inline="javascript">
+      document.addEventListener("DOMContentLoaded", () => {
+        let cropper = null;
+        let currentImageBase64 = "";
+        let currentWatermarkBase64 = "";
+
+        const pictureInput = document.getElementById("profilePictureInput");
+        const pictureArea = document.getElementById("profilePictureArea");
+        const pb64 = document.getElementById("pictureBase64");
+        const deletePic = document.getElementById("deleteProfileBtn");
+        const wrapper = document.getElementById("profileCropperWrapper");
+        const imgEl = document.getElementById("profileCropperImage");
+        const cancelCrop = document.getElementById("cancelProfileCrop");
+        const confirmCrop = document.getElementById("confirmProfileCrop");
+
+        const wmInput = document.getElementById("watermarkInput");
+        const wmArea = document.getElementById("watermarkPreview");
+        const wb64 = document.getElementById("watermarkBase64");
+        const deleteWm = document.getElementById("deleteWatermarkBtn");
+
+        // Safe-URL Base64 변환 함수
+        function toUrlSafeBase64(base64) {
+          return base64
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=+$/, "");
+        }
+
+        // 프로필 선택
+        pictureArea.addEventListener("click", () => pictureInput.click());
+        pictureInput.addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (!file || !file.type.startsWith("image/"))
+            return alert("이미지 파일만 가능합니다.");
+          const reader = new FileReader();
+          reader.onload = () => {
+            imgEl.src = reader.result;
+            if (cropper) cropper.destroy();
+            wrapper.style.display = "block";
+            cropper = new Cropper(imgEl, {
+              aspectRatio: 1,
+              viewMode: 1,
+              autoCropArea: 1,
+              movable: true,
+              zoomOnWheel: true,
+              dragMode: "move",
+            });
+          };
+          reader.readAsDataURL(file);
+        });
+
+        cancelCrop.addEventListener("click", () => {
+          wrapper.style.display = "none";
+          if (cropper) cropper.destroy();
+          cropper = null;
+          pictureInput.value = "";
+        });
+
+        confirmCrop.addEventListener("click", () => {
+          if (!cropper) return;
+          const canvas = cropper.getCroppedCanvas({ width: 200, height: 200 });
+          const data = canvas.toDataURL("image/jpeg", 0.8);
+          let base64 = data.split(",")[1];
+          // Safe-URL Base64 변환 적용
+          base64 = toUrlSafeBase64(base64);
+          currentImageBase64 = base64;
+          pb64.value = base64;
+          // 썸네일 표시용은 원본 data 사용 (data:image/jpeg;base64,...)
+          pictureArea.innerHTML = `<img src="${data}">`;
+          wrapper.style.display = "none";
+          cropper.destroy();
+          cropper = null;
+        });
+
+        // 워터마크 즉시 리사이즈
+        wmArea.addEventListener("click", () => wmInput.click());
+        wmInput.addEventListener("change", (e) => {
+          const file = e.target.files[0];
+          if (!file || !file.type.startsWith("image/"))
+            return alert("이미지 파일만 가능합니다.");
+          const reader = new FileReader();
+          reader.onload = () => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              canvas.width = 150;
+              canvas.height = 150;
+              const ctx = canvas.getContext("2d");
+              const ratio = Math.min(150 / img.width, 150 / img.height);
+              const w = img.width * ratio,
+                h = img.height * ratio;
+              ctx.clearRect(0, 0, 150, 150);
+              ctx.drawImage(img, (150 - w) / 2, (150 - h) / 2, w, h);
+              const dataUrl = canvas.toDataURL("image/png");
+              let base64 = dataUrl.split(",")[1];
+              // Safe-URL Base64 변환 적용
+              base64 = toUrlSafeBase64(base64);
+              currentWatermarkBase64 = base64;
+              wb64.value = base64;
+              // 썸네일 표시용은 원본 dataUrl 사용 (data:image/png;base64,...)
+              wmArea.innerHTML = `<img src="${dataUrl}">`;
+              document.getElementById("wmF").checked = true;
+            };
+            img.src = reader.result;
+          };
+          reader.readAsDataURL(file);
+        });
+
+        // 삭제 버튼
+        deletePic.addEventListener("click", () => {
+          currentImageBase64 = "";
+          pb64.value = "";
+          pictureArea.innerHTML = '<i class="bi bi-camera"></i>';
+          pictureInput.value = "";
+        });
+        deleteWm.addEventListener("click", () => {
+          currentWatermarkBase64 = "";
+          wb64.value = "";
+          wmArea.innerHTML = '<i class="bi bi-upload"></i>';
+          wmInput.value = "";
+          document.getElementById("wmD").checked = true;
+        });
+
+        // 글자수 카운트
+        const bio = document.getElementById("bio");
+        const bioCount = document.getElementById("bioCharCount");
+        bio.addEventListener(
+          "input",
+          () => (bioCount.textContent = `${bio.value.length}/100`)
+        );
+
+        // 초기화
+        document.getElementById("resetBtn").addEventListener("click", () => {
+          if (!confirm("모든 내용을 초기화하시겠습니까?")) return;
+          document.getElementById("profileForm").reset();
+          pictureArea.innerHTML = '<i class="bi bi-camera"></i>';
+          wmArea.innerHTML = '<i class="bi bi-upload"></i>';
+          currentImageBase64 = "";
+          currentWatermarkBase64 = "";
+          bioCount.textContent = "0/100";
+          if (cropper) cropper.destroy();
+          wrapper.style.display = "none";
+        });
+      });
+    </script>
+  </body>
+</html>

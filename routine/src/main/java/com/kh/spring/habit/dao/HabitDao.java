@@ -31,6 +31,20 @@ public class HabitDao {
 		// TODO Auto-generated method stub
 		return sqlSession.selectList("habitMapper.selectHabitsByUser", userNo);
 	}
+	
+	
+	
+	public Habit selectById(SqlSessionTemplate session, int habitNo) {
+        return session.selectOne("habitMapper.selectById", habitNo);
+    }
+
+    public int updateHabit(SqlSessionTemplate session, Habit habit) {
+        return session.update("habitMapper.updateHabit", habit);
+    }
+
+    public int deleteHabit(SqlSessionTemplate session, int habitNo) {
+        return session.delete("habitMapper.deleteHabit", habitNo);
+    }
 
 	
 

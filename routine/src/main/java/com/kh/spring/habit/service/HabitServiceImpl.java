@@ -53,6 +53,28 @@ public class HabitServiceImpl implements HabitService {
 		// TODO Auto-generated method stub
 		return dao.selectHabitsByUser(sqlSession,userNo);
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	 @Override
+	    public Habit getHabitById(int habitNo) {
+	        return dao.selectById(sqlSession, habitNo);
+	    }
+
+	    @Override
+	    public void updateHabit(Habit habit) {
+	    	dao.updateHabit(sqlSession, habit);
+	    }
+
+	    @Override
+	    public void deleteHabit(int habitNo) {
+	    	dao.deleteHabit(sqlSession, habitNo);
+	    }
 
 
 }

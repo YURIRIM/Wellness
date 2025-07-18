@@ -2,16 +2,18 @@ package com.kh.spring.habit.controller;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttribute;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.kh.spring.habit.model.vo.Habit;
 import com.kh.spring.habit.service.HabitService;
@@ -62,5 +64,34 @@ public class HabitController {
 	    return "habit/cal";
 	}
 
+	
+	
+	
+	 @GetMapping("/edit/{habitNo}")
+	    public String showEditForm(@PathVariable int habitNo, Model model) {
+	        Habit habit = service.getHabitById(habitNo);
+	        model.addAttribute("habit", habit);
+	        return "habit/edit"; // habit 수정용 JSP/Thymeleaf
+	    }
+
+	    @PostMapping("/update")
+	    public String updateHabit(Habit habit, RedirectAttributes ra) {
+	    	service.updateHabit(habit);
+	        ra.addFlashAttribute("msg", "습관이 수정되었습니다.");
+	        return "redirect:/habit/list";
+	    }
+
+	    @PostMapping("/delete/{habitNo}")
+	    public String deleteHabit(@PathVariable("habitNo") int habitNo, RedirectAttributes ra) {
+	        service.deleteHabit(habitNo);
+	        ra.addFlashAttribute("msg", "습관이 삭제되었습니다.");
+	        return "redirect:/habit/list";
+	    }
+
+	    
+	    @GetMapping("/delete/{habitNo}") 
+	    public String deleteHabit() {
+	    	return "redirect:/habit/list";
+	    }
 
 }

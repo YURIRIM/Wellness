@@ -5,6 +5,11 @@
 <script th:src="@{/webjars/bootstrap/5.3.7/js/bootstrap.bundle.min.js}"></script>
 <link th:href="@{/webjars/bootstrap/5.3.7/css/bootstrap.min.css}" rel="stylesheet" />
 <link th:href="@{/webjars/bootstrap-icons/1.13.1/font/bootstrap-icons.css}" rel="stylesheet" />
+<script th:src="@{/webjars/bootstrap-datepicker/1.10.0/js/bootstrap-datepicker.min.js}"></script>
+<script th:src="@{/webjars/bootstrap-datepicker/1.10.0/locales/bootstrap-datepicker.ko.min.js}"></script>
+<link th:href="@{/webjars/bootstrap-datepicker/1.10.0/css/bootstrap-datepicker.min.css}" rel="stylesheet" />
+<link rel="stylesheet" th:href="@{/webjars/cropperjs/1.6.2/dist/cropper.min.css}"/>
+<script th:src="@{/webjars/cropperjs/1.6.2/dist/cropper.min.js}"></script>
 </th:block>
 
 <th:block th:fragment="header">
@@ -17,21 +22,26 @@
 </th:block>
 
 <div th:fragment="header" id="header">
-    <div id="header_1">
-        <div id="header_1_left">
-            <img th:src="@{/images/logo.png}" alt="ROUTINE Logo" onclick="location.href='/'">
-        </div>
-        <div id="header_1_center"></div>
-        <div id="header_1_right">
-            <span th:if="${session.loginUser == null}">
-                <a th:href="@{/user/login}">로그인</a>
-                <a th:href="@{/user/signup}">회원가입</a>
-            </span>
-            <span th:if="${session.loginUser != null}">
-                <span th:text="${session.loginUser.nick} + '님 환영합니다!'"></span>
-                <a th:href="@{/user/mypage}">마이페이지</a>
-                <a th:href="@{/user/logout}">로그아웃</a>
-				<a th:href="@{/habit/add}">Habit</a>
-            </span>
-        </div>
+  <div id="header_1">
+    <div id="header_1_left">
+<!--       <img -->
+<!--         th:src="@{/images/logo.png}" -->
+<!--         alt="ROUTINE Logo" -->
+<!--         onclick="location.href='/'" -->
+<!--       /> -->
     </div>
+    <div id="header_1_center"></div>
+    <div id="header_1_right">
+      <span th:if="${session.loginUser == null}">
+        <a th:href="@{/user/login}">로그인</a>
+        <a th:href="@{/user/signup}">회원가입</a>
+      </span>
+      <span th:if="${session.loginUser != null}">
+        <span th:text="${session.loginUser.nick} + '님 환영합니다!'"></span>
+        <a th:href="@{/user/mypage}">마이페이지</a>
+        <a th:href="@{/user/logout}">로그아웃</a>
+      </span>
+    </div>
+  </div>
+</div>
+>>>>>>> refs/remotes/origin/main

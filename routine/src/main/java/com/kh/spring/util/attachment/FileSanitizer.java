@@ -7,52 +7,44 @@ import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.kh.spring.challenge.model.vo.Attachment;
 import com.kh.spring.util.common.Regexp;
 
 //바이너리 webp 파일 이름/확장자 소독하기
 public class FileSanitizer {
 
-	public static boolean attachmentSanitizer(List<MultipartFile> files, List<Attachment> atList) throws Exception {
-		for (MultipartFile atFile : files) {
-			// 파일이 비어있는지 체크
-			if (atFile.isEmpty()) {
-				return false;
-			}
-
-			String originalFilename = atFile.getOriginalFilename();
-			if (originalFilename == null || originalFilename.trim().isEmpty()) {
-				return false;
-			}
-
-			// 파일명 보안 처리
-			String sanitizedFilename = sanitizeFileName(originalFilename);
-
-			// 확장자 검증
-			String extension = FilenameUtils.getExtension(sanitizedFilename).toLowerCase();
-			List<String> allowedExtensions = Arrays.asList("webp");
-
-			if (!allowedExtensions.contains(extension)) {
-				return false;
-			}
-
-			// MIME 타입 검증
-			String contentType = atFile.getContentType();
-			if (contentType == null || !isValidMimeType(contentType, extension)) {
-				return false;
-			}
-
-			// Magic Bytes 검증 (실제 파일 내용 확인)
-			if (!validateFileContent(atFile.getBytes(), extension)) {
-				return false;
-			}
-
-			// 저장!
-			Attachment attachment = Attachment.builder().file(atFile.getBytes()).fileName(sanitizedFilename)
-					.fileSize((int) atFile.getSize()).build();
-
-			atList.add(attachment);
+	public static boolean attachmentSanitizer(MultipartFile file) throws Exception {
+		// 파일이 비어있는지 체크
+		if (file.isEmpty()) {
+			return false;
 		}
+
+		String originalFilename = file.getOriginalFilename();
+		if (originalFilename == null || originalFilename.trim().isEmpty()) {
+			return false;
+		}
+
+		// 파일명 보안 처리
+		String sanitizedFilename = sanitizeFileName(originalFilename);
+
+		// 확장자 검증
+		String extension = FilenameUtils.getExtension(sanitizedFilename).toLowerCase();
+		List<String> allowedExtensions = Arrays.asList("jpg", "jpeg", "png", "gif", "webp");
+
+		if (!allowedExtensions.contains(extension)) {
+			return false;
+		}
+
+		// MIME 타입 검증
+		String contentType = file.getContentType();
+		if (contentType == null || !isValidMimeType(contentType, extension)) {
+			return false;
+		}
+
+		// Magic Bytes 검증 (실제 파일 내용 확인)
+		if (!validateFileContent(file.getBytes(), extension)) {
+			return false;
+		}
+
 		return true;
 	}
 
@@ -113,23 +105,44 @@ public class FileSanitizer {
 
 	// MIME 타입 검증
 	private static boolean isValidMimeType(String contentType, String extension) {
-		return "webp".equalsIgnoreCase(extension) && "image/webp".equalsIgnoreCase(contentType);
+	    switch (extension) {
+	        case "jpg":
+	        case "jpeg":
+	            return "image/jpeg".equalsIgnoreCase(contentType);
+	        case "png":
+	            return "image/png".equalsIgnoreCase(contentType);
+	        case "gif":
+	            return "image/gif".equalsIgnoreCase(contentType);
+	        case "webp":
+	            return "image/webp".equalsIgnoreCase(contentType);
+	        default:
+	            return false;
+	    }
 	}
+
 
 	// Magic Bytes 검증
 	private static boolean validateFileContent(byte[] fileBytes, String extension) {
-		if (!"webp".equalsIgnoreCase(extension))
-			return false;
-		if (fileBytes.length < 12)
-			return false;
+	    if (fileBytes == null || fileBytes.length < 12) return false;
 
-		// 'RIFF'
-		if (fileBytes[0] != 0x52 || fileBytes[1] != 0x49 || fileBytes[2] != 0x46 || fileBytes[3] != 0x46)
-			return false;
-		// 'WEBP'
-		if (fileBytes[8] != 0x57 || fileBytes[9] != 0x45 || fileBytes[10] != 0x42 || fileBytes[11] != 0x50)
-			return false;
-
-		return true;
+	    switch (extension.toLowerCase()) {
+	        case "jpg":
+	        case "jpeg":
+	            return fileBytes[0] == (byte) 0xFF && fileBytes[1] == (byte) 0xD8;
+	        case "png":
+	            return fileBytes[0] == (byte) 0x89 && fileBytes[1] == 0x50 &&
+	                   fileBytes[2] == 0x4E && fileBytes[3] == 0x47;
+	        case "gif":
+	            return fileBytes[0] == 0x47 && fileBytes[1] == 0x49 &&
+	                   fileBytes[2] == 0x46 && fileBytes[3] == 0x38;
+	        case "webp":
+	            return fileBytes[0] == 0x52 && fileBytes[1] == 0x49 &&
+	                   fileBytes[2] == 0x46 && fileBytes[3] == 0x46 &&
+	                   fileBytes[8] == 0x57 && fileBytes[9] == 0x45 &&
+	                   fileBytes[10] == 0x42 && fileBytes[11] == 0x50;
+	        default:
+	            return false;
+	    }
 	}
+
 }
