@@ -76,6 +76,9 @@ public class ProfileServiceImpl implements ProfileService{
 			//워터마크 사진 있으면 watermark에 넣기
 			p.setWatermark(watermark);
 			p.setWatermarkBase64(null);
+		}else {
+			//워터마크가 없는데 개인 워터마크 쓸거에용 방지
+			if(p.getWatermarkType().equals("C")) p.setWatermarkType("D");
 		}
 		
 		int result = dao.insertMyProfile(sqlSession,p);
@@ -113,6 +116,9 @@ public class ProfileServiceImpl implements ProfileService{
 			//워터마크 사진 있으면 watermark에 넣기
 			p.setWatermark(watermark);
 			p.setWatermarkBase64(null);
+		}else {
+			//워터마크가 없는데 개인 워터마크 쓸거에용 방지
+			if(p.getWatermarkType().equals("C")) p.setWatermarkType("D");
 		}
 		
 		int result = dao.updateMyProfile(sqlSession,p);

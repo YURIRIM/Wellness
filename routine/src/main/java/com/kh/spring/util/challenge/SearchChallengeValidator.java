@@ -1,6 +1,5 @@
 package com.kh.spring.util.challenge;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
 
 import com.kh.spring.challenge.model.vo.SearchChallenge;
