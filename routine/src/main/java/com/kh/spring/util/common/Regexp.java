@@ -3,8 +3,8 @@ package com.kh.spring.util.common;
 //정규식 저장소           
 public class Regexp {
 	//Challenge
-	public static final String CHAL_TITLE = "^.{1,100}$";
-	public static final String CHAL_CONTENT = "^.{1,1000}$";
+	public static final String CHAL_TITLE = "^[\\p{L}\\p{N}\\p{M}\\p{S}\\p{P}\\p{Zs}]{1,100}$";
+	public static final String CHAL_CONTENT = "^[\\s\\S]{1,1000}$";
 	public static final String CHAL_PICTURE_REQUIRED = "^[IYON]$";
 	public static final String CHAL_REPLY_REQUIRED = "^[YON]$";
 	
@@ -32,7 +32,7 @@ public class Regexp {
 	public static final String SMC_SEARCH_TYPE = "^[OJ]?$";
 	
 	//ChallengeComment
-	public static final String CHAL_COMMENT_REPLY = "^.{1,1000}$";;
+	public static final String CHAL_COMMENT_REPLY = "^[\\s\\S]{0,1000}$";;
 	
 	//Attachment
 	//모든 언어의 글자, 숫자, 언더스코어, 마침표, 하이픈 허가
@@ -42,7 +42,7 @@ public class Regexp {
 	public static final int ATTACHMENT_FILE_WIDTH = 1200;
 	
 	//profile
-	public static final String PROFIEL_BIO = "^.{0,100}$";
+	public static final String PROFIEL_BIO = "^[\\s\\S]{0,100}$";
 	public static final String PROFILE_IS_OPEN = "^[YNA]$";
 	public static final String PROFILE_WATERMARK_TYPE = "^[DCN]$";
 	

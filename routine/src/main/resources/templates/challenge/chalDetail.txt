@@ -161,7 +161,7 @@ css를 사용할 때는 id로 연결하기
 날짜를 출력할 때는 thymeleaf-extras-java8time(#temporals.format)를 사용해서 적절한 포맷으로 출력
 
 =============================================================================================
-부트스트랩 등의 라이브러리는 선언되어 있다고 가정
+
 부트스트랩과 적절한 부트스트랩 아이콘 등으로 간단하게 꾸미기
 챌린지 참여/댓글 카드 순으로 보인다.
 
@@ -200,7 +200,8 @@ List<ChallengeCommentResponse>가 model의 chalDetailComment에 담김
 댓글 카드 양식 : status가 D이면 '삭제된 댓글이네요'만 표시
 -------------------------------
 프로필 사진(pictureBase64) / 닉네임(nick) : 이 두 요소는 isOpen이 A인 경우, '익명의 ROUTINE유저가 작성했어요'만 표시
-댓글 사진 : 응답받은 zip파일에서 알아내기. 사진 없으면 비우기
+  isOpen이 Y일 경우, 두 영역을 클릭하면 '@{/profile/profileDetail}'로 userNo를 가지고 axios동기식 get요청
+댓글 사진 : 응답받은 zip파일에서 알아내기. 사진 없으면 비우기. 사진 클릭하면 확대하기
 댓글 내용(reply) : 없으면 비우기
 작성일(createDate) / 수정됨(status) : status가 M일 때만 표시
 댓글 수정(contextPath+"/chalComment/deleteComment"),삭제(contextPath+"/chalComment/updateComment")버튼
@@ -250,3 +251,8 @@ id는 반드시 'right-top-'로 시작(id 충돌 방지)
 css를 사용할 때는 id로 연결하기
 
 날짜를 출력할 때는 thymeleaf-extras-java8time(#temporals.format)를 사용해서 적절한 포맷으로 출력
+
+
+======================================================================
+확인된 문제
+오른 위 사진 선택이여도 사진 없으면 업로드 안됨

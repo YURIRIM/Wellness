@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Builder
-public class LoginUserIsWriter {
+public class LoginUserAndChal {
 	private int chalNo;
 	private int userNo;
 }

@@ -1,7 +1,6 @@
 package com.kh.spring.challenge.model.dao;
 
 import java.util.List;
-import java.util.Map;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Repository;
@@ -9,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import com.kh.spring.challenge.model.vo.ChallengeReqired;
 import com.kh.spring.challenge.model.vo.ChallengeRequest;
 import com.kh.spring.challenge.model.vo.ChallengeResponse;
-import com.kh.spring.challenge.model.vo.LoginUserIsWriter;
+import com.kh.spring.challenge.model.vo.LoginUserAndChal;
 import com.kh.spring.challenge.model.vo.SearchChallenge;
 import com.kh.spring.challenge.model.vo.SearchMyChallenge;
 
@@ -32,12 +31,12 @@ public class ChallengeDao {
 		return sqlSession.selectOne("challengeMapper.chalDetail", chalNo);
 	}
 	
-	public String loginUserIsParticipant(SqlSessionTemplate sqlSession, Map<String, Integer> map) {
-		return sqlSession.selectOne("challengeMapper.loginUserIsParticipant",map);
+	public String loginUserIsParticipant(SqlSessionTemplate sqlSession, LoginUserAndChal lac) {
+		return sqlSession.selectOne("challengeMapper.loginUserIsParticipant",lac);
 	}
 
-	public int newParticipant(SqlSessionTemplate sqlSession, Map<String, Integer> map) {
-		return sqlSession.insert("challengeMapper.newParticipant",map);
+	public int newParticipant(SqlSessionTemplate sqlSession, LoginUserAndChal lac) {
+		return sqlSession.insert("challengeMapper.newParticipant",lac);
 	}
 
 	public ChallengeReqired selectRequired(SqlSessionTemplate sqlSession, int chalNo) {
@@ -48,8 +47,8 @@ public class ChallengeDao {
 		return sqlSession.selectOne("challengeMapper.goUpdateChal",chalNo);
 	}
 
-	public int loginUserIsWriter(SqlSessionTemplate sqlSession, LoginUserIsWriter liw) {
-		return sqlSession.selectOne("challengeMapper.loginUserIsWriter", liw);
+	public int loginUserIsWriter(SqlSessionTemplate sqlSession, LoginUserAndChal lac) {
+		return sqlSession.selectOne("challengeMapper.loginUserIsWriter", lac);
 	}
 
 	public int deleteChal(SqlSessionTemplate sqlSession, int chalNo) {

@@ -296,14 +296,14 @@
 	left join PROFILE P ON a1.USER_NO = P.USER_NO
 	</select>
 	
-	<select id="loginUserIsParticipant" parameterType="map" resultType="string" >
+	<select id="loginUserIsParticipant" parameterType="loginUserAndChal" resultType="string" >
 		select STATUS
 		from CHALLENGE_PARTICIPATION
 		where CHAL_NO = #{chalNo}
 		and USER_NO = #{userNo}
 	</select>
 	
-	<insert id="newParticipant" parameterType="map">
+	<insert id="newParticipant" parameterType="LoginUserAndChal">
 		insert into CHALLENGE_PARTICIPATION(CHAL_NO,USER_NO,STATUS)
 		values(#{chalNo},#{userNo},'Y')
 	</insert>
@@ -332,7 +332,7 @@
 		and status = 'Y'
 	</select>
 	
-	<select id="loginUserIsWriter" parameterType="LoginUserIsWriter" resultType="int" >
+	<select id="loginUserIsWriter" parameterType="loginUserAndChal" resultType="int" >
 		select count(*)
 		from CHALLENGE_PARTICIPATION
 		where CHAL_NO = #{chalNo}

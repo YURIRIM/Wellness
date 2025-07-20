@@ -22,7 +22,7 @@
           <label for="right-top-file-input" class="form-label">
             사진 첨부
             <span
-              th:if="${chalDetail.pictureRequired == 'I'}"
+              th:if="${chalDetail.pictureRequired == 'I' or chalDetail.pictureRequired == 'Y'}"
               class="text-danger"
               >*</span
             >

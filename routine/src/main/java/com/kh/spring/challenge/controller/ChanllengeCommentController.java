@@ -1,5 +1,7 @@
 package com.kh.spring.challenge.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.kh.spring.challenge.model.service.ChallengeCommentService;
 import com.kh.spring.challenge.model.vo.ChallengeCommentRequest;
+import com.kh.spring.challenge.model.vo.ChallengeCommentResponse;
 import com.kh.spring.challenge.model.vo.SearchComment;
 
 import jakarta.servlet.http.HttpSession;
@@ -24,7 +27,7 @@ public class ChanllengeCommentController {
 	//비동기 - 댓글 조회
 	@ResponseBody
 	@GetMapping("/selectComment")
-	private ResponseEntity<byte[]> selectComment(Model model, SearchComment sc) {
+	private ResponseEntity<List<ChallengeCommentResponse>> selectComment(Model model, SearchComment sc) {
 		try {
 			return service.selectComment(model,sc);
 		} catch (Exception e) {
@@ -36,7 +39,7 @@ public class ChanllengeCommentController {
 	//비동기 - 대댓글 조회
 	@ResponseBody
 	@GetMapping("/selectRecomment")
-	private ResponseEntity<byte[]> selectRecomment(Model model, SearchComment sc) {
+	private ResponseEntity<List<ChallengeCommentResponse>> selectRecomment(Model model, SearchComment sc) {
 		try {
 			return service.selectRecomment(model,sc);
 		} catch (Exception e) {

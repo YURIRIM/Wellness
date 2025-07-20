@@ -23,16 +23,16 @@
 			)
 	</insert>
 	
-	<update id="connectAtbyUuid" parameterType="map">
+	<update id="connectAtbyUuid" parameterType="ConnectByUuid">
 		update ATTACHMENT
 		set STATUS = 'Y'
+			,REF_NO = #{refNo}
 		where UUID = #{uuid}
 	</update>
 	
 	<select id="selectAtChal" parameterType="map" resultType="Attachment">
 		select
 			UUID
-			,REF_NO
 			,REF_TABLE
 			,FILE_CONTENT
 			,FILE_SIZE
@@ -43,18 +43,23 @@
 		and REF_TABLE = 'C'
 	</select>
 	
-	<select id="selectAtComment" parameterType="int" resultType="Attachment">
-		select UUID
-			,REF_NO
-			,REF_TABLE
-			,FILE_CONTENT
-			,FILE_SIZE
-			,FILE_NAME
-			,STATUS
-		from ATTACHMENT
-		where REF_NO = #{commentNo}
-		and REF_TABLE = 'R'
+	<select id="selectAtComment" parameterType="list" resultType="Attachment">
+	select UUID
+	     , REF_NO
+	     , REF_TABLE
+	     , FILE_CONTENT
+	     , FILE_SIZE
+	     , FILE_NAME
+	     , STATUS
+	from ATTACHMENT
+	where REF_NO IN
+	<foreach collection="list" item="commentNo" open="(" separator="," close=")">
+		#{commentNo}
+	</foreach>
+	and REF_TABLE = 'R'
+	and STATUS = 'Y'
 	</select>
+
 	
 	<insert id="insertAtComment" parameterType="Attachment">
 		INSERT INTO ATTACHMENT(

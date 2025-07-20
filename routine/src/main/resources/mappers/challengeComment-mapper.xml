@@ -20,11 +20,16 @@ from(
               ,u.NICK
               ,p.PICTURE
               ,p.IS_OPEN
+              , CASE WHEN EXISTS (
+              	SELECT 1 FROM ATTACHMENT att
+				WHERE att.REF_TABLE = 'R'
+				AND att.REF_NO = cc.COMMENT_NO
+				) THEN 'Y' ELSE 'N' END AS HAS_ATTACHMENT
         from CHALLENGE_COMMENT cc
         left join USERS u on(u.USER_NO = cc.USER_NO)
         left join PROFILE p on(cc.USER_NO = p.USER_NO)
         where cc.CHAL_NO = #{chalNo}
-        and cc.RECOMMENT_TARGET = null
+        and cc.RECOMMENT_TARGET IS NULL
         order by cc.COMMENT_NO DESC
     ) a1
     where rownum &lt;= (#{currentPage}+1) * #{showLimit}
@@ -48,6 +53,11 @@ from(
               ,u.NICK
               ,p.PICTURE
               ,p.IS_OPEN
+              , CASE WHEN EXISTS (
+              	SELECT 1 FROM ATTACHMENT att
+				WHERE att.REF_TABLE = 'R'
+				AND att.REF_NO = cc.COMMENT_NO
+				) THEN 'Y' ELSE 'N' END AS HAS_ATTACHMENT
         from CHALLENGE_COMMENT cc
         left join USERS u on(u.USER_NO = cc.USER_NO)
         left join PROFILE p on(cc.USER_NO = p.USER_NO)
@@ -61,6 +71,10 @@ where rnum &gt; #{currentRecommentPage} * #{showLimit}
 </select>
 	
 <insert id="insertComment" parameterType="ChallengeCommentRequest">
+	<selectKey keyProperty="commentNo" resultType="int"
+		order="BEFORE">
+		SELECT SEQ_CHALLENGE_COMMENT.nextval FROM dual
+	</selectKey>
 	insert into CHALLENGE_COMMENT(
 		COMMENT_NO
 		,USER_NO
@@ -73,7 +87,7 @@ where rnum &gt; #{currentRecommentPage} * #{showLimit}
 		,STATUS
 		)
 	values(
-		SEQ_CHALLENGE_COMMENT.nextval
+		#{commentNo}
 		,#{userNo}
 		,#{chalNo}
 		<if test="recommentTarget != 0">

@@ -1,9 +1,8 @@
 package com.kh.spring.challenge.model.service;
 
+import java.util.ArrayList;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +17,8 @@ import com.kh.spring.challenge.model.dao.ChallengeDao;
 import com.kh.spring.challenge.model.vo.ChallengeCommentRequest;
 import com.kh.spring.challenge.model.vo.ChallengeCommentResponse;
 import com.kh.spring.challenge.model.vo.ChallengeReqired;
+import com.kh.spring.challenge.model.vo.ConnectByUuid;
+import com.kh.spring.challenge.model.vo.LoginUserAndChal;
 import com.kh.spring.challenge.model.vo.SearchComment;
 import com.kh.spring.user.model.vo.User;
 import com.kh.spring.util.challenge.ChallengeCommentValidator;
@@ -35,19 +36,23 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 	private ChallengeDao chalDao;
 	@Autowired
 	private AttachmentDao atDao;
-	@Autowired
-	private AttachmentService atService;
 
 	//댓글 조회
 	@Override
-	public ResponseEntity<byte[]> selectComment(Model model, SearchComment sc) throws Exception {
-		List<ChallengeCommentResponse> ccs = dao.chalDetailComment(sqlSession,sc);
+	public ResponseEntity<List<ChallengeCommentResponse>> selectComment(Model model, SearchComment sc) throws Exception {
 		
-		//대댓글 조회
-		for(ChallengeCommentResponse cc : ccs) {
-			sc.setCurrentPage(0);//페이징 초기화
-			sc.setRecommentTarget(cc.getCommentNo());
-			ccs.addAll(dao.chalDetailRecomment(sqlSession,sc));
+		//댓글 조회
+		List<ChallengeCommentResponse> ccs = dao.chalDetailComment(sqlSession,sc);
+		List<ChallengeCommentResponse> copy = new ArrayList<>(ccs);
+		
+		if (ccs == null) ccs = new ArrayList<>();//없으면 빈 배열 넣기
+		else {
+			//대댓글 조회
+			for(ChallengeCommentResponse cc : copy) {
+				sc.setCurrentPage(0);//페이징 초기화
+				sc.setRecommentTarget(cc.getCommentNo());
+				ccs.addAll(dao.chalDetailRecomment(sqlSession,sc));
+			}
 		}
 		
 		for(ChallengeCommentResponse cc : ccs) {
@@ -71,43 +76,45 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 			}
 		}
 		
-		model.addAttribute("chalDetailComment", ccs);
-		model.addAttribute("currentPage", sc.getCurrentPage());
-		
-		//댓글 사진 조회해서 반납
-		return atService.selectAtComment(ccs);
+		return ResponseEntity.ok()
+				.header("Content-Type", "application/json; charset=UTF-8")
+				.body(ccs);
 	}
 	
 	
 	//대댓글 조회
 	@Override
-	public ResponseEntity<byte[]> selectRecomment(Model model, SearchComment sc) throws Exception {
+	public ResponseEntity<List<ChallengeCommentResponse>> selectRecomment(Model model, SearchComment sc) throws Exception {
 		List<ChallengeCommentResponse> ccs = dao.chalDetailRecomment(sqlSession,sc);
 
-		for(ChallengeCommentResponse cc : ccs) {
-			//댓글 작성자 isOpen!="A" 인 사람 빼고 프로필사진 base64하기
-			if(!cc.getIsOpen().equals("A")) {
-				byte[] picture = cc.getPicture();
-				if(picture!=null) {
-					cc.setPictureBase64(Base64.getEncoder().encodeToString(picture));
+		if (ccs == null) ccs = new ArrayList<>();//없으면 빈 배열 넣기
+		else {
+			for(ChallengeCommentResponse cc : ccs) {
+				//댓글 작성자 isOpen!="A" 인 사람 프로필사진 base64하기
+				if(!cc.getIsOpen().equals("A")) {
+					byte[] picture = cc.getPicture();
+					if(picture!=null) {
+						cc.setPictureBase64(Base64.getEncoder().encodeToString(picture));
+					}
+				}else cc.setNick(null); //A이면 nick도 말소
+				cc.setPicture(null);
+				
+				//상태가 D졌어? 그럼 죽어.
+				if(cc.getStatus().equals("D")) {
+					ChallengeCommentResponse newCc = ChallengeCommentResponse.builder()
+							.chalNo(cc.getChalNo())
+							.commentNo(cc.getCommentNo())
+							.recommentTarget(cc.getRecommentTarget())
+							.status("D")
+							.build();
+					cc = newCc;
 				}
-			}else cc.setNick(null); //A이면 nick도 말소
-			cc.setPicture(null);
-			
-			//상태가 D졌어? 그럼 죽어.
-			if(cc.getStatus().equals("D")) {
-				ChallengeCommentResponse newCc = ChallengeCommentResponse.builder()
-						.chalNo(cc.getChalNo())
-						.commentNo(cc.getCommentNo())
-						.recommentTarget(cc.getRecommentTarget())
-						.status("D")
-						.build();
-				cc = newCc;
 			}
 		}
 		
-		model.addAttribute("chalDetailComment", ccs);
-		return atService.selectAtComment(ccs);
+		return ResponseEntity.ok()
+				.header("Content-Type", "application/json; charset=UTF-8")
+				.body(ccs);
 	}
 
 	//비동기 - 댓글 생성
@@ -119,14 +126,11 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 		int result=1;
 		
 		//해당 회원이 댓글 쌀 능력이 있는지 확인
-		Map<String, Integer> map = new HashMap<>() {
-			//직렬..화? 데...팩토 같은 건가?
-			private static final long serialVersionUID = 1L;
-			{
-		    put("userNo", loginUser.getUserNo());
-		    put("chalNo", ccr.getChalNo());
-		}};
-		String isParticipant = chalDao.loginUserIsParticipant(sqlSession,map);
+		LoginUserAndChal lac = LoginUserAndChal.builder()
+				.chalNo(ccr.getChalNo())
+				.userNo(loginUser.getUserNo())
+				.build();
+		String isParticipant = chalDao.loginUserIsParticipant(sqlSession,lac);
 		if(isParticipant==null || !isParticipant.equals("Y"))
 			throw new Exception("사기꾼이다!!");
 		
@@ -158,22 +162,26 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 		//잘라 잘라
 		ccr.setReply(ccr.getReply().trim());
 		
-		//유효성 검사 - 통과하지 못하는 오류 때문에 잠시 정지
-//		if(ChallengeCommentValidator.challengeComment(ccr))
-//			throw new Exception("댓글 유효성 오류!");
-		
-		//attachment 사진 uuid로 활성화
-		if(ccr.getUuidStr()!=null) {
-			result *= atDao.connectAtbyUuid(sqlSession
-					,UuidUtil.strToByteArr(ccr.getUuidStr()));
-			ccr.setUuidStr(null);
-		}
+		//유효성 검사
+		if(!ChallengeCommentValidator.challengeComment(ccr))
+			throw new Exception("댓글 유효성 오류!");
 		
 		//DB에 저장
 		ccr.setUserNo(loginUser.getUserNo());
 		result *= dao.insertComment(sqlSession, ccr);
 		
 		if(result==0) throw new Exception("DB insert 오류");
+		
+		//attachment 사진 uuid로 활성화
+		if(ccr.getUuidStr()!=null) {
+			ConnectByUuid cbu = ConnectByUuid.builder()
+					.refNo(ccr.getCommentNo())
+					.uuid(UuidUtil.strToByteArr(ccr.getUuidStr()))
+					.build();
+			
+			result *= atDao.connectAtbyUuid(sqlSession ,cbu);
+			ccr.setUuidStr(null);
+		}
 	}
 	
 	//댓글 업데이트
@@ -184,14 +192,11 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 		int result=1;
 		
 		//해당 회원이 댓글 쌀 능력이 있는지 확인
-		Map<String, Integer> map = new HashMap<>() {
-			//직렬..화? 데...팩토 같은 건가?
-			private static final long serialVersionUID = 1L;
-			{
-		    put("userNo", loginUser.getUserNo());
-		    put("chalNo", ccr.getChalNo());
-		}};
-		String isParticipant = chalDao.loginUserIsParticipant(sqlSession,map);
+		LoginUserAndChal lac = LoginUserAndChal.builder()
+				.chalNo(ccr.getChalNo())
+				.userNo(loginUser.getUserNo())
+				.build();
+		String isParticipant = chalDao.loginUserIsParticipant(sqlSession,lac);
 		if(isParticipant==null || !isParticipant.equals("Y"))
 			throw new Exception("사기꾼이다!!");
 		
@@ -199,6 +204,11 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 		if(ChallengeCommentValidator.challengeComment(ccr))
 			throw new Exception("댓글 유효성 오류!");
 			
+		//DB에 저장
+		ccr.setUserNo(loginUser.getUserNo());
+		result *= dao.updateComment(sqlSession, ccr);
+		if(result==0) throw new Exception("DB insert 오류");
+		
 		//attachment 사진 uuid로 활성화
 		if(ccr.getUuidStr()!=null && !ccr.getUuidStr().equals("1")) {
 			//사진이 없거나 변경되지 않으면(1) 곱게 가라
@@ -207,16 +217,12 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 			result *= atDao.disconnectCommentToAt(sqlSession, ccr.getCommentNo());
 			
 			//사진 활성화
-			byte[] uuid = UuidUtil.strToByteArr(ccr.getUuidStr());
-			result *= atDao.connectAtbyUuid(sqlSession, uuid);
-			ccr.setUuidStr(null);
+			ConnectByUuid cbu = ConnectByUuid.builder()
+					.refNo(ccr.getCommentNo())
+					.uuid(UuidUtil.strToByteArr(ccr.getUuidStr()))
+					.build();
+			result *= atDao.connectAtbyUuid(sqlSession, cbu);
 		}
-		
-		//DB에 저장
-		ccr.setUserNo(loginUser.getUserNo());
-		result *= dao.updateComment(sqlSession, ccr);
-		
-		if(result==0) throw new Exception("DB insert 오류");
 	}
 	
 	//댓글 삭제

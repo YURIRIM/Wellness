@@ -277,6 +277,13 @@
 		    <artifactId>chart.js</artifactId>
 		    <version>4.5.0</version>
 		</dependency>
+		
+		<!--jsZip-->
+		<dependency>
+		    <groupId>org.webjars.npm</groupId>
+		    <artifactId>jszip</artifactId>
+		    <version>3.10.1</version>
+		</dependency>
 
 	</dependencies>
 

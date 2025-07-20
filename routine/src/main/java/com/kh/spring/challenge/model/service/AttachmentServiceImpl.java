@@ -18,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.kh.spring.challenge.model.dao.AttachmentDao;
 import com.kh.spring.challenge.model.dao.ChallengeDao;
 import com.kh.spring.challenge.model.vo.Attachment;
-import com.kh.spring.challenge.model.vo.ChallengeCommentResponse;
 import com.kh.spring.challenge.model.vo.ProfileResponse;
 import com.kh.spring.user.model.vo.User;
 import com.kh.spring.util.attachment.Exiftool;
@@ -77,7 +76,7 @@ public class AttachmentServiceImpl implements AttachmentService {
 		int result = dao.insertAtChal(sqlSession, at);
 		if (!(result > 0))
 			throw new Exception("at DB저장 실패");
-
+		
 		return (String) uuidMap.get("uuid");
 	}
 
@@ -115,29 +114,27 @@ public class AttachmentServiceImpl implements AttachmentService {
 				.body(at.getFileContent());
 	}
 
-	// 댓글 사진 조회
+	//비동기 - 댓글 사진 조회
 	@Override
-	public ResponseEntity<byte[]> selectAtComment(List<ChallengeCommentResponse> ccs) throws Exception {
+	public ResponseEntity<byte[]> selectAtComment(List<Integer> commentNos) throws Exception {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ZipOutputStream zos = new ZipOutputStream(baos);
-
-		for (ChallengeCommentResponse cc : ccs) {
-			int commentNo = cc.getCommentNo();
-			Attachment at = dao.selectAtComment(sqlSession, commentNo);
-
+		
+		List<Attachment> atts = dao.selectAtComment(sqlSession, commentNos);
+		
+		for(Attachment at : atts) {
 			// 사진 있나요??
-			if (at != null && at.getFileContent() != null && "Y".equalsIgnoreCase(at.getStatus())) {
-
+			if (at != null && at.getFileContent()!=null) {
 				// 확장자는 webp
 				String originalName = at.getFileName();
 				String extension = ".webp";
 				if (originalName != null && originalName.contains(".")) {
 					extension = originalName.substring(originalName.lastIndexOf("."));
 				}
-
+	
 				// 파일 이름을 commentNo_안아줘요.webp 로 변경
-				String zipFileName = commentNo + "_" + (originalName != null ? originalName : "unnamed" + extension);
-
+				String zipFileName = at.getRefNo() + "_" + (originalName != null ? originalName : "unnamed" + extension);
+	
 				// ZIP 엔트리 추가
 				ZipEntry entry = new ZipEntry(zipFileName);
 				zos.putNextEntry(entry);
@@ -148,7 +145,7 @@ public class AttachmentServiceImpl implements AttachmentService {
 
 		zos.close();
 		byte[] zipBytes = baos.toByteArray();
-
+		
 		return ResponseEntity.ok()
 				.header("Content-Type", "application/zip")
 				.header("Content-Disposition", "attachment; filename=\"comment_images.zip\"")
@@ -237,5 +234,4 @@ public class AttachmentServiceImpl implements AttachmentService {
 		// uuid반환
 		return (String) uuidMap.get("uuid");
 	}
-
 }

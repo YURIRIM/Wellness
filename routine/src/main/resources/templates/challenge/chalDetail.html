@@ -30,8 +30,6 @@
             <th:block
               th:replace="~{/challenge/chalDetail-right-bottom :: chalDetail-right-bottom}"
             ></th:block>
-            <!-- 동적으로 카드 append되는 컨테이너 (무한 스크롤 대상) -->
-            <div id="main-right-card-list"></div>
           </div>
           <div id="main-sidebar-right" class="sidebar-bottom"></div>
           <button
@@ -69,6 +67,9 @@
       const loginUserIsParticipation =
         /*[[${chalDetail.loginUserIsParticipation}]]*/ "N";
       let uploadedUuid = null;
+      const chalDetailComment = /*[[${chalDetailComment}]]*/ [
+        "댓글 로딩 실패.",
+      ];
     </script>
     <!-- 스크립트 파일-->
     <script th:src="@{/js/challenge/chalDetail.js}"></script>
