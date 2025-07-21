@@ -16,5 +16,7 @@ public interface AttachmentService {
 	String insertAtComment(HttpSession session, MultipartFile file, int chalNo) throws Exception;
 
 	ResponseEntity<byte[]> selectAtComment(List<Integer> commentNos) throws Exception;
+
+	ResponseEntity<byte[]> defaultImg(String filename) throws Exception;
 	
 }

@@ -12,10 +12,11 @@
 			select a1.*
 			,P.PICTURE
 			,rownum rnum
-			,(SELECT THUMBNAIL FROM CHALLENGE C2 WHERE C2.CHAL_NO = a1.CHAL_NO)
+			,(SELECT THUMBNAIL FROM CHALLENGE C2 WHERE C2.CHAL_NO = a1.CHAL_NO) AS THUMBNAIL
 			from(
 				select
 					C.CHAL_NO
+					,C.USER_NO
 					,C.TITLE
 					,C.CONTENT
 					,C.VERIFY_CYCLE
@@ -27,6 +28,7 @@
 					,C.REPLY_REQUIRED
 					,CC.CATEGORY_NAME
 					,U.NICK
+					,P.IS_OPEN
 					,COUNT(cp.user_no) as PARTICIPATE_COUNT
 				    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
 				           SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) * 100.0
@@ -39,6 +41,7 @@
 				left join CHALLENGE_CATEGORY cc on(c.CATEGORY_NO = cc.CATEGORY_NO)
 				left join CHALLENGE_PARTICIPATION cp on(c.CHAL_NO = cp.CHAL_NO)
 				left join USERS u on(c.USER_NO = u.USER_NO)
+				left join PROFILE p on(u.USER_NO = p.USER_NO)
 
 				where 1=1
 				<if test="search != ''">
@@ -102,6 +105,7 @@
 
 				group by
 					C.CHAL_NO
+					,C.USER_NO
 					,C.TITLE
 					,C.CONTENT
 					,C.VERIFY_CYCLE
@@ -113,6 +117,7 @@
 					,C.REPLY_REQUIRED
 					,CC.CATEGORY_NAME
 					,U.NICK
+					,P.IS_OPEN
 				
 				order by
 				<choose>

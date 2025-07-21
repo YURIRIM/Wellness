@@ -3,6 +3,7 @@ package com.kh.spring.challenge.model.service;
 import java.io.ByteArrayOutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -11,8 +12,13 @@ import java.util.zip.ZipOutputStream;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.spring.challenge.model.dao.AttachmentDao;
@@ -31,7 +37,6 @@ import jakarta.servlet.http.HttpSession;
 
 @Service
 public class AttachmentServiceImpl implements AttachmentService {
-
 	@Autowired
 	private SqlSessionTemplate sqlSession;
 	@Autowired
@@ -233,5 +238,27 @@ public class AttachmentServiceImpl implements AttachmentService {
 
 		// uuid반환
 		return (String) uuidMap.get("uuid");
+	}
+
+	//비동기 - 디폴트 이미지 조회
+	@Override
+	public ResponseEntity<byte[]> defaultImg(String filename) throws Exception {
+        Resource imgFile = new ClassPathResource("static/img/" + filename);
+
+        if (!imgFile.exists()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String contentType = Files.probeContentType(imgFile.getFile().toPath());
+        if (contentType == null) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+
+        byte[] bytes = StreamUtils.copyToByteArray(imgFile.getInputStream());
+
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.CONTENT_TYPE, contentType)
+                .body(bytes);
 	}
 }

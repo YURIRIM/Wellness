@@ -1,7 +1,7 @@
-//==========================chalMain-right==========================
 document.addEventListener("DOMContentLoaded", function () {
+  chalMainCenterScript(searchKeyword);
   const rightContainer = document.querySelector("#main-right");
-  if (!loginUser.userNo) {
+  if (!loginUser || !loginUser.userNo) {
     return;
   }
 
@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
     );
     barContainer.appendChild(
       makeBar(
-        "#6c757d",
+        "white",
         otherPct,
         total - myProfile.successCount - myProfile.failCount
       )
@@ -234,7 +234,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-//==========================chalMain-left==========================
 function chalMainLeftScript() {
   // 뒤로가기 버튼
   document
@@ -383,14 +382,6 @@ function chalMainLeftScript() {
     document.getElementById("left-verify-cycle").value = bitSum;
   };
 
-  // 날짜 필드에 시간 부분 추가하는 함수
-  function formatDateTimeString(dateString) {
-    if (!dateString || dateString.trim() === "") {
-      return "1453-05-29 00:00:00";
-    }
-    return dateString + " 00:00:00";
-  }
-
   // 검색 버튼 클릭 처리 (수정: 날짜 형식 처리)
   document
     .getElementById("left-search-btn")
@@ -408,23 +399,26 @@ function chalMainLeftScript() {
       ["startDate1", "startDate2", "endDate1", "endDate2"].forEach((field) => {
         const input = document.querySelector(`[name="${field}"]`);
         if (input) {
-          params[field] = formatDateTimeString(input.value);
+          params[field] = input.value;
         }
       });
 
-      axios
-        .get(contextPath + "/challenge/chalMainSearchLeft", { params })
-        .then(function (response) {
-          document.getElementById("main-challenge-list").innerHTML =
-            response.data;
-        })
-        .catch(function (error) {
-          console.error("검색 중 오류 발생:", error);
-          alert("검색 중 오류가 발생했습니다.");
-        });
+      document.getElementById("center-chal-container").innerHTML = "";
+      window.searchKeyword = params;
+      chalMainCenterScript(window.searchKeyword);
+      //   axios
+      //     .get(contextPath + "/challenge/chalMainSearchLeft", { params })
+      //     .then(function (response) {
+      //       document.getElementById("main-challenge-list").innerHTML =
+      //         response.data;
+      //     })
+      //     .catch(function (error) {
+      //       console.error("검색 중 오류 발생:", error);
+      //       alert("검색 중 오류가 발생했습니다.");
+      //     });
     });
 
-  // 초기화 버튼 클릭 처리 (수정: verifyCycleBit 제거)
+  // 초기화 버튼 클릭 처리
   document
     .getElementById("left-reset-btn")
     .addEventListener("click", function () {
@@ -449,7 +443,6 @@ function chalMainLeftScript() {
     });
 }
 
-//==========================newChal==========================
 function newChalScript() {
   /** ---------- Summernote 0.9.1 한국어 초기화 ---------- */
   $("#new-content").summernote({
@@ -814,8 +807,165 @@ function newChalScript() {
   });
 }
 
-//==========================myChal(createdChal/joinedChal)==========================
 function myChalScript() {}
+
+function chalMainCenterScript(searchKeyword) {
+  console.log("검색어 : " + searchKeyword);
+  let currentPage = searchKeyword?.currentPage ?? 0;
+  let hasMore = true;
+
+  function buildParams() {
+    const sk = searchKeyword || {};
+    const p = { currentPage };
+    if (sk.orderby) p.orderby = sk.orderby;
+    if (sk.search) p.search = sk.search;
+    if (sk.searchType) p.searchType = sk.searchType;
+    if (sk.categoryNo) p.categoryNo = sk.categoryNo;
+    if (sk.verifyCycle) p.verifyCycle = sk.verifyCycle;
+    if (sk.startDate1) p.startDate1 = sk.startDate1;
+    if (sk.startDate2) p.startDate2 = sk.startDate2;
+    if (sk.endDate1) p.endDate1 = sk.endDate1;
+    if (sk.endDate2) p.endDate2 = sk.endDate2;
+    if (sk.status) p.status = sk.status;
+    if (sk.pictureRequired) p.pictureRequired = sk.pictureRequired;
+    if (sk.replyRequired) p.replyRequired = sk.replyRequired;
+    return p;
+  }
+
+  function loadPage() {
+    if (!hasMore) return;
+
+    axios
+      .get(`${contextPath}/challenge/chalMainSearch`, { params: buildParams() })
+      .then((res) => {
+        renderCards(res.data);
+        if (!res.data || res.data.length === 0) {
+          hasMore = false;
+        }
+      })
+      .catch((err) => {
+        if (err.response?.status === 404) {
+          if ($("#center-chal-container").children(".col-6").length === 0) {
+            const imgUrl = `${contextPath}/attachment/defaultImg/not-found.webp`;
+            $("#center-chal-container").append(
+              `<div class="col-6 text-center">
+              <img src="${imgUrl}" class="img-fluid"/>
+             </div>`
+            );
+          }
+          hasMore = false;
+        } else {
+          const imgUrl = `${contextPath}/attachment/defaultImg/server-error.webp`;
+          if ($("#center-chal-container").children(".col-6").length === 0) {
+            $("#center-chal-container").append(
+              `<div class="col-6 text-center">
+              <img src="${imgUrl}" class="img-fluid"/>
+             </div>`
+            );
+          }
+          hasMore = false;
+        }
+      });
+  }
+
+  function renderCards(list) {
+    if (!Array.isArray(list) || list.length === 0) return;
+    list.forEach((c) => {
+      const $col = $("<div>").addClass("col-6");
+      const $card = $("<div>")
+        .addClass("card h-100 position-relative")
+        .attr("id", `center-card-${c.chalNo}`);
+      if (c.status === "N") {
+        $card
+          .addClass("bg-dark text-white")
+          .attr("title", "챌린지가 종료되었습니다.");
+      }
+      // 썸네일
+      const thumbSrc = c.thumbnailBase64
+        ? `data:image/jpeg;base64,${c.thumbnailBase64}`
+        : `${contextPath}/attachment/defaultImg/challenge-default.webp`;
+      const $thumb = $("<img>")
+        .addClass("card-img-top position-absolute end-0 top-0 m-2")
+        .css({ width: "4rem", height: "4rem", objectFit: "cover" })
+        .attr("src", thumbSrc);
+
+      // 프로필
+      const profSrc = c.pictureBase64
+        ? `data:image/jpeg;base64,${c.pictureBase64}`
+        : `${contextPath}/attachment/defaultImg/challenge-writer-default.webp`;
+      const $profile = $("<img>")
+        .addClass("rounded-circle me-2")
+        .css({ width: "2rem", height: "2rem", objectFit: "cover" })
+        .attr("src", profSrc);
+
+      // 본문
+      const $body = $("<div>").addClass("card-body d-flex flex-column");
+      $body.append($("<small>").addClass("text-muted").text(c.categoryName));
+      $body.append($("<h5>").addClass("card-title").text(c.title));
+      $body.append($("<p>").addClass("card-text flex-grow-1").text(c.content));
+      // 날짜
+      const start = c.startDate;
+      const end = c.endDate || "누군가 사과나무를 심는 그날까지";
+      $body.append($("<p>").addClass("mb-1").text(`${start} / ${end}`));
+      $body.append($("<p>").addClass("mb-1").text(c.verifyCycleStr));
+      // 참여/성공률
+      $body.append(
+        $("<p>")
+          .addClass("mb-1")
+          .text(
+            `참여자 ${c.participateCount}명 / 성공률 ${c.successRatio.toFixed(
+              2
+            )}%`
+          )
+      );
+      // 옵션
+      const picReq = { I: "직찍 필수", Y: "필수", O: "선택", N: "불가" }[
+        c.pictureRequired
+      ];
+      const repReq = { Y: "필수", O: "선택", N: "불가" }[c.replyRequired];
+      $body.append(
+        $("<p>")
+          .addClass("mb-0 small")
+          .text(`사진: ${picReq} / 댓글: ${repReq}`)
+      );
+      // 작성자
+      const $writer = $("<div>")
+        .addClass("d-flex align-items-center mt-2")
+        .append($profile)
+        .append($("<small>").text(c.nick));
+      $body.append($writer);
+
+      $card
+        .append($thumb, $body)
+        .css("cursor", "pointer")
+        .on(
+          "click",
+          () =>
+            (location.href = `${contextPath}/challenge/chalDetail?chalNo=${c.chalNo}`)
+        );
+      $col.append($card);
+      $("#center-chal-container").append($col);
+    });
+  }
+
+  // 무한 스크롤
+  $(window).on(
+    "scroll",
+    _.throttle(() => {
+      if (!hasMore) return;
+      if (
+        $(window).scrollTop() + $(window).height() + 100 >=
+        $(document).height()
+      ) {
+        currentPage++;
+        loadPage();
+      }
+    }, 300)
+  );
+
+  // 초기 로드
+  loadPage();
+}
 
 // 조각이 로드될 때 스크립트 실행
 if (document.readyState === "loading") {

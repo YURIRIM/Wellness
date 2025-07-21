@@ -21,6 +21,6 @@ public interface ChallengeCommentService{
 
 	void updateComment(HttpSession session, ChallengeCommentRequest ccr) throws Exception;
 
-	void deleteComment(HttpSession session, ChallengeCommentRequest ccr) throws Exception;
+	void deleteComment(HttpSession session, int commentNo) throws Exception;
 
 }

@@ -77,9 +77,9 @@ public class ChanllengeCommentController {
 	//비동기 - 댓글 삭제
 	@ResponseBody
 	@PostMapping("deleteComment")
-	private String deleteComment(HttpSession session, ChallengeCommentRequest ccr) {
+	private String deleteComment(HttpSession session, int commentNo) {
 		try {
-			service.deleteComment(session,ccr);
+			service.deleteComment(session,commentNo);
 			return "success";
 		} catch (Exception e) {
 			e.printStackTrace();

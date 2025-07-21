@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -20,7 +21,6 @@ import com.kh.spring.challenge.model.vo.ChallengeResponse;
 import com.kh.spring.challenge.model.vo.ConnectByUuid;
 import com.kh.spring.challenge.model.vo.LoginUserAndChal;
 import com.kh.spring.challenge.model.vo.SearchChallenge;
-import com.kh.spring.challenge.model.vo.SearchMyChallenge;
 import com.kh.spring.user.model.vo.User;
 import com.kh.spring.util.challenge.ChallengeFix;
 import com.kh.spring.util.challenge.ChallengeValidator;
@@ -52,10 +52,10 @@ public class ChallengeServiceImpl implements ChallengeService {
 
 	//챌린지 리스트 조회
 	@Override
-	public void selectChal(HttpSession session, Model model, SearchChallenge sc) throws Exception {
-		model.addAttribute("searchChallenge", sc);//모달에 검색어 저장
-
-		System.out.println("챌린지 검색어 : "+sc);
+	public ResponseEntity<List<ChallengeResponse>> selectChal(HttpSession session
+			, Model model, SearchChallenge sc) throws Exception {
+		model.addAttribute("searchKeyword", sc);//모달에 검색어 저장
+		System.out.println("검색어 : "+sc);
 		
 		//sc 유효성 확인
 		if (!SearchChallengeValidator.searchChallenge(sc))
@@ -66,26 +66,40 @@ public class ChallengeServiceImpl implements ChallengeService {
 
 		// DB에서 페이지 긁어오기
 		List<ChallengeResponse> result = chalDao.selectChal(sqlSession, sc);
-		
+		//비었으면 404
 		if (result == null || result.isEmpty())
-			throw new Exception("챌린지 리스트 조회 불가");
+			return ResponseEntity.notFound().build();
 
 		for (ChallengeResponse chal : result) {
 			// 제목이 표시 제한 초과일 경우
 			if (chal.getTitle().length() > Regexp.TITLE_SHOW_LIMIT) {
 				chal.setTitle(chal.getTitle().substring(0, Regexp.TITLE_SHOW_LIMIT) + "⋯");
 			}
+			
+			//내용에 이미지 태그 등이 있을 경우
+			chal.setContent(ChallengeFix.deleteContentTag(chal.getContent()));
+			
 			// 내용이 표시 제한 초과일 경우
 			if (chal.getContent().length() > Regexp.CONTENT_SHOW_LIMIT) {
 				chal.setContent(chal.getContent().substring(0, Regexp.CONTENT_SHOW_LIMIT) + "⋯");
 			}
 			
+			//verifyCycleStr 정상화
+			chal.setVerifyCycleStr(ChallengeFix.verifyCycleStr(chal.getVerifyCycle()));
 			
 			//썸네일 base64인코딩
 			byte[] thumbnail = chal.getThumbnail();
 			if(thumbnail!=null) {
 				chal.setThumbnailBase64(Base64.getEncoder().encodeToString(thumbnail));
 				chal.setThumbnail(null);
+			}
+			
+			//익명일 경우 비활성화
+			if(chal.getIsOpen().equals("A")) {
+				chal.setPicture(null);
+				chal.setNick("익명의 ROUTINE 유저");
+				chal.setBio("");
+				chal.setUserNo(0);
 			}
 			
 			//프로필 사진 base64인코딩
@@ -96,8 +110,9 @@ public class ChallengeServiceImpl implements ChallengeService {
 			}
 		}
 
-		// 모달에 넣기
-		model.addAttribute("chalList", result);
+		return ResponseEntity.ok()
+				.header("Content-Type", "application/json; charset=UTF-8")
+				.body(result);
 	}
 
 	// 챌린지 생성하기
@@ -149,55 +164,6 @@ public class ChallengeServiceImpl implements ChallengeService {
 		}
 		
 		
-	}
-	
-	//내가 참여/생성한 챌린지 보기
-	@Override
-	public void myChal(HttpSession session, Model model, SearchMyChallenge smc) throws Exception {
-		User user = (User) session.getAttribute("loginUser");
-		model.addAttribute("searchChallenge", smc);//모달에 검색어 저장
-
-		smc.setUserNo(user.getUserNo());
-		System.out.println("챌린지 검색어 : "+smc);
-		
-		//유효성 검사
-		if (!SearchChallengeValidator.searchMyChallenge(smc))
-			throw new Exception("searchMyChallenge 유효성");
-		
-		//유형에 따라 DB에서 긁어오기
-		List<ChallengeResponse> result =  chalDao.selectMyChal(sqlSession, smc);
-		
-		if (result == null || result.isEmpty())
-			throw new Exception("챌린지 리스트 조회 불가");
-
-		for (ChallengeResponse chal : result) {
-			// 제목이 표시 제한 초과일 경우
-			if (chal.getTitle().length() > Regexp.TITLE_SHOW_LIMIT) {
-				chal.setTitle(chal.getTitle().substring(0, Regexp.TITLE_SHOW_LIMIT) + "⋯");
-			}
-			// 내용이 표시 제한 초과일 경우
-			if (chal.getContent().length() > Regexp.CONTENT_SHOW_LIMIT) {
-				chal.setContent(chal.getContent().substring(0, Regexp.CONTENT_SHOW_LIMIT) + "⋯");
-			}
-			
-			
-			//썸네일 base64인코딩
-			byte[] thumbnail = chal.getThumbnail();
-			if(thumbnail!=null) {
-				chal.setThumbnailBase64(Base64.getEncoder().encodeToString(thumbnail));
-				chal.setThumbnail(null);
-			}
-			
-			//프로필 사진 정상화
-			byte[] picture = chal.getPicture();
-			if(picture!=null) {
-				chal.setPictureBase64(Base64.getEncoder().encodeToString(picture));
-				chal.setPicture(null);
-			}
-		}
-
-		// 모달에 넣기
-		model.addAttribute("chalList", result);
 	}
 	
 	//챌린지 세부보기
