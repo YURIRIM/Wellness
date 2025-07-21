@@ -21,6 +21,7 @@ public class ChallengeResponse {
     
     private LocalDateTime createDate;
     private int verifyCycle;
+    private String verifyCycleStr;
     private LocalDate startDate;
     private LocalDate endDate;
     private String status; //Y:활성화 N:종료됨 D:삭제됨
@@ -28,6 +29,7 @@ public class ChallengeResponse {
     private String replyRequired; //Y:필수 O:선택 N:불가
     
     private String categoryName; //challenge_category
+    private String categoryMajorName;
 
     private String nick; //member
     

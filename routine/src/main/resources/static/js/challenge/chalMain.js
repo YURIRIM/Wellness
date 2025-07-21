@@ -109,16 +109,16 @@ document.addEventListener("DOMContentLoaded", function () {
   let wmColor = "";
   switch (myProfile.watermarkType) {
     case "D":
-      wmText = "디폴트";
+      wmText = "기본 워터마크";
       wmColor = "info";
       break;
-    case "F":
-      wmText = "개인";
+    case "C":
+      wmText = "개인 워터마크";
       wmColor = "success";
       break;
     case "N":
-      wmText = "없음";
-      wmColor = "light";
+      wmText = "워터마크 없음";
+      wmColor = "warning";
       break;
     default:
       wmText = "-";
@@ -497,7 +497,6 @@ function newChalScript() {
         canvas.getContext("2d").drawImage(img, 0, 0, width, height);
         canvas.toBlob(
           (blob) => {
-            // toBlob에서 새로운 파일명으로 만들지 않음 (이름은 서버에서 관리)
             resolve(blob);
           },
           "image/webp",
@@ -562,6 +561,7 @@ function newChalScript() {
       }
       // 서버 url 삽입: contextPath + "/attachment/select?at=" + uuid
       const imgUrl = contextPath + "/attachment/select?at=" + uuid;
+      console.log(imgUrl);
       $(editor).summernote("insertImage", imgUrl, finalFile.name);
     }
   }
