@@ -252,6 +252,48 @@
 		<button type="submit">습관 등록</button>
 		
 	</form>
+	
+	<form id="habitForm">
+
+	  <!-- S (구체적): 무엇을 할 건가요? -->
+	  <label for="action">1️⃣ 어떤 습관을 만들고 싶나요?</label>
+	  <div class="example">예: 영어 단어 암기 / 스트레칭 / 일기쓰기</div>
+	  <input type="text" id="action" name="action" placeholder="예: 아침마다 스트레칭 하기" required />
+
+	  <!-- M (측정 가능 + 반복 주기) -->
+	  <label>2️⃣ 얼마나 자주 실천할 건가요?</label>
+	  <div class="example">예: 하루에 1번 / 주 3회 / 매일</div>
+	  <input type="number" name="amount" min="1" style="width:60px;" required />
+	  <select name="unit" required>
+	    <option value="DAY">일</option>
+	    <option value="WEEK">주</option>
+	    <option value="MONTH">월</option>
+	  </select>
+	  <span>에</span>
+	  <input type="number" name="times" min="1" style="width:60px;" required />
+	  <span>회</span>
+
+	  <!-- A (달성 가능성) -->
+	  <label for="reasonable">3️⃣ 이 습관이 현실적으로 가능한가요?</label>
+	  <div class="example">예: 하루 10분이면 충분 / 점심시간에 가능</div>
+	  <input type="text" id="reasonable" name="reasonable" required />
+
+	  <!-- R (목표 연관성) -->
+	  <label for="relatedGoal">4️⃣ 어떤 목표와 관련이 있나요?</label>
+	  <div class="example">예: 다이어트 / 자존감 회복 / 자기계발</div>
+	  <input type="text" id="relatedGoal" name="relatedGoal" required />
+
+	  <!-- T (기간 설정) -->
+	  <label for="period">5️⃣ 얼마나 유지할 계획인가요?</label>
+	  <input type="number" name="periodValue" min="1" style="width:60px;" required />
+	  <select name="periodUnit" required>
+	    <option value="WEEK">주</option>
+	    <option value="MONTH">개월</option>
+	  </select>
+
+	  <br><br>
+	  <button type="submit">습관 등록하기</button>
+	</form>
 
 	<br>
 	<a th:href="@{/habit/list}">목록으로</a>

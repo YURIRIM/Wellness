@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>목표 등록</title>
+  <style>
+    body { font-family: sans-serif; line-height: 1.6; padding: 2rem; max-width: 600px; margin: auto; }
+    label { display: block; margin-top: 1.5rem; font-weight: bold; }
+    input, select, textarea { width: 100%; padding: 0.6rem; margin-top: 0.4rem; box-sizing: border-box; border-radius: 6px; border: 1px solid #ccc; }
+    .example { font-size: 0.9rem; color: #666; margin-top: 0.3rem; }
+    button { margin-top: 2rem; padding: 0.8rem 1.2rem; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #45a049; }
+  </style>
+</head>
+<body>
+
+  <h2>🎯 목표 등록</h2>
+
+  <form id="goalForm" th:action="@{/goal/save}" method="post">
+	
+	<label for="goalCategory">💡 어떤 분야의 목표인가요?</label>
+	<select id="goalCategory" name="goalCategory">
+	  <option value="">-- 선택 안 함 --</option>
+	  <option value="health">건강 / 운동</option> 
+	  <option value="learning">학습 / 자격증</option>
+	  <option value="career">커리어 / 업무</option>
+	  <option value="finance">재무 / 절약</option>
+	  <option value="relationship">인간관계 / 가족</option>
+	  <option value="hobby">취미 / 자기계발</option>
+	  <option value="daily">생활 습관</option>
+	</select>
+
+    <!-- 1. 전체적인 목표 -->
+    <label for="roughGoal">1️⃣ 당신의 목표는?</label>
+    <input type="text" id="roughGoal" name="roughGoal" placeholder="예) 영어를 잘하고 싶다 / 다이어트" required />
+
+    <!-- 2. 구체적인 목표 -->
+    <label for="specificGoal">2️⃣ 목표를 위해 무엇을 할 건 가요?</label>  
+    <input type="text" id="specificGoal" name="specificGoal" placeholder="예) 토익 점수를 750점으로 올리겠다 / 3kg 감량해서 체지방률 20% 이하로" required />
+
+    <!-- 3. 목표 이유 -->
+    <label for="why">3️⃣ 왜 이 목표를 이루고 싶나요?</label>
+    <input type="text" id="why" name="why" placeholder="예) 해외 취업 준비를 위해 / 자존감을 높이기 위해 등" required />
+
+    <!-- 4. 측정 가능한 결과 -->
+    <label for="result">4️⃣ 목표가 달성된 상태는 어떤 모습인가요?</label>
+    <input type="text" id="result" name="result" placeholder="예) 체중 55kg / TOEIC 800점 / 블로그 글 10개 등" required />
+
+    <!-- 5. 목표 기간 -->
+    <label for="deadlineType">5️⃣ 언제까지 이루고 싶나요?</label>
+    <select id="deadlineType" name="deadlineType" required>
+      <option value="">-- 선택 --</option>
+      <option value="week">1주일 이내</option>
+      <option value="month">1개월 이내</option>
+      <option value="year">1년 이내</option>
+      <option value="specific">특정 날짜 선택</option>
+    </select>
+    <input type="date" id="deadlineDate" name="deadlineDate" style="margin-top: 0.6rem;" />
+
+    <!-- 6. 실현 가능성 -->
+    <label for="feasibility">6️⃣ 목표를 달성할 수 있는 이유</label>
+    <textarea id="feasibility" name="feasibility" placeholder="예: 주 3회 1시간씩 가능 / 교재 구매비용 있음 등" rows="3" required></textarea>
+
+    <button type="submit">목표 등록하기</button>
+  </form>
+
+  <script>
+    const deadlineTypeSelect = document.getElementById("deadlineType");
+    const deadlineDateInput = document.getElementById("deadlineDate");
+
+    deadlineTypeSelect.addEventListener("change", function () {
+      const today = new Date();
+      let deadline = null;
+
+      if (this.value === "week") {
+        deadline = new Date(today.setDate(today.getDate() + 7));
+      } else if (this.value === "month") {
+        deadline = new Date(today.setMonth(today.getMonth() + 1));
+      } else if (this.value === "year") {
+        deadline = new Date(today.setFullYear(today.getFullYear() + 1));
+      }
+
+      if (deadline) {
+        const formatted = deadline.toISOString().split("T")[0];
+        deadlineDateInput.value = formatted;
+        deadlineDateInput.readOnly = true;
+      } else {
+        deadlineDateInput.value = "";
+        deadlineDateInput.readOnly = false;
+      }
+    });
+  </script>
+
+
+
+	<br>
+	<a th:href="@{/habit/list}">목록으로</a>
+	<a th:href="@{/habit/cal}">캘린더</a>
+
+</body>
+
+</html>

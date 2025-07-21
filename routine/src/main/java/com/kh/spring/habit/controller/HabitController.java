@@ -35,7 +35,14 @@ public class HabitController {
 
 		return "habit/list";
 	}
-
+	
+	// 등록 폼 보여주기
+	@GetMapping("/goal")
+	public String goal() {
+		return "habit/goal";
+	}
+	
+	
 	// 등록 폼 보여주기
 	@GetMapping("/add")
 	public String showHabitAddForm() {
@@ -68,7 +75,12 @@ public class HabitController {
 	
 	
 	 @GetMapping("/edit/{habitNo}")
-	    public String showEditForm(@PathVariable int habitNo, Model model) {
+	    public String showEditForm() {
+	        return "habit/edit"; 
+	    }
+	 
+	 @PostMapping("/edit/{habitNo}")
+	    public String EditForm(@PathVariable int habitNo, Model model) {
 	        Habit habit = service.getHabitById(habitNo);
 	        model.addAttribute("habit", habit);
 	        return "habit/edit"; // habit 수정용 JSP/Thymeleaf
@@ -81,6 +93,14 @@ public class HabitController {
 	        return "redirect:/habit/list";
 	    }
 
+	    
+	    
+	    
+	    @GetMapping("/delete/{habitNo}") 
+	    public String deleteHabit() {
+	    	return "redirect:/habit/list";
+	    }
+	    
 	    @PostMapping("/delete/{habitNo}")
 	    public String deleteHabit(@PathVariable("habitNo") int habitNo, RedirectAttributes ra) {
 	        service.deleteHabit(habitNo);
@@ -89,9 +109,5 @@ public class HabitController {
 	    }
 
 	    
-	    @GetMapping("/delete/{habitNo}") 
-	    public String deleteHabit() {
-	    	return "redirect:/habit/list";
-	    }
 
 }

@@ -122,10 +122,27 @@
         WHERE HABIT_NO = #{habitNo}
     </update>
 
+    <delete id="deleteStreakRewardsByHabitNo" parameterType="_int">
+	    DELETE FROM STREAK_REWARD
+	    WHERE HABIT_NO = #{habitNo}
+	</delete>
+	
+	<delete id="deleteHabitChecks" parameterType="_int">
+	    DELETE FROM HABIT_CHECK
+	    WHERE HABIT_NO = #{habitNo}
+	</delete>
+	
+	<delete id="deleteHabitRepeats" parameterType="_int">
+	    DELETE FROM HABIT_REPEAT
+	    WHERE HABIT_NO = #{habitNo}
+	</delete>
+    
+    
     <delete id="deleteHabit" parameterType="_int">
         DELETE FROM HABIT 
         WHERE HABIT_NO = #{habitNo}
     </delete>
+    
 
 	
 	
