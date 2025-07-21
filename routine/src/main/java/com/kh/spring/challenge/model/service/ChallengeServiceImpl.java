@@ -55,9 +55,8 @@ public class ChallengeServiceImpl implements ChallengeService {
 	public ResponseEntity<List<ChallengeResponse>> selectChal(HttpSession session
 			, Model model, SearchChallenge sc) throws Exception {
 		model.addAttribute("searchKeyword", sc);//모달에 검색어 저장
-		System.out.println("검색어 : "+sc);
 		
-		//sc 유효성 확인
+		//sc 유효성 확인 및 null을 빈 문자열로 변환(날짜 필드 제외)
 		if (!SearchChallengeValidator.searchChallenge(sc))
 			throw new Exception("searchChallenge 유효성");
 		

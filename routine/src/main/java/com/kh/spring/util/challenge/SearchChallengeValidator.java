@@ -43,19 +43,18 @@ public class SearchChallengeValidator {
 		if(sc.getCurrentPage()<0) return false;
 		
 		LocalDate sd1 = sc.getStartDate1();
-		LocalDate sd2 = sc.getStartDate1();
+		LocalDate sd2 = sc.getStartDate2();
 		LocalDate ed1 = sc.getEndDate1();
-		LocalDate ed2 = sc.getEndDate1();
-		
+		LocalDate ed2 = sc.getEndDate2();
 		
 		if (sd1!=null && sd2!=null && sd1.compareTo(sd2) > 0) {
 			//시작일1이 시작일2 보다 느리면 자리 바꾸기
-		    sc.setStartDate1(sd1);
-		    sc.setStartDate2(sd2);
+		    sc.setStartDate1(sd2);
+		    sc.setStartDate2(sd1);
 		}
 		if (ed1!=null && ed2!=null && ed1.compareTo(ed2) > 0) {
-			sc.setEndDate1(ed1);
-			sc.setEndDate2(ed2);
+			sc.setEndDate1(ed2);
+			sc.setEndDate2(ed1);
 		}
 		
 		//categoryNo생략

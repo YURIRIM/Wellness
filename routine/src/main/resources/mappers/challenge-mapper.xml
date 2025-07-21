@@ -46,18 +46,22 @@
 				where 1=1
 				<if test="search != ''">
 					<choose>
-						<when test="searchType == 'T'">
-							and C.TITLE = #{searchPattern}
+						<when test='searchType == "T"'>
+							and C.TITLE like #{searchPattern}
 						</when>
-						<when test="searchType == 'C'">
-							and C.CONTENT = #{searchPattern}
+						<when test='searchType == "C"'>
+							and C.CONTENT like #{searchPattern}
 						</when>
-						<when test="searchType == 'N'">
-							and U.NICK = #{searchPattern}
+						<when test='searchType == "N	"'>
+							and U.NICK like #{searchPattern}
 						</when>
 						<otherwise>
-							and (C.TITLE = #{searchPattern} or C.CONTENT = #{searchPattern} or U.NICK = #{searchPattern})
-						</otherwise>
+							and (
+							C.TITLE like #{searchPattern}
+							or C.CONTENT like #{searchPattern}
+							or U.NICK like #{searchPattern}
+							)
+    						</otherwise>
 					</choose>
 				</if>
 				<if test="categoryNo != 0">
@@ -74,7 +78,7 @@
 				<if test="verifyCycle != 0">
 					<choose>
 						<when test="verifyCycle &gt; 0 and verifyCycle &lt;= 127">
-							and (C.VERIFY_CYCLE &amp; #{verifyCycle}) = #{verifyCycle}
+							and BITAND(C.VERIFY_CYCLE, #{verifyCycle}) = #{verifyCycle}
 						</when>
 						<otherwise>
 							and C.VERIFY_CYCLE = #{verifyCycle}
@@ -121,12 +125,13 @@
 				
 				order by
 				<choose>
-					<when test="orderby == 'P'">
+					<when test='orderby == "P"'>
 						COUNT(cp.user_no) desc
 					</when>
-					<when test="orderby == 'S'">
-						ROUND(SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END)
-							* 100.0 / COUNT(cp.user_no),2) desc
+					<when test='orderby == "S"'>
+						CASE WHEN SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) = 0 THEN 0
+						ELSE ROUND(SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) * 100.0 / COUNT(cp.user_no), 2)
+						END DESC
 					</when>
 					<otherwise>
 						C.CREATE_DATE desc
@@ -221,10 +226,10 @@
 
 				where 1=1
 				<choose>
-					<when test="searchType == 'O'">
+					<when test='searchType == "O"'>
 						and c.USER_NO = #{userNo}
 					</when>
-					<when test="searchType == 'J'">
+					<when test='searchType == "J"'>
 						and cp.USER_NO = #{userNo}
 					</when>
 				</choose>

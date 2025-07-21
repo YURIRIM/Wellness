@@ -235,6 +235,10 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function chalMainLeftScript() {
+  const parentSel = document.getElementById("left-category-parent");
+  const childSel = document.getElementById("left-category-child");
+  const hiddenInp = document.getElementById("left-category-hidden");
+
   // 뒤로가기 버튼
   document
     .getElementById("left-back-btn")
@@ -261,35 +265,62 @@ function chalMainLeftScript() {
       }
     });
 
-  // 카테고리 부모 선택 시 자식 카테고리 업데이트
+  // 카테고리 선택 변경 이벤트
   document
     .getElementById("left-category-parent")
     .addEventListener("change", function () {
       const parent = parseInt(this.value, 10);
       const childSel = document.getElementById("left-category-child");
+      const hiddenInput = document.getElementById("left-category-no");
 
-      // 1) 초기화 - "전체" 옵션의 value는 0으로 설정
+      // 1) 자식 select 활성/비활성 및 초기화
       childSel.disabled = parent === 0;
       childSel.innerHTML = '<option value="0">전체</option>';
 
-      if (parent === 0) return; // 전체 선택이면 종료
+      // 2) hidden input 값 초기화 (대분류 값)
+      hiddenInput.value = parent;
 
-      // 2) catAll에서 자식 카테고리 필터링 (window.catAll 대신 catAll 직접 사용)
+      if (parent === 0) return; // 전체 선택이면 자식 없음
+
+      // 3) catAll에서 자식 카테고리 필터링
       const children = (catAll || []).filter((c) => {
         const categoryNo = parseInt(c.categoryNo, 10);
         const parentCategory = Math.floor(categoryNo / 10) * 10;
         const isChild = categoryNo % 10 !== 0;
-
         return parentCategory === parent && isChild;
       });
 
-      // 3) 옵션 동적 추가
+      // 4) 옵션 동적 추가
       children.forEach((c) => {
         const opt = document.createElement("option");
         opt.value = c.categoryNo;
         opt.textContent = c.categoryName;
         childSel.appendChild(opt);
       });
+
+      // 자식 select가 활성화된 경우, 값을 '전체'로 맞추고 hidden input도 맞추기
+      childSel.value = "0";
+      hiddenInput.value = parent;
+    });
+
+  // 소분류(자식) 선택 변경 이벤트
+  document
+    .getElementById("left-category-child")
+    .addEventListener("change", function () {
+      const val = parseInt(this.value, 10);
+      const hiddenInput = document.getElementById("left-category-no");
+
+      // 자식이 '전체(0)'이면 대분류 값으로,
+      // 아니라면 실제 자식 카테고리 값을 hidden input에 세팅
+      if (val === 0) {
+        const parentVal = parseInt(
+          document.getElementById("left-category-parent").value,
+          10
+        );
+        hiddenInput.value = parentVal;
+      } else {
+        hiddenInput.value = val;
+      }
     });
 
   // 인증 주기 선택 처리
@@ -339,14 +370,18 @@ function chalMainLeftScript() {
     let html = "";
     options.forEach((option, index) => {
       const checked = index === 0 ? "checked" : "";
+      if (index === 0) {
+        // 첫 번째 옵션의 값을 hidden input에 세팅
+        document.getElementById("left-verify-cycle").value = option[0];
+      }
       html += `
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="${name}" value="${option[0]}" 
-                 id="left-${name}-${option[0]}" ${checked} 
-                 onchange="updateVerifyCycle(${option[0]})">
-          <label class="form-check-label" for="left-${name}-${option[0]}">${option[1]}</label>
-        </div>
-      `;
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="${name}" value="${option[0]}"
+               id="left-${name}-${option[0]}" ${checked}
+               onchange="updateVerifyCycle(${option[0]})">
+        <label class="form-check-label" for="left-${name}-${option[0]}">${option[1]}</label>
+      </div>
+    `;
     });
     return html;
   }
@@ -406,16 +441,6 @@ function chalMainLeftScript() {
       document.getElementById("center-chal-container").innerHTML = "";
       window.searchKeyword = params;
       chalMainCenterScript(window.searchKeyword);
-      //   axios
-      //     .get(contextPath + "/challenge/chalMainSearchLeft", { params })
-      //     .then(function (response) {
-      //       document.getElementById("main-challenge-list").innerHTML =
-      //         response.data;
-      //     })
-      //     .catch(function (error) {
-      //       console.error("검색 중 오류 발생:", error);
-      //       alert("검색 중 오류가 발생했습니다.");
-      //     });
     });
 
   // 초기화 버튼 클릭 처리
@@ -440,6 +465,7 @@ function chalMainLeftScript() {
 
       // hidden input 초기화
       document.getElementById("left-verify-cycle").value = "0";
+      document.getElementById("left-category-no").value = "0";
     });
 }
 
