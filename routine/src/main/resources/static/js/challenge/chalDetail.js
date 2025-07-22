@@ -21,7 +21,7 @@ function leftScript() {
     axios
       .get(`${contextPath}/challenge/closeChal`, { params: { chalNo } })
       .then((r) => {
-        if (r.data === "success") goback(-1);
+        if (r.data === "success") history.back();
         else alert("종료에 실패하였습니다.");
       });
   });
@@ -30,7 +30,7 @@ function leftScript() {
     axios
       .get(`${contextPath}/challenge/deleteChal`, { params: { chalNo } })
       .then((r) => {
-        if (r.data === "success") goback(-1);
+        if (r.data === "success") history.back();
         else alert("삭제에 실패하였습니다.");
       });
   });
@@ -127,12 +127,12 @@ function leftScript() {
     writerCard.classList.add("cursor-pointer"); // 클릭 가능 UI 강조
     writerCard.addEventListener("click", function () {
       axios
-        .get(`${contextPath}/profile/profileDetail`, {
+        .get(`${contextPath}/profile/detail`, {
           params: { userNo: leftWriterUserNo },
         })
         .then(function (r) {
           if (r.data && r.data.success) {
-            location.href = `${contextPath}/profile/profileDetail?userNo=${leftWriterUserNo}`;
+            location.href = `${contextPath}/profile/detail?userNo=${leftWriterUserNo}`;
           } else {
             alert("프로필 조회에 실패했습니다.");
           }
@@ -154,6 +154,53 @@ function rightTopScript() {
   const replyText = document.getElementById("right-top-reply-text");
   const charCount = document.getElementById("right-top-char-count");
   const participateBtn = document.getElementById("right-top-participate-btn");
+  let selectedStatus = null;
+  const successBtn = document.getElementById("btn-success");
+  const failBtn = document.getElementById("btn-fail");
+  const modal = new bootstrap.Modal(
+    document.getElementById("status-confirm-modal")
+  );
+  const modalBody = document.getElementById("status-modal-body");
+  const confirmBtn = document.getElementById("modal-confirm-btn");
+
+  if (successBtn) {
+    successBtn.addEventListener("click", function () {
+      selectedStatus = "S";
+      modalBody.textContent = "성공할래요?";
+      modal.show();
+    });
+  }
+  if (failBtn) {
+    failBtn.addEventListener("click", function () {
+      selectedStatus = "F";
+      modalBody.textContent = "실패할래요?";
+      modal.show();
+    });
+  }
+
+  //성공/실패
+  confirmBtn.addEventListener("click", function () {
+    if (!selectedStatus) return;
+    axios
+      .get(contextPath + "/chalParticipation/update", {
+        params: {
+          chalNo: chalNo,
+          status: selectedStatus,
+        },
+      })
+      .then(function (response) {
+        if (response.status === 200) {
+          location.reload();
+        } else {
+          alert("처리 중 오류가 발생했습니다. 다시 시도해 주세요.");
+        }
+      })
+      .catch(function (error) {
+        alert("처리 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      });
+    modal.hide();
+    selectedStatus = null;
+  });
 
   // 참여하기
   if (participateBtn) {
@@ -165,7 +212,7 @@ function rightTopScript() {
       formData.append("chalNo", chalNo);
 
       axios
-        .post(`${contextPath}/challenge/participate`, formData)
+        .post(`${contextPath}/chalParticipation/insert`, formData)
         .then((res) => {
           if (res.data === "success") location.reload();
           else alert("실패했습니다.");
@@ -201,36 +248,32 @@ function rightTopScript() {
     fileInput.addEventListener("change", () => {
       const file = fileInput.files[0];
       if (!file) return;
-      // 썸네일 미리보기: 업로드 시도 파일 바로 보여줌
+
+      // 썸네일 미리보기
       const reader = new FileReader();
       reader.onload = function (e) {
         thumbContainer.innerHTML = `<img src="${e.target.result}" class="img-thumbnail" style="max-width:100px; max-height:100px;">`;
       };
       reader.readAsDataURL(file);
 
-      // 리사이즈 및 용량 체크
-      resizeImage(file)
-        .then((blob) => {
-          const form = new FormData();
-          form.append("file", blob, "resized_image.webp");
-          form.append("chalNo", chalNo);
-          submitBtn.disabled = true;
-          return axios.post(`${contextPath}/attachment/insertComment`, form);
-        })
-        .then((res) => {
-          if (res.data === "joongBock") {
-            new bootstrap.Modal(
-              document.getElementById("duplicationModal")
-            ).show();
-          } else if (res.data === "fail") {
-            alert("서버 오류");
-          } else {
-            uploadedUuid = res.data;
-            updateSubmitState();
+      // 공통 업로드 함수 사용
+      handleFileUpload(file, {
+        onSuccess: (uuid) => {
+          uploadedUuid = uuid;
+          updateSubmitState();
+        },
+        onError: () => {
+          // 추가 에러 처리가 필요하면 여기에
+        },
+        onFinally: () => {
+          updateSubmitState();
+        },
+        onProgress: (inProgress) => {
+          if (submitBtn) {
+            submitBtn.disabled = inProgress;
           }
-        })
-        .catch(() => alert("업로드 실패"))
-        .finally(() => updateSubmitState());
+        },
+      });
     });
   }
 
@@ -276,489 +319,6 @@ function rightTopScript() {
   updateSubmitState();
 }
 
-// 이미지 리사이즈
-function resizeImage(file) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const max = 1200;
-      let { width, height } = img;
-      if (width > max || height > max) {
-        const ratio = Math.min(max / width, max / height);
-        width = Math.round(width * ratio);
-        height = Math.round(height * ratio);
-      }
-      canvas.width = width;
-      canvas.height = height;
-      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-      canvas.toBlob(
-        (blob) => {
-          resolve(blob);
-        },
-        "image/webp",
-        0.85
-      );
-    };
-    img.src = URL.createObjectURL(file);
-  });
-}
-
-// function rightBottomScript() {
-//   /* -------------------- 전역 상태 -------------------- */
-//   let currentPage = 0;
-//   let hasMoreComments = true;
-//   const commentListEl = document.getElementById("right-top-comment-list");
-//   const loadingEl = document.getElementById("right-top-loading");
-//   const sentinelEl = document.getElementById("right-top-sentinel");
-//   const imgModalEl = document.getElementById("right-top-img-modal");
-//   const modalImgEl = document.getElementById("right-top-modal-img");
-//   const observer = new IntersectionObserver(onIntersect, { threshold: 0.3 });
-
-//   /* -------------------- 유틸 -------------------- */
-//   const timeFmt = new Intl.DateTimeFormat("ko-KR", {
-//     year: "numeric",
-//     month: "2-digit",
-//     day: "2-digit",
-//     hour: "2-digit",
-//     minute: "2-digit",
-//   });
-//   function bytesToDataURL(bytes, mime) {
-//     return URL.createObjectURL(new Blob([bytes], { type: mime }));
-//   }
-//   function showLoading(show) {
-//     loadingEl.style.display = show ? "block" : "none";
-//   }
-
-//   /* -------------------- 카드 생성 -------------------- */
-//   function createCommentCard(comment, imagesMap, isChild = false) {
-//     const card = document.createElement("div");
-//     card.className = `card ${isChild ? "ms-5" : ""}`;
-//     card.dataset.commentNo = comment.commentNo;
-//     const body = document.createElement("div");
-//     body.className = "card-body";
-
-//     if (comment.status === "D") {
-//       body.innerHTML = `<span class="text-muted">삭제된 댓글이네요</span>`;
-//       card.appendChild(body);
-//       return card;
-//     }
-
-//     // 프로필·닉네임
-//     const header = document.createElement("div");
-//     header.className = "d-flex align-items-center mb-2";
-//     if (comment.isOpen !== "A") {
-//       const imgSrc = comment.pictureBase64
-//         ? `data:image/webp;base64,${comment.pictureBase64}`
-//         : "/static/img/profile-default.webp";
-//       const profileImg = document.createElement("img");
-//       profileImg.src = imgSrc;
-//       profileImg.alt = "프로필";
-//       profileImg.className = "rounded-circle me-2";
-//       profileImg.style.width = profileImg.style.height = "40px";
-//       profileImg.style.cursor = "pointer";
-//       profileImg.addEventListener("click", () => {
-//         axios
-//           .get(`${contextPath}/profile/profileDetail`, {
-//             params: { userNo: comment.userNo },
-//           })
-//           .then((res) => (location.href = res.request.responseURL))
-//           .catch(() => alert("프로필을 불러오지 못했습니다."));
-//       });
-//       header.appendChild(profileImg);
-//       const nick = document.createElement("strong");
-//       nick.style.cursor = "pointer";
-//       nick.textContent = comment.nick;
-//       nick.addEventListener("click", () => profileImg.click());
-//       header.appendChild(nick);
-//     } else {
-//       const anon = document.createElement("span");
-//       anon.className = "text-muted";
-//       anon.textContent = "익명의 ROUTINE유저가 작성했어요";
-//       header.appendChild(anon);
-//     }
-//     body.appendChild(header);
-
-//     // 댓글 사진
-//     if (imagesMap.has(comment.commentNo)) {
-//       const img = document.createElement("img");
-//       img.src = imagesMap.get(comment.commentNo);
-//       img.alt = "댓글 이미지";
-//       img.className = "img-fluid rounded mb-2";
-//       img.style.maxHeight = "240px";
-//       img.style.cursor = "pointer";
-//       img.addEventListener("click", () => {
-//         modalImgEl.src = img.src;
-//         new bootstrap.Modal(imgModalEl).show();
-//       });
-//       body.appendChild(img);
-//     }
-
-//     // 텍스트
-//     if (comment.reply) {
-//       const p = document.createElement("p");
-//       p.className = "card-text mb-2";
-//       p.textContent = comment.reply;
-//       body.appendChild(p);
-//     }
-
-//     // 날짜·수정표시
-//     const footer = document.createElement("div");
-//     footer.className = "d-flex justify-content-between small text-muted";
-//     footer.innerHTML = `<span>${timeFmt.format(new Date(comment.createDate))}${
-//       comment.status === "M" ? " (수정됨)" : ""
-//     }</span>`;
-//     body.appendChild(footer);
-
-//     // 버튼(본인)
-//     if (loginUser && loginUser.userNo === comment.userNo) {
-//       const grp = document.createElement("div");
-//       grp.className = "d-flex gap-2 mt-2";
-//       const btnEdit = document.createElement("button");
-//       btnEdit.className = "btn btn-outline-secondary btn-sm flex-fill";
-//       btnEdit.innerHTML = '<i class="bi bi-pencil-square me-1"></i>수정';
-//       btnEdit.addEventListener("click", () =>
-//         openEditArea(card, comment, imagesMap)
-//       );
-//       grp.appendChild(btnEdit);
-//       const btnDel = document.createElement("button");
-//       btnDel.className = "btn btn-outline-danger btn-sm flex-fill";
-//       btnDel.innerHTML = '<i class="bi bi-trash3 me-1"></i>삭제';
-//       btnDel.addEventListener("click", () => handleDelete(comment.commentNo));
-//       grp.appendChild(btnDel);
-//       body.appendChild(grp);
-//     }
-
-//     // 대댓글 버튼
-//     if (!isChild) {
-//       const btnReply = document.createElement("button");
-//       btnReply.className = "btn btn-link p-0 mt-2";
-//       btnReply.innerHTML = '<i class="bi bi-chat-dots me-1"></i>대댓글 작성';
-//       btnReply.addEventListener("click", () =>
-//         openRecommentArea(card, comment.commentNo)
-//       );
-//       body.appendChild(btnReply);
-//     }
-
-//     card.appendChild(body);
-//     return card;
-//   }
-
-//   /* -------------------- ZIP 파싱 & 렌더 -------------------- */
-//   async function parseZipAndRender(zipBytes) {
-//     console.log(chalDetailComment);
-//     console.log(zipBytes);
-//     if (!zipBytes || zipBytes.byteLength === 0) {
-//       hasMoreComments = false;
-//       return;
-//     }
-//     const zip = await JSZip.loadAsync(zipBytes);
-//     const jsonFile = zip.file("comments.json");
-//     const jsonTxt = jsonFile ? await jsonFile.async("string") : "[]";
-//     let comments = [];
-//     try {
-//       comments = JSON.parse(jsonTxt);
-//     } catch {}
-//     if (!comments.length) {
-//       hasMoreComments = false;
-//       return;
-//     }
-
-//     // 이미지맵
-//     const imagesMap = new Map();
-//     await Promise.all(
-//       Object.keys(zip.files)
-//         .filter((n) => n.endsWith(".webp"))
-//         .map(async (n) => {
-//           const no = +n.split("_")[0];
-//           const data = await zip.file(n).async("uint8array");
-//           imagesMap.set(no, bytesToDataURL(data, "image/webp"));
-//         })
-//     );
-
-//     // 부모+자식 렌더
-//     comments
-//       .filter((c) => c.recommentTarget === 0)
-//       .forEach((parent) => {
-//         commentListEl.appendChild(createCommentCard(parent, imagesMap, false));
-//         comments
-//           .filter((c) => c.recommentTarget === parent.commentNo)
-//           .forEach((child) =>
-//             commentListEl.appendChild(createCommentCard(child, imagesMap, true))
-//           );
-//         if (parent.moreRecomments) {
-//           const btn = document.createElement("button");
-//           btn.className = "btn btn-link ps-0 mb-3";
-//           btn.textContent = "대댓글 더 보기";
-//           btn.addEventListener("click", () =>
-//             loadRecomments(parent.commentNo, btn)
-//           );
-//           commentListEl.appendChild(btn);
-//         }
-//       });
-//   }
-
-//   /* -------------------- 댓글 요청 -------------------- */
-//   function fetchComments(page) {
-//     if (!hasMoreComments) return Promise.resolve();
-//     showLoading(true);
-//     return axios
-//       .get(`${contextPath}/chalComment/selectComment`, {
-//         params: { chalNo, currentPage: page },
-//         responseType: "arraybuffer",
-//       })
-//       .then((res) => parseZipAndRender(res.data))
-//       .catch((err) => {
-//         if (!err.response || err.response.status >= 500)
-//           alert("댓글을 불러오지 못했습니다.");
-//         console.error(err);
-//       })
-//       .finally(() => showLoading(false));
-//   }
-
-//   /* -------------------- 대댓글 로드 -------------------- */
-//   function loadRecomments(parentNo, btn) {
-//     btn.disabled = true;
-//     const next = (btn.dataset.page | 0) + 1;
-//     axios
-//       .get(`${contextPath}/chalComment/selectRecomment`, {
-//         params: {
-//           chalNo,
-//           recommentTarget: parentNo,
-//           currentRecommentPage: next,
-//         },
-//         responseType: "arraybuffer",
-//       })
-//       .then(async (res) => {
-//         const b = res.data;
-//         if (!b || b.byteLength === 0) {
-//           btn.style.display = "none";
-//           return;
-//         }
-//         const zip = await JSZip.loadAsync(b);
-//         const jf = zip.file("comments.json");
-//         const txt = jf ? await jf.async("string") : "[]";
-//         let arr = [];
-//         try {
-//           arr = JSON.parse(txt);
-//         } catch {}
-//         if (!arr.length) {
-//           btn.style.display = "none";
-//           return;
-//         }
-//         await (async () => {
-//           // 재사용 parseAndRender child-only
-//           const imagesMap = new Map();
-//           await Promise.all(
-//             Object.keys(zip.files)
-//               .filter((n) => n.endsWith(".webp"))
-//               .map(async (n) => {
-//                 const no = +n.split("_")[0];
-//                 const d = await zip.file(n).async("uint8array");
-//                 imagesMap.set(no, bytesToDataURL(d, "image/webp"));
-//               })
-//           );
-//           arr.forEach((c) =>
-//             commentListEl.appendChild(createCommentCard(c, imagesMap, true))
-//           );
-//         })();
-//         btn.dataset.page = next;
-//       })
-//       .catch((err) => {
-//         console.error(err);
-//         alert("대댓글을 불러오지 못했습니다.");
-//       })
-//       .finally(() => (btn.disabled = false));
-//   }
-
-//   function handleDelete(commentNo) {
-//     if (!confirm("댓글을 삭제하시겠습니까?")) return;
-//     axios
-//       .post(`${contextPath}/chalComment/deleteComment`, null, {
-//         params: { commentNo },
-//       })
-//       .then((res) => {
-//         if (res.data === "success") {
-//           // 화면에서 즉시 제거
-//           const card = commentListEl.querySelector(
-//             `[data-comment-no="${commentNo}"]`
-//           );
-//           if (card) {
-//             card.querySelector(".card-body").innerHTML =
-//               '<span class="text-muted">삭제된 댓글이네요</span>';
-//           }
-//         } else alert("삭제 실패");
-//       })
-//       .catch(() => alert("서버 오류"));
-//   }
-
-//   /* 수정 영역 열기 */
-//   function openEditArea(card, comment, imagesMap) {
-//     if (card.querySelector(".right-top-edit-area")) {
-//       card.querySelector(".right-top-edit-area").classList.toggle("d-none");
-//       return;
-//     }
-//     const div = document.createElement("div");
-//     div.className = "right-top-edit-area mt-3";
-//     const textarea = document.createElement("textarea");
-//     textarea.className = "form-control mb-2";
-//     textarea.maxLength = 1000;
-//     textarea.rows = 3;
-//     textarea.value = comment.reply || "";
-//     div.appendChild(textarea);
-//     const thumb = document.createElement("div");
-//     thumb.className = "mb-2";
-//     if (imagesMap.has(comment.commentNo)) {
-//       thumb.innerHTML = `<img src="${imagesMap.get(
-//         comment.commentNo
-//       )}" class="img-thumbnail" style="max-width:100px; max-height:100px;">`;
-//     }
-//     div.appendChild(thumb);
-//     const fileInput = document.createElement("input");
-//     fileInput.type = "file";
-//     fileInput.accept = "image/*";
-//     fileInput.className = "form-control mb-2";
-//     div.appendChild(fileInput);
-//     const grp = document.createElement("div");
-//     grp.className = "d-flex gap-2";
-//     const btnCancel = document.createElement("button");
-//     btnCancel.className = "btn btn-outline-secondary flex-fill";
-//     btnCancel.textContent = "취소";
-//     btnCancel.addEventListener("click", () => {
-//       textarea.value = comment.reply || "";
-//       fileInput.value = "";
-//       div.classList.add("d-none");
-//     });
-//     const btnSave = document.createElement("button");
-//     btnSave.className = "btn btn-primary flex-fill";
-//     btnSave.textContent = "저장";
-//     btnSave.addEventListener("click", () => {
-//       btnSave.disabled = true;
-//       const form = new FormData();
-//       form.append("commentNo", comment.commentNo);
-//       form.append("reply", textarea.value.trim());
-//       form.append("uuidStr", "1");
-//       if (fileInput.files.length) form.append("file", fileInput.files[0]);
-//       axios
-//         .post(`${contextPath}/chalComment/updateComment`, form)
-//         .then((res) => {
-//           if (res.data === "success") location.reload();
-//           else alert("수정 실패");
-//         })
-//         .catch(() => alert("서버 오류"))
-//         .finally(() => {
-//           btnSave.disabled = false;
-//         });
-//     });
-//     grp.appendChild(btnCancel);
-//     grp.appendChild(btnSave);
-//     div.appendChild(grp);
-//     card.appendChild(div);
-//   }
-
-//   /* 대댓글 작성 영역 */
-//   function openRecommentArea(card, parentNo) {
-//     if (card.querySelector(".right-top-reply-area")) {
-//       card.querySelector(".right-top-reply-area").classList.toggle("d-none");
-//       return;
-//     }
-//     const div = document.createElement("div");
-//     div.className = "right-top-reply-area mt-3";
-//     const textarea = document.createElement("textarea");
-//     textarea.className = "form-control mb-2";
-//     textarea.maxLength = 1000;
-//     textarea.rows = 3;
-//     div.appendChild(textarea);
-//     const fileInput = document.createElement("input");
-//     fileInput.type = "file";
-//     fileInput.accept = "image/*";
-//     fileInput.className = "form-control mb-2";
-//     div.appendChild(fileInput);
-//     const grp = document.createElement("div");
-//     grp.className = "d-flex gap-2";
-//     const btnCancel = document.createElement("button");
-//     btnCancel.className = "btn btn-outline-secondary flex-fill";
-//     btnCancel.textContent = "취소";
-//     btnCancel.addEventListener("click", () => {
-//       textarea.value = "";
-//       fileInput.value = "";
-//       div.classList.add("d-none");
-//     });
-//     const btnSend = document.createElement("button");
-//     btnSend.className = "btn btn-success flex-fill";
-//     btnSend.textContent = "작성";
-//     btnSend.addEventListener("click", () => {
-//       btnSend.disabled = true;
-//       const form = new FormData();
-//       form.append("recommentTarget", parentNo);
-//       form.append("chalNo", chalNo);
-//       if (textarea.value.trim().length)
-//         form.append("reply", textarea.value.trim());
-//       if (fileInput.files.length) form.append("file", fileInput.files[0]);
-//       axios
-//         .post(`${contextPath}/chalComment/insertComment`, form)
-//         .then((res) => {
-//           if (res.data === "success") location.reload();
-//           else alert("등록 실패");
-//         })
-//         .catch(() => alert("서버 오류"))
-//         .finally(() => {
-//           btnSend.disabled = false;
-//         });
-//     });
-//     grp.appendChild(btnCancel);
-//     grp.appendChild(btnSend);
-//     div.appendChild(grp);
-//     card.appendChild(div);
-//   }
-
-//   /* -------------------- 스크롤 옵저버 -------------------- */
-//   function onIntersect(entries) {
-//     if (entries[0].isIntersecting) {
-//       observer.unobserve(sentinelEl);
-//       fetchComments(currentPage).then(() => {
-//         if (hasMoreComments) {
-//           currentPage += 1;
-//           observer.observe(sentinelEl);
-//         }
-//       });
-//     }
-//   }
-
-//   /* -------------------- 초기 랜더링 -------------------- */
-//   //옵저버 로딩
-//   observer.observe(sentinelEl);
-//   fetchComments(0).then(() => {
-//     if (hasMoreComments) {
-//       currentPage = 1;
-//       observer.observe(sentinelEl);
-//     }
-//   });
-
-//   //최초 렌더링
-//   if (Array.isArray(chalDetailComment) && chalDetailComment.length) {
-//     const imagesMap = new Map();
-//     chalDetailComment
-//       .filter((c) => c.recommentTarget === 0)
-//       .forEach((parent) => {
-//         commentListEl.appendChild(createCommentCard(parent, imagesMap, false));
-//         chalDetailComment
-//           .filter((child) => child.recommentTarget === parent.commentNo)
-//           .forEach((child) =>
-//             commentListEl.appendChild(createCommentCard(child, imagesMap, true))
-//           );
-//       });
-//   }
-
-//   /* -------------------- 댓글 작성 후 새로고침 -------------------- */
-//   window.addEventListener("commentsUpdated", () => {
-//     commentListEl.innerHTML = "";
-//     currentPage = 0;
-//     hasMoreComments = true;
-//     fetchComments(0);
-//   });
-// }
-
 function rightBottomScript() {
   /* 전역 상태 */
   let currentPage = 0;
@@ -790,7 +350,7 @@ function rightBottomScript() {
     const body = document.createElement("div");
     body.className = "card-body";
 
-    if (c.status === "D") {
+    if (c.status === "N") {
       body.innerHTML = `<span class="text-muted">삭제된 댓글이네요</span>`;
       card.append(body);
       return card;
@@ -955,10 +515,7 @@ function rightBottomScript() {
             });
         });
 
-      // 다음 페이지 준비
-      if (!isRecomment) {
-        currentPage = page + 1;
-      }
+      if (!isRecomment) currentPage = page + 1;
     } catch (err) {
       console.error(err);
       alert("댓글을 불러오는 중 오류가 발생했습니다.");
@@ -977,9 +534,285 @@ function rightBottomScript() {
     }
   }
 
+  /* 댓글 삭제 처리 */
+  function handleDelete(commentNo) {
+    if (!confirm("댓글을 삭제하시겠습니까?")) return;
+    const form = new FormData();
+    form.append("commentNo", commentNo);
+    axios
+      .post(`${contextPath}/chalComment/deleteComment`, form)
+      .then((res) => {
+        if (res.data === "success") {
+          const card = commentListEl.querySelector(
+            `[data-comment-no="${commentNo}"]`
+          );
+          if (card) {
+            card.querySelector(".card-body").innerHTML =
+              '<span class="text-muted">삭제된 댓글이네요</span>';
+          }
+        } else alert("삭제 실패");
+      })
+      .catch(() => alert("서버 오류"));
+  }
+
+  /* 댓글 수정 영역 열기 */
+  function openEditArea(card, comment) {
+    if (card.querySelector(".right-top-edit-area")) {
+      card.querySelector(".right-top-edit-area").classList.toggle("d-none");
+      return;
+    }
+
+    // 컨테이너
+    const div = document.createElement("div");
+    div.className = "right-top-edit-area mt-3";
+
+    // textarea
+    const textarea = document.createElement("textarea");
+    textarea.className = "form-control mb-2";
+    textarea.maxLength = 1000;
+    textarea.rows = 3;
+    textarea.value = comment.reply || "";
+    div.appendChild(textarea);
+
+    // thumb container
+    const thumbContainer = document.createElement("div");
+    thumbContainer.className = "mb-2";
+    if (comment.hasAttachment === "Y" && comment.attachmentUrl) {
+      thumbContainer.innerHTML = `
+      <img src="${comment.attachmentUrl}"
+           class="img-thumbnail"
+           style="max-width:100px; max-height:100px;">
+    `;
+    }
+    div.appendChild(thumbContainer);
+
+    // file input
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.className = "form-control mb-2";
+    div.appendChild(fileInput);
+
+    let editUploadedUuid = null;
+    let uploadInProgress = false;
+
+    function updateEditSubmitState() {
+      btnSave.disabled = uploadInProgress;
+    }
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      // 미리보기
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        thumbContainer.innerHTML = `
+        <img src="${e.target.result}"
+             class="img-thumbnail"
+             style="max-width:100px; max-height:100px;">
+      `;
+      };
+      reader.readAsDataURL(file);
+
+      // 공통 업로드 함수 사용
+      handleFileUpload(file, {
+        onSuccess: (uuid) => {
+          editUploadedUuid = uuid;
+        },
+        onError: () => {
+          // 추가 에러 처리가 필요하면 여기에
+        },
+        onFinally: () => {
+          updateEditSubmitState();
+        },
+        onProgress: (inProgress) => {
+          uploadInProgress = inProgress;
+          updateEditSubmitState();
+        },
+      });
+    });
+
+    // 버튼 그룹
+    const grp = document.createElement("div");
+    grp.className = "d-flex gap-2";
+
+    // 취소
+    const btnCancel = document.createElement("button");
+    btnCancel.className = "btn btn-outline-secondary flex-fill";
+    btnCancel.textContent = "취소";
+    btnCancel.addEventListener("click", () => {
+      div.remove();
+    });
+    grp.appendChild(btnCancel);
+
+    // 저장
+    const btnSave = document.createElement("button");
+    btnSave.className = "btn btn-primary flex-fill";
+    btnSave.textContent = "저장";
+    btnSave.disabled = false;
+    btnSave.addEventListener("click", () => {
+      if (uploadInProgress) return;
+
+      btnSave.disabled = true;
+      const form = new FormData();
+      form.append("commentNo", comment.commentNo);
+      form.append("chalNo", chalNo);
+      form.append("reply", textarea.value.trim());
+      if (editUploadedUuid) form.append("uuidStr", editUploadedUuid);
+
+      axios
+        .post(`${contextPath}/chalComment/updateComment`, form)
+        .then((res) => {
+          if (res.data === "success") location.reload();
+          else {
+            alert("수정 실패");
+            btnSave.disabled = false;
+          }
+        })
+        .catch(() => {
+          alert("서버 오류");
+          btnSave.disabled = false;
+        });
+    });
+    grp.appendChild(btnSave);
+
+    div.appendChild(grp);
+    card.appendChild(div);
+  }
+
+  /* 대댓글 작성 영역 열기 */
+  function openRecommentArea(card, parentNo) {
+    if (card.querySelector(".right-top-reply-area")) {
+      card.querySelector(".right-top-reply-area").classList.toggle("d-none");
+      return;
+    }
+
+    // 컨테이너
+    const div = document.createElement("div");
+    div.className = "right-top-reply-area mt-3";
+
+    // textarea
+    const textarea = document.createElement("textarea");
+    textarea.className = "form-control mb-2";
+    textarea.maxLength = 1000;
+    textarea.rows = 3;
+    div.appendChild(textarea);
+
+    // 썸네일 컨테이너
+    const thumbContainer = document.createElement("div");
+    thumbContainer.className = "mb-2";
+    div.appendChild(thumbContainer);
+
+    // 파일 입력
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.className = "form-control mb-2";
+    div.appendChild(fileInput);
+
+    // 내부 상태
+    let replyUploadedUuid = null;
+    let uploadInProgress = false;
+
+    // 저장 버튼 상태 토글 함수
+    function updateReplySubmitState() {
+      btnSend.disabled = uploadInProgress;
+    }
+
+    // 파일 선택 시: 썸네일 → 업로드 → UUID 저장
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        thumbContainer.innerHTML = `
+        <img src="${e.target.result}"
+             class="img-thumbnail"
+             style="max-width:100px; max-height:100px;">
+      `;
+      };
+      reader.readAsDataURL(file);
+
+      // 공통 업로드 함수 사용
+      handleFileUpload(file, {
+        onSuccess: (uuid) => {
+          replyUploadedUuid = uuid;
+        },
+        onError: () => {
+          // 추가 에러 처리가 필요하면 여기에
+        },
+        onFinally: () => {
+          updateReplySubmitState();
+        },
+        onProgress: (inProgress) => {
+          uploadInProgress = inProgress;
+          updateReplySubmitState();
+        },
+      });
+    });
+
+    // 버튼 그룹
+    const grp = document.createElement("div");
+    grp.className = "d-flex gap-2";
+
+    // 취소 버튼
+    const btnCancel = document.createElement("button");
+    btnCancel.className = "btn btn-outline-secondary flex-fill";
+    btnCancel.textContent = "취소";
+    btnCancel.addEventListener("click", () => {
+      div.remove();
+    });
+    grp.appendChild(btnCancel);
+
+    // 작성(전송) 버튼
+    const btnSend = document.createElement("button");
+    btnSend.className = "btn btn-success flex-fill";
+    btnSend.textContent = "작성";
+    btnSend.disabled = false;
+    btnSend.addEventListener("click", () => {
+      if (uploadInProgress) return;
+
+      btnSend.disabled = true;
+      const form = new FormData();
+      form.append("recommentTarget", parentNo);
+      form.append("chalNo", chalNo);
+      if (textarea.value.trim().length) {
+        form.append("reply", textarea.value.trim());
+      }
+      if (replyUploadedUuid) {
+        form.append("uuidStr", replyUploadedUuid);
+      }
+
+      axios
+        .post(`${contextPath}/chalComment/insertComment`, form)
+        .then((res) => {
+          if (res.data === "success") {
+            location.reload();
+          } else {
+            alert("등록 실패");
+            btnSend.disabled = false;
+          }
+        })
+        .catch(() => {
+          alert("서버 오류");
+          btnSend.disabled = false;
+        });
+    });
+    grp.appendChild(btnSend);
+
+    // DOM에 추가
+    div.appendChild(grp);
+    card.appendChild(div);
+  }
+
   /* 초기 실행 */
-  observer.observe(sentinelEl);
-  fetchComments(0);
+  fetchComments(0).then(() => {
+    if (hasMoreComments) {
+      observer.observe(sentinelEl);
+    }
+  });
 
   /* 댓글 등록 후 새로고침 */
   window.addEventListener("commentsUpdated", () => {
@@ -988,4 +821,94 @@ function rightBottomScript() {
     hasMoreComments = true;
     fetchComments(0);
   });
+}
+
+// 이미지 리사이즈
+function resizeImage(file) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const max = 1200;
+      let { width, height } = img;
+      if (width > max || height > max) {
+        const ratio = Math.min(max / width, max / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          resolve(blob);
+        },
+        "image/webp",
+        0.85
+      );
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+//이미지 업로드
+/**
+ * @param {File} file - 업로드할 파일
+ * @param {Object} options - 옵션 객체
+ * @param {Function} options.onSuccess - 업로드 성공 시 호출될 콜백 (uuid를 매개변수로 받음)
+ * @param {Function} options.onError - 업로드 실패 시 호출될 콜백 (error를 매개변수로 받음)
+ * @param {Function} options.onFinally - 업로드 완료 시 항상 호출될 콜백
+ * @param {Function} options.onProgress - 업로드 진행 상태 변경 시 호출될 콜백 (boolean을 매개변수로 받음)
+ */
+function handleFileUpload(file, options = {}) {
+  const {
+    onSuccess = () => {},
+    onError = () => {},
+    onFinally = () => {},
+    onProgress = () => {},
+  } = options;
+
+  // 업로드 시작
+  onProgress(true);
+
+  // 파일 전송 함수
+  const sendFile = (fileToSend, fileName) => {
+    const form = new FormData();
+    form.append("file", fileToSend, fileName);
+    form.append("chalNo", chalNo);
+    return axios.post(`${contextPath}/attachment/insertComment`, form);
+  };
+
+  // pictureRequired에 따른 업로드 방식 결정
+  const promise =
+    pictureRequired === "I"
+      ? sendFile(file, file.name)
+      : resizeImage(file).then((blob) => sendFile(blob, "routine_img.webp"));
+
+  promise
+    .then((res) => {
+      onSuccess(res.data);
+    })
+    .catch((error) => {
+      // 기본 에러 처리
+      if (error.response) {
+        const status = error.response.status;
+        if (status === 400) {
+          new bootstrap.Modal(
+            document.getElementById("duplicationModal")
+          ).show();
+        } else if (status === 500) {
+          alert("서버 오류");
+        } else {
+          alert(`업로드 실패 (오류코드: ${status})`);
+        }
+      } else {
+        alert("업로드 실패(네트워크)");
+      }
+      onError(error);
+    })
+    .finally(() => {
+      onProgress(false);
+      onFinally();
+    });
 }

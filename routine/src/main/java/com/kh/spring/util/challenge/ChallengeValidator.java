@@ -3,6 +3,7 @@ package com.kh.spring.util.challenge;
 import java.time.LocalDate;
 
 import com.kh.spring.challenge.model.vo.ChallengeRequest;
+import com.kh.spring.challenge.model.vo.LoginUserAndChal;
 import com.kh.spring.util.common.Regexp;
 
 public class ChallengeValidator {
@@ -100,6 +101,15 @@ public class ChallengeValidator {
 		if(chal.getEndDate()!=null && 
 				chal.getEndDate().isBefore(LocalDate.now()))
 			return false;
+		
+		return true;
+	}
+	
+	//참여자가 참여하고 싶대요.
+	public static boolean chalParticipation(LoginUserAndChal lac) {
+		if(lac.getStatus() == null
+				|| !lac.getStatus().matches(Regexp.UPDATE_PARTICIPANT) 
+				)return false;
 		
 		return true;
 	}

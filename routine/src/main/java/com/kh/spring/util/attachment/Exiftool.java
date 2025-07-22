@@ -3,7 +3,9 @@ package com.kh.spring.util.attachment;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import com.kh.spring.challenge.model.vo.Attachment;
@@ -39,7 +41,6 @@ public class Exiftool {
 	 * 반환값 - 1: 정상, 2: 직접 촬영 아님, 0: 기타 오류
 	 */
 	public static int inspectAttachment(Attachment at) throws Exception {
-		System.out.println("언제부터 우리는 타인을 믿지 못하게 되었는가?");
 		//임시 파일 생성
 		File tempFile = File.createTempFile("upload_", ".webp");
 		try (FileOutputStream fos = new FileOutputStream(tempFile)) {
@@ -101,7 +102,9 @@ public class Exiftool {
 		int result = process.waitFor();
 		if (result != 0) {
 			tempInput.delete();
-			throw new Exception("exiftool 실행 오류");
+			InputStream is = process.getInputStream();
+			String output = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			throw new Exception("exiftool 실행 오류, "+output);
 		}
 
 		//소각된 파일을 다시 byte[]로 읽어 Attachment.file에 슛

@@ -31,14 +31,6 @@ public class ChallengeDao {
 		return sqlSession.selectOne("challengeMapper.chalDetail", chalNo);
 	}
 	
-	public String loginUserIsParticipant(SqlSessionTemplate sqlSession, LoginUserAndChal lac) {
-		return sqlSession.selectOne("challengeMapper.loginUserIsParticipant",lac);
-	}
-
-	public int newParticipant(SqlSessionTemplate sqlSession, LoginUserAndChal lac) {
-		return sqlSession.insert("challengeMapper.newParticipant",lac);
-	}
-
 	public ChallengeReqired selectRequired(SqlSessionTemplate sqlSession, int chalNo) {
 		return sqlSession.selectOne("challengeMapper.selectRequired",chalNo);
 	}
@@ -62,5 +54,4 @@ public class ChallengeDao {
 	public int updateChal(SqlSessionTemplate sqlSession, ChallengeRequest chal) {
 		return sqlSession.update("challengeMapper.updateChal", chal);
 	}
-
 }

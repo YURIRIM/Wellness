@@ -46,6 +46,41 @@
       </div>
     </div>
 
+    <!-- 중복(도용방지) 안내 모달 -->
+    <div
+      class="modal fade"
+      id="duplicationModal"
+      tabindex="-1"
+      aria-labelledby="duplicationModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="new-duplicationModalLabel">알림</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="닫기"
+            ></button>
+          </div>
+          <div class="modal-body text-center">
+            직접 촬영한 사진만 올려주세요
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-bs-dismiss="modal"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- thymeleaf 스크립트 변수 등 선언-->
     <script th:inline="javascript">
       const catAll = /*[[${ChallengeCategory}]]*/ ["안아줘요", "싫은데요"];

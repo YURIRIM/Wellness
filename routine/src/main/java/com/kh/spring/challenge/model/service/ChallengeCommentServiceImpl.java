@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 
 import com.kh.spring.challenge.model.dao.AttachmentDao;
+import com.kh.spring.challenge.model.dao.ChalParticipationDao;
 import com.kh.spring.challenge.model.dao.ChallengeCommentDao;
 import com.kh.spring.challenge.model.dao.ChallengeDao;
 import com.kh.spring.challenge.model.vo.ChallengeCommentRequest;
@@ -36,6 +37,8 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 	private ChallengeDao chalDao;
 	@Autowired
 	private AttachmentDao atDao;
+	@Autowired
+	private ChalParticipationDao partiDao;
 
 	//댓글 조회
 	@Override
@@ -65,12 +68,12 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 			}else cc.setNick(null); //A이면 nick도 말소
 			cc.setPicture(null);
 			
-			//댓글 상태가 D면 D져.
-			if(cc.getStatus().equals("D")) {
+			//댓글 상태가 N이다? 그럼 죽어.
+			if(cc.getStatus().equals("N")) {
 				ChallengeCommentResponse newCc = ChallengeCommentResponse.builder()
 						.chalNo(cc.getChalNo())
 						.commentNo(cc.getCommentNo())
-						.status("D")
+						.status("N")
 						.build();
 				cc = newCc;
 			}
@@ -130,15 +133,14 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 				.chalNo(ccr.getChalNo())
 				.userNo(loginUser.getUserNo())
 				.build();
-		String isParticipant = chalDao.loginUserIsParticipant(sqlSession,lac);
+		String isParticipant = partiDao.loginUserIsParticipant(sqlSession,lac);
 		if(isParticipant==null || !isParticipant.equals("Y"))
 			throw new Exception("사기꾼이다!!");
 		
 		//해당 게시글에 사진 혹은 텍스트 여부 검증
 		ChallengeReqired cr = chalDao.selectRequired(sqlSession,ccr.getChalNo());
 		switch(cr.getPictureRequired()) {//사진 검증
-		case "I":
-		case "Y":
+		case "I": case "Y":
 			if(ccr.getUuidStr()==null || ccr.getUuidStr()=="") throw new Exception("엄멈머!");
 		case "O":
 			break;
@@ -149,9 +151,9 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 		}
 		switch(cr.getReplyRequired()) {//댓글 검증
 		case "Y":
-			if(ccr.getReply()==null || ccr.getReply()=="") throw new Exception("엄멈머!");
+			if(ccr.getReply()==null||ccr.getReply().equals("")) throw new Exception("엄멈머!");
 		case "O":
-			if(ccr.getReply().length()>1100) throw new Exception("엄멈머!");
+			if(!ChallengeCommentValidator.challengeComment(ccr)) throw new Exception("엄멈머!");
 			break;
 		case "N":
 			if(ccr.getReply()!=null || ccr.getReply()!="") throw new Exception("엄멈머!");
@@ -196,14 +198,14 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 				.chalNo(ccr.getChalNo())
 				.userNo(loginUser.getUserNo())
 				.build();
-		String isParticipant = chalDao.loginUserIsParticipant(sqlSession,lac);
+		String isParticipant = partiDao.loginUserIsParticipant(sqlSession,lac);
 		if(isParticipant==null || !isParticipant.equals("Y"))
 			throw new Exception("사기꾼이다!!");
 		
 		//유효성 검사
-		if(ChallengeCommentValidator.challengeComment(ccr))
+		if(!ChallengeCommentValidator.challengeComment(ccr))
 			throw new Exception("댓글 유효성 오류!");
-			
+		
 		//DB에 저장
 		ccr.setUserNo(loginUser.getUserNo());
 		result *= dao.updateComment(sqlSession, ccr);
@@ -228,16 +230,23 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 	//댓글 삭제
 	@Override
 	@Transactional
-	public void deleteComment(HttpSession session, ChallengeCommentRequest ccr) throws Exception {
+	public void deleteComment(HttpSession session, int commentNo) throws Exception {
 		User loginUser = (User)session.getAttribute("loginUser");
-		ccr.setUserNo(loginUser.getUserNo());
+		
+		//해당 회원이 댓글 주인인지 확인
+		LoginUserAndChal lac = LoginUserAndChal.builder()
+				.chalNo(commentNo)
+				.userNo(loginUser.getUserNo())
+				.build();
+		int isOwner = dao.isCommentExist(sqlSession,lac);
+		if(!(isOwner>0)) throw new Exception("사기꾼이다!!");
 		
 		//댓글 비활성화
-		int result = dao.deleteComment(sqlSession,ccr);
+		int result = dao.deleteComment(sqlSession, commentNo);
 		if(!(result>0)) throw new Exception("댓글 비활성화 실패");
 		
 		//사진 비활성화
-		atDao.disconnectCommentToAt(sqlSession, ccr.getCommentNo());
+		atDao.disconnectCommentToAt(sqlSession, commentNo);
 
 	}
 }

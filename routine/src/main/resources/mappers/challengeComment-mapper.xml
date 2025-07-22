@@ -37,7 +37,6 @@ from(
 where rnum &gt; #{currentPage} * #{showLimit}
 </select>
 
-
 <select id="chalDetailRecomment" resultType="ChallengeCommentResponse" parameterType="SearchComment">
 select *
 from(
@@ -103,12 +102,20 @@ where rnum &gt; #{currentRecommentPage} * #{showLimit}
 	update CHALLENGE_COMMENT
 	set REPLY = #{reply}
 		,STATUS = 'M'
-	where COMMENT_NO = {commentNo}
+	where COMMENT_NO = #{commentNo}
 </update>
 
-<update id="deleteComment" parameterType="ChallengeCommentRequest">
+<update id="deleteComment" parameterType="int">
 	update CHALLENGE_COMMENT
-	set STATUS = 'D'
-	where COMMENT_NO = {commentNo}
+	set STATUS = 'N'
+	where COMMENT_NO = #{commentNo}
 </update>
+
+<select id="isCommentExist" parameterType="LoginUserAndChal" resultType="int">
+	select count(*)
+	from CHALLENGE_COMMENT
+	where COMMENT_NO = #{chalNo}
+	and USER_NO = #{userNo}
+</select>
+
 </mapper>

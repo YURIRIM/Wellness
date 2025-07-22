@@ -21,4 +21,16 @@ public class ProfileDao {
 		return sqlSession.update("profileMapper.updateMyProfile", p);
 	}
 
+	public String profileIsOpen(SqlSessionTemplate sqlSession, int userNo) {
+		return sqlSession.selectOne("profileMapper.profileIsOpen",userNo);
+	}
+
+	public ProfileResponse profileDetail(SqlSessionTemplate sqlSession, int userNo) {
+		return sqlSession.selectOne("profileMapper.profileDetail",userNo);
+	}
+
+	public ProfileResponse updateSessionMyProfile(SqlSessionTemplate sqlSession,int userNo) {
+		return sqlSession.selectOne("profileMapper.updateSessionMyProfile",userNo);
+	}
+
 }

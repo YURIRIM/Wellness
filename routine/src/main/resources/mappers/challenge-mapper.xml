@@ -12,10 +12,11 @@
 			select a1.*
 			,P.PICTURE
 			,rownum rnum
-			,(SELECT THUMBNAIL FROM CHALLENGE C2 WHERE C2.CHAL_NO = a1.CHAL_NO)
+			,(SELECT THUMBNAIL FROM CHALLENGE C2 WHERE C2.CHAL_NO = a1.CHAL_NO) AS THUMBNAIL
 			from(
 				select
 					C.CHAL_NO
+					,C.USER_NO
 					,C.TITLE
 					,C.CONTENT
 					,C.VERIFY_CYCLE
@@ -27,6 +28,7 @@
 					,C.REPLY_REQUIRED
 					,CC.CATEGORY_NAME
 					,U.NICK
+					,P.IS_OPEN
 					,COUNT(cp.user_no) as PARTICIPATE_COUNT
 				    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
 				           SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) * 100.0
@@ -39,22 +41,27 @@
 				left join CHALLENGE_CATEGORY cc on(c.CATEGORY_NO = cc.CATEGORY_NO)
 				left join CHALLENGE_PARTICIPATION cp on(c.CHAL_NO = cp.CHAL_NO)
 				left join USERS u on(c.USER_NO = u.USER_NO)
+				left join PROFILE p on(u.USER_NO = p.USER_NO)
 
-				where 1=1
+				where C.STATUS != 'D'
 				<if test="search != ''">
 					<choose>
-						<when test="searchType == 'T'">
-							and C.TITLE = #{searchPattern}
+						<when test='searchType == "T"'>
+							and C.TITLE like #{searchPattern}
 						</when>
-						<when test="searchType == 'C'">
-							and C.CONTENT = #{searchPattern}
+						<when test='searchType == "C"'>
+							and C.CONTENT like #{searchPattern}
 						</when>
-						<when test="searchType == 'N'">
-							and U.NICK = #{searchPattern}
+						<when test='searchType == "N	"'>
+							and U.NICK like #{searchPattern}
 						</when>
 						<otherwise>
-							and (C.TITLE = #{searchPattern} or C.CONTENT = #{searchPattern} or U.NICK = #{searchPattern})
-						</otherwise>
+							and (
+							C.TITLE like #{searchPattern}
+							or C.CONTENT like #{searchPattern}
+							or U.NICK like #{searchPattern}
+							)
+    						</otherwise>
 					</choose>
 				</if>
 				<if test="categoryNo != 0">
@@ -71,7 +78,7 @@
 				<if test="verifyCycle != 0">
 					<choose>
 						<when test="verifyCycle &gt; 0 and verifyCycle &lt;= 127">
-							and (C.VERIFY_CYCLE &amp; #{verifyCycle}) = #{verifyCycle}
+							and BITAND(C.VERIFY_CYCLE, #{verifyCycle}) = #{verifyCycle}
 						</when>
 						<otherwise>
 							and C.VERIFY_CYCLE = #{verifyCycle}
@@ -102,6 +109,7 @@
 
 				group by
 					C.CHAL_NO
+					,C.USER_NO
 					,C.TITLE
 					,C.CONTENT
 					,C.VERIFY_CYCLE
@@ -113,18 +121,21 @@
 					,C.REPLY_REQUIRED
 					,CC.CATEGORY_NAME
 					,U.NICK
+					,P.IS_OPEN
 				
 				order by
 				<choose>
-					<when test="orderby == 'P'">
+					<when test='orderby == "P"'>
 						COUNT(cp.user_no) desc
 					</when>
-					<when test="orderby == 'S'">
-						ROUND(SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END)
-							* 100.0 / COUNT(cp.user_no),2) desc
+					<when test='orderby == "S"'>
+						CASE WHEN SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) = 0 THEN 0
+						ELSE ROUND(SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) * 100.0 / COUNT(cp.user_no), 2)
+						END DESC
 					</when>
 					<otherwise>
-						C.CREATE_DATE desc
+						CASE WHEN C.STATUS = 'Y' THEN 0 ELSE 1 END,
+						C.CREATE_DATE DESC
 					</otherwise>
 				</choose>
 			) a1
@@ -183,13 +194,16 @@
 	<select id="selectMyChal" parameterType="SearchMyChallenge" resultType="ChallengeResponse">
 		select *
 		from (
-			select a.*, rownum rnum
+			select a1.*
+			,P.PICTURE
+			,rownum rnum
+			,(SELECT THUMBNAIL FROM CHALLENGE C2 WHERE C2.CHAL_NO = a1.CHAL_NO) AS THUMBNAIL
 			from(
 				select
 					C.CHAL_NO
+					,C.USER_NO
 					,C.TITLE
 					,C.CONTENT
-					,C.THUMBNAIL
 					,C.VERIFY_CYCLE
 					,C.CREATE_DATE
 					,C.START_DATE
@@ -199,7 +213,7 @@
 					,C.REPLY_REQUIRED
 					,CC.CATEGORY_NAME
 					,U.NICK
-					,P.PICTURE
+					,P.IS_OPEN
 					,COUNT(cp.user_no) as PARTICIPATE_COUNT
 				    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
 				           SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) * 100.0
@@ -212,20 +226,38 @@
 				left join CHALLENGE_CATEGORY cc on(c.CATEGORY_NO = cc.CATEGORY_NO)
 				left join CHALLENGE_PARTICIPATION cp on(c.CHAL_NO = cp.CHAL_NO)
 				left join USERS u on(c.USER_NO = u.USER_NO)
-				left join PROFILE p on(c.USER_NO = p.USER_NO)
+				left join PROFILE p on(u.USER_NO = p.USER_NO)
 
-				where 1=1
+				where C.STATUS != 'D'
 				<choose>
-					<when test="searchType == 'O'">
+					<when test='searchType == "O"'>
 						and c.USER_NO = #{userNo}
 					</when>
-					<when test="searchType == 'J'">
+					<when test='searchType == "J"'>
 						and cp.USER_NO = #{userNo}
 					</when>
 				</choose>
 				
-				order by C.CREATE_DATE desc
-			) a
+				GROUP BY
+					C.CHAL_NO
+					,C.USER_NO
+					,C.TITLE
+					,C.CONTENT
+					,C.VERIFY_CYCLE
+					,C.CREATE_DATE
+					,C.START_DATE
+					,C.END_DATE
+					,C.STATUS
+					,C.PICTURE_REQUIRED
+					,C.REPLY_REQUIRED
+					,CC.CATEGORY_NAME
+					,U.NICK
+					,P.IS_OPEN
+				
+				order by CASE WHEN C.STATUS = 'Y' THEN 0 ELSE 1 END,
+					C.CREATE_DATE DESC
+			) a1
+			left join PROFILE P ON a1.USER_NO = P.USER_NO
 			where rownum &lt;= (#{currentPage}+1) * #{showLimit}
 		)
 		where rnum &gt; #{currentPage} * #{showLimit}
@@ -296,18 +328,6 @@
 	left join PROFILE P ON a1.USER_NO = P.USER_NO
 	</select>
 	
-	<select id="loginUserIsParticipant" parameterType="loginUserAndChal" resultType="string" >
-		select STATUS
-		from CHALLENGE_PARTICIPATION
-		where CHAL_NO = #{chalNo}
-		and USER_NO = #{userNo}
-	</select>
-	
-	<insert id="newParticipant" parameterType="LoginUserAndChal">
-		insert into CHALLENGE_PARTICIPATION(CHAL_NO,USER_NO,STATUS)
-		values(#{chalNo},#{userNo},'Y')
-	</insert>
-	
 	<select id="selectRequired" parameterType="int" resultType="ChallengeReqired">
 		select PICTURE_REQUIRED, REPLY_REQUIRED
 		from CHALLENGE
@@ -334,7 +354,7 @@
 	
 	<select id="loginUserIsWriter" parameterType="loginUserAndChal" resultType="int" >
 		select count(*)
-		from CHALLENGE_PARTICIPATION
+		from CHALLENGE
 		where CHAL_NO = #{chalNo}
 		and USER_NO = #{userNo}
 	</select>

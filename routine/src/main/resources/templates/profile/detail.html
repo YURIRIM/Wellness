@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+    <th:block th:replace="~{/common/fragment :: library}"></th:block>
+  </head>
+  <body>
+    <!--
+    페이지에 도달하면 바로 쿼리스트링에 포함된 파라미터(userNo)를 가지고
+    contextPath(전역 변수)+'/profile/detail' 로 post axios요청
+    응답 - 200 : ProfileResponse객체
+          500 : contextPath+'/attachment/defaultImg/server-error.webp 경로의 이미지 띄우기
+          404 : contextPath+'/attachment/defaultImg/not-found.webp 경로 이미지 띄우기
+    파라미터가 없으면 404와 동일하게 랜더링
+    
+    public class ProfileResponse {
+      private int userNo;
+      private byte[] picture;
+      private String pictureBase64; //프론트와 base64로 소통
+      private String bio;
+      private String watermarkType; //D:디폴트 F:개인 N:없음
+      private byte[] watermark;
+      private String watermarkBase64; //프론트와 base64로 소통
+      private String isOpen; //Y:공개, N:참여한 챌린지 비공개, A:익명
+      
+      //challenge_participation
+      private int chalParticiapteCount;
+      private int successCount;
+      private int failCount;
+      private Double successRatio;
+      private Double failRatio;
+    }
+    위는 ProfileResponse객체
+
+    --양식--
+    양 옆은 각각 col-3만큼 여백을 두기
+    중앙에는 프로필 카드 및 2열 참여 챌린지 영역
+
+    카드(1열)는 프로필 카드
+    'nick님이 생성한 챌린지' 라고 알리는 표시줄
+    
+    
+    
+    --프로필 카드 양식--
+
+
+
+
+    -->
+    <script th:inline="javascript">
+      const contextPath = /*[[${rootContextPath}]]*/ "/routine";
+      const loginUser =
+        /*[[${loginUser} != null ? ${loginUser} : null]]*/ "로그인한 회원";
+    </script>
+  </body>
+</html>
