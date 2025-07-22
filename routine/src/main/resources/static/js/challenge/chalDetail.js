@@ -132,7 +132,7 @@ function leftScript() {
         })
         .then(function (r) {
           if (r.data && r.data.success) {
-            location.href = `${contextPath}/profile/profileDetail?userNo=${leftWriterUserNo}`;
+            location.href = `${contextPath}/profile/detail?userNo=${leftWriterUserNo}`;
           } else {
             alert("프로필 조회에 실패했습니다.");
           }
@@ -154,6 +154,53 @@ function rightTopScript() {
   const replyText = document.getElementById("right-top-reply-text");
   const charCount = document.getElementById("right-top-char-count");
   const participateBtn = document.getElementById("right-top-participate-btn");
+  let selectedStatus = null;
+  const successBtn = document.getElementById("btn-success");
+  const failBtn = document.getElementById("btn-fail");
+  const modal = new bootstrap.Modal(
+    document.getElementById("status-confirm-modal")
+  );
+  const modalBody = document.getElementById("status-modal-body");
+  const confirmBtn = document.getElementById("modal-confirm-btn");
+
+  if (successBtn) {
+    successBtn.addEventListener("click", function () {
+      selectedStatus = "S";
+      modalBody.textContent = "성공할래요?";
+      modal.show();
+    });
+  }
+  if (failBtn) {
+    failBtn.addEventListener("click", function () {
+      selectedStatus = "F";
+      modalBody.textContent = "실패할래요?";
+      modal.show();
+    });
+  }
+
+  //성공/실패
+  confirmBtn.addEventListener("click", function () {
+    if (!selectedStatus) return;
+    axios
+      .get(contextPath + "/chalParticipation/update", {
+        params: {
+          chalNo: chalNo,
+          status: selectedStatus,
+        },
+      })
+      .then(function (response) {
+        if (response.status === 200) {
+          location.reload();
+        } else {
+          alert("처리 중 오류가 발생했습니다. 다시 시도해 주세요.");
+        }
+      })
+      .catch(function (error) {
+        alert("처리 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      });
+    modal.hide();
+    selectedStatus = null;
+  });
 
   // 참여하기
   if (participateBtn) {
@@ -165,7 +212,7 @@ function rightTopScript() {
       formData.append("chalNo", chalNo);
 
       axios
-        .post(`${contextPath}/challenge/participate`, formData)
+        .post(`${contextPath}/chalParticipation/insert`, formData)
         .then((res) => {
           if (res.data === "success") location.reload();
           else alert("실패했습니다.");
@@ -201,36 +248,32 @@ function rightTopScript() {
     fileInput.addEventListener("change", () => {
       const file = fileInput.files[0];
       if (!file) return;
-      // 썸네일 미리보기: 업로드 시도 파일 바로 보여줌
+
+      // 썸네일 미리보기
       const reader = new FileReader();
       reader.onload = function (e) {
         thumbContainer.innerHTML = `<img src="${e.target.result}" class="img-thumbnail" style="max-width:100px; max-height:100px;">`;
       };
       reader.readAsDataURL(file);
 
-      // 리사이즈 및 용량 체크
-      resizeImage(file)
-        .then((blob) => {
-          const form = new FormData();
-          form.append("file", blob, "routine_img.webp");
-          form.append("chalNo", chalNo);
-          submitBtn.disabled = true;
-          return axios.post(`${contextPath}/attachment/insertComment`, form);
-        })
-        .then((res) => {
-          if (res.data === "joongBock") {
-            new bootstrap.Modal(
-              document.getElementById("duplicationModal")
-            ).show();
-          } else if (res.data === "fail") {
-            alert("서버 오류");
-          } else {
-            uploadedUuid = res.data;
-            updateSubmitState();
+      // 공통 업로드 함수 사용
+      handleFileUpload(file, {
+        onSuccess: (uuid) => {
+          uploadedUuid = uuid;
+          updateSubmitState();
+        },
+        onError: () => {
+          // 추가 에러 처리가 필요하면 여기에
+        },
+        onFinally: () => {
+          updateSubmitState();
+        },
+        onProgress: (inProgress) => {
+          if (submitBtn) {
+            submitBtn.disabled = inProgress;
           }
-        })
-        .catch(() => alert("업로드 실패"))
-        .finally(() => updateSubmitState());
+        },
+      });
     });
   }
 
@@ -274,34 +317,6 @@ function rightTopScript() {
   }
 
   updateSubmitState();
-}
-
-// 이미지 리사이즈
-function resizeImage(file) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const max = 1200;
-      let { width, height } = img;
-      if (width > max || height > max) {
-        const ratio = Math.min(max / width, max / height);
-        width = Math.round(width * ratio);
-        height = Math.round(height * ratio);
-      }
-      canvas.width = width;
-      canvas.height = height;
-      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-      canvas.toBlob(
-        (blob) => {
-          resolve(blob);
-        },
-        "image/webp",
-        0.85
-      );
-    };
-    img.src = URL.createObjectURL(file);
-  });
 }
 
 function rightBottomScript() {
@@ -564,10 +579,10 @@ function rightBottomScript() {
     thumbContainer.className = "mb-2";
     if (comment.hasAttachment === "Y" && comment.attachmentUrl) {
       thumbContainer.innerHTML = `
-        <img src="${comment.attachmentUrl}"
-             class="img-thumbnail"
-             style="max-width:100px; max-height:100px;">
-      `;
+      <img src="${comment.attachmentUrl}"
+           class="img-thumbnail"
+           style="max-width:100px; max-height:100px;">
+    `;
     }
     div.appendChild(thumbContainer);
 
@@ -581,7 +596,7 @@ function rightBottomScript() {
     let editUploadedUuid = null;
     let uploadInProgress = false;
 
-    function updateSubmitState() {
+    function updateEditSubmitState() {
       btnSave.disabled = uploadInProgress;
     }
 
@@ -593,46 +608,29 @@ function rightBottomScript() {
       const reader = new FileReader();
       reader.onload = (e) => {
         thumbContainer.innerHTML = `
-      <img src="${e.target.result}"
-           class="img-thumbnail"
-           style="max-width:100px; max-height:100px;">
-    `;
+        <img src="${e.target.result}"
+             class="img-thumbnail"
+             style="max-width:100px; max-height:100px;">
+      `;
       };
       reader.readAsDataURL(file);
 
-      uploadInProgress = true;
-      updateSubmitState();
-
-      resizeImage(file)
-        .then((blob) => {
-          const form = new FormData();
-          form.append("file", blob, "routine_img.webp");
-          form.append("chalNo", chalNo);
-          btnSave.disabled = true;
-          return axios.post(`${contextPath}/attachment/insertComment`, form);
-        })
-        .then((res) => {
-          if (res.data === "joongBock") {
-            new bootstrap.Modal(
-              document.getElementById("duplicationModal")
-            ).show();
-            editUploadedUuid = null;
-          } else if (res.data === "fail") {
-            alert("서버 오류");
-            editUploadedUuid = null;
-          } else {
-            editUploadedUuid = res.data;
-          }
-        })
-        .catch(() => {
-          alert("업로드 실패");
-          editUploadedUuid = null;
-        })
-        .finally(() => {
-          uploadInProgress = false;
-          updateSubmitState();
-          btnSave.disabled = false;
-        });
+      // 공통 업로드 함수 사용
+      handleFileUpload(file, {
+        onSuccess: (uuid) => {
+          editUploadedUuid = uuid;
+        },
+        onError: () => {
+          // 추가 에러 처리가 필요하면 여기에
+        },
+        onFinally: () => {
+          updateEditSubmitState();
+        },
+        onProgress: (inProgress) => {
+          uploadInProgress = inProgress;
+          updateEditSubmitState();
+        },
+      });
     });
 
     // 버튼 그룹
@@ -714,15 +712,15 @@ function rightBottomScript() {
     div.appendChild(fileInput);
 
     // 내부 상태
-    let uploadedUuid = null;
+    let replyUploadedUuid = null;
     let uploadInProgress = false;
 
     // 저장 버튼 상태 토글 함수
-    function updateSubmitState() {
+    function updateReplySubmitState() {
       btnSend.disabled = uploadInProgress;
     }
 
-    // 파일 선택 시: 썸네일 → 리사이즈 → 업로드 → UUID 저장
+    // 파일 선택 시: 썸네일 → 업로드 → UUID 저장
     fileInput.addEventListener("change", () => {
       const file = fileInput.files[0];
       if (!file) return;
@@ -737,39 +735,22 @@ function rightBottomScript() {
       };
       reader.readAsDataURL(file);
 
-      // 2) 업로드 시작
-      uploadInProgress = true;
-      updateSubmitState();
-
-      resizeImage(file)
-        .then((blob) => {
-          const form = new FormData();
-          form.append("file", blob, "routine_img.webp");
-          form.append("chalNo", chalNo);
-          btnSend.disabled = true;
-          return axios.post(`${contextPath}/attachment/insertComment`, form);
-        })
-        .then((res) => {
-          if (res.data === "joongBock") {
-            new bootstrap.Modal(
-              document.getElementById("duplicationModal")
-            ).show();
-            uploadedUuid = null;
-          } else if (res.data === "fail") {
-            alert("서버 오류");
-            uploadedUuid = null;
-          } else {
-            uploadedUuid = res.data;
-          }
-        })
-        .catch(() => {
-          alert("업로드 실패");
-          uploadedUuid = null;
-        })
-        .finally(() => {
-          uploadInProgress = false;
-          updateSubmitState();
-        });
+      // 공통 업로드 함수 사용
+      handleFileUpload(file, {
+        onSuccess: (uuid) => {
+          replyUploadedUuid = uuid;
+        },
+        onError: () => {
+          // 추가 에러 처리가 필요하면 여기에
+        },
+        onFinally: () => {
+          updateReplySubmitState();
+        },
+        onProgress: (inProgress) => {
+          uploadInProgress = inProgress;
+          updateReplySubmitState();
+        },
+      });
     });
 
     // 버튼 그룹
@@ -800,8 +781,8 @@ function rightBottomScript() {
       if (textarea.value.trim().length) {
         form.append("reply", textarea.value.trim());
       }
-      if (uploadedUuid) {
-        form.append("uuidStr", uploadedUuid);
+      if (replyUploadedUuid) {
+        form.append("uuidStr", replyUploadedUuid);
       }
 
       axios
@@ -840,4 +821,94 @@ function rightBottomScript() {
     hasMoreComments = true;
     fetchComments(0);
   });
+}
+
+// 이미지 리사이즈
+function resizeImage(file) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const max = 1200;
+      let { width, height } = img;
+      if (width > max || height > max) {
+        const ratio = Math.min(max / width, max / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          resolve(blob);
+        },
+        "image/webp",
+        0.85
+      );
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+//이미지 업로드
+/**
+ * @param {File} file - 업로드할 파일
+ * @param {Object} options - 옵션 객체
+ * @param {Function} options.onSuccess - 업로드 성공 시 호출될 콜백 (uuid를 매개변수로 받음)
+ * @param {Function} options.onError - 업로드 실패 시 호출될 콜백 (error를 매개변수로 받음)
+ * @param {Function} options.onFinally - 업로드 완료 시 항상 호출될 콜백
+ * @param {Function} options.onProgress - 업로드 진행 상태 변경 시 호출될 콜백 (boolean을 매개변수로 받음)
+ */
+function handleFileUpload(file, options = {}) {
+  const {
+    onSuccess = () => {},
+    onError = () => {},
+    onFinally = () => {},
+    onProgress = () => {},
+  } = options;
+
+  // 업로드 시작
+  onProgress(true);
+
+  // 파일 전송 함수
+  const sendFile = (fileToSend, fileName) => {
+    const form = new FormData();
+    form.append("file", fileToSend, fileName);
+    form.append("chalNo", chalNo);
+    return axios.post(`${contextPath}/attachment/insertComment`, form);
+  };
+
+  // pictureRequired에 따른 업로드 방식 결정
+  const promise =
+    pictureRequired === "I"
+      ? sendFile(file, file.name)
+      : resizeImage(file).then((blob) => sendFile(blob, "routine_img.webp"));
+
+  promise
+    .then((res) => {
+      onSuccess(res.data);
+    })
+    .catch((error) => {
+      // 기본 에러 처리
+      if (error.response) {
+        const status = error.response.status;
+        if (status === 400) {
+          new bootstrap.Modal(
+            document.getElementById("duplicationModal")
+          ).show();
+        } else if (status === 500) {
+          alert("서버 오류");
+        } else {
+          alert(`업로드 실패 (오류코드: ${status})`);
+        }
+      } else {
+        alert("업로드 실패(네트워크)");
+      }
+      onError(error);
+    })
+    .finally(() => {
+      onProgress(false);
+      onFinally();
+    });
 }

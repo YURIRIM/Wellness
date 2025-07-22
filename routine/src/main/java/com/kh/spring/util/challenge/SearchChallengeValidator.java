@@ -66,7 +66,7 @@ public class SearchChallengeValidator {
 	//챌린지 유효성 검사
 	public static boolean searchMyChallenge(SearchMyChallenge smc){
 		if(smc.getSearchType()==null
-				|| !smc.getSearchType().matches(Regexp.SMC_SEARCH_TYPE)
+				|| !smc.getSearchType().matches(Regexp.SEARCH_MY_CHAL)
 				)return false;
 		if(smc.getCurrentPage()<0) return false;
 		

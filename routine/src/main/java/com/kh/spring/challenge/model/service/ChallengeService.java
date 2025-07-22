@@ -9,6 +9,7 @@ import com.kh.spring.challenge.model.vo.ChallengeCategory;
 import com.kh.spring.challenge.model.vo.ChallengeRequest;
 import com.kh.spring.challenge.model.vo.ChallengeResponse;
 import com.kh.spring.challenge.model.vo.SearchChallenge;
+import com.kh.spring.challenge.model.vo.SearchMyChallenge;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -27,8 +28,6 @@ public interface ChallengeService {
 	//챌린지 상세보기
 	void chalDetail(HttpServletRequest request, HttpSession session, Model model, int chalNo) throws Exception;
 
-	void chalParticipate(HttpSession session, Model model, int chalNo) throws Exception;
-
 	void goUpdateChal(Model model, int chalNo) throws Exception;
 
 	void deleteChal(HttpSession session, int chalNo) throws Exception;
@@ -36,4 +35,9 @@ public interface ChallengeService {
 	void closeChal(HttpSession session, int chalNo) throws Exception;
 
 	void updateChal(HttpSession session, Model model, ChallengeRequest chal) throws Exception;
+
+	void challengeResponseSanitizer(List<ChallengeResponse> result) throws Exception;
+
+	ResponseEntity<List<ChallengeResponse>> selectMyChal(HttpSession session, Model model, SearchMyChallenge smc)
+			throws Exception;
 }

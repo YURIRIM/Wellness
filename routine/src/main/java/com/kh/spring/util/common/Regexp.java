@@ -21,18 +21,21 @@ public class Regexp {
 	//SearchChallenge
 	public static final String SC_ORDERBY = "^[PS]?$";
 	public static final String SC_SEARCH = "^.{0,100}$";
-	public static final String SC_SEARCH_TYPE = "^[TCN]?$";
+	public static final String SC_SEARCH_TYPE = "^[TCNOJ]?$";
 	public static final String SC_STATUS = "^[YN]?$";
 	public static final String SC_PICTURE_REQUIRED = "^[IYON]?$";
 	public static final String SC_REPLY_REQUIRED = "^[YON]?$";
 	public static final int TITLE_SHOW_LIMIT = 20; //제목 글자 표시 제한
 	public static final int CONTENT_SHOW_LIMIT = 100; //내용 글자 표시 제한
 	
-	//SearchMyChallenge
-	public static final String SMC_SEARCH_TYPE = "^[OJ]?$";
+	//searchMyChal
+	public static final String SEARCH_MY_CHAL = "^[OJ]?$";
 	
 	//ChallengeComment
 	public static final String CHAL_COMMENT_REPLY = "^[\\s\\S]{0,1000}$";;
+	
+	//ChalParticipation
+	public static final String UPDATE_PARTICIPANT = "^[SF]?$";
 	
 	//Attachment
 	//모든 언어의 글자, 숫자, 언더스코어, 마침표, 하이픈 허가
@@ -40,6 +43,7 @@ public class Regexp {
 	public static final long MAX_ATTACHMENT_FILE_SIZE = 200 * 1024;
 	public static final int ATTACHMENT_FILE_HEIGHT = 1200;
 	public static final int ATTACHMENT_FILE_WIDTH = 1200;
+	public static final int AT_RESIZE_MAX_LOOP = 5;
 	
 	//profile
 	public static final String PROFIEL_BIO = "^[\\s\\S]{0,100}$";
@@ -51,5 +55,6 @@ public class Regexp {
 	public static final String VCNAME = "^.{1,30}$";
 	public static final String MAXPARTICIPANTS = "^(10|[1-9])$";
 	public static final int EXPIRETIME = 3600; //daily.co의 exp, 단위 : 초
+	public static final double AT_RESIZE_SHRINKRAT = 0.8;
 
 }

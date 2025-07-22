@@ -13,7 +13,7 @@ public interface AttachmentService {
 
 	ResponseEntity<byte[]> selectAtChal(HttpSession session, String at) throws Exception;
 	
-	String insertAtComment(HttpSession session, MultipartFile file, int chalNo) throws Exception;
+	ResponseEntity<String> insertAtComment(HttpSession session, MultipartFile file, int chalNo) throws Exception;
 
 	ResponseEntity<byte[]> selectAtComment(List<Integer> commentNos) throws Exception;
 

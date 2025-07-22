@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 
 import com.kh.spring.challenge.model.dao.AttachmentDao;
+import com.kh.spring.challenge.model.dao.ChalParticipationDao;
 import com.kh.spring.challenge.model.dao.ChallengeCommentDao;
 import com.kh.spring.challenge.model.dao.ChallengeDao;
 import com.kh.spring.challenge.model.vo.ChallengeCommentRequest;
@@ -36,6 +37,8 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 	private ChallengeDao chalDao;
 	@Autowired
 	private AttachmentDao atDao;
+	@Autowired
+	private ChalParticipationDao partiDao;
 
 	//댓글 조회
 	@Override
@@ -130,15 +133,14 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 				.chalNo(ccr.getChalNo())
 				.userNo(loginUser.getUserNo())
 				.build();
-		String isParticipant = chalDao.loginUserIsParticipant(sqlSession,lac);
+		String isParticipant = partiDao.loginUserIsParticipant(sqlSession,lac);
 		if(isParticipant==null || !isParticipant.equals("Y"))
 			throw new Exception("사기꾼이다!!");
 		
 		//해당 게시글에 사진 혹은 텍스트 여부 검증
 		ChallengeReqired cr = chalDao.selectRequired(sqlSession,ccr.getChalNo());
 		switch(cr.getPictureRequired()) {//사진 검증
-		case "I":
-		case "Y":
+		case "I": case "Y":
 			if(ccr.getUuidStr()==null || ccr.getUuidStr()=="") throw new Exception("엄멈머!");
 		case "O":
 			break;
@@ -196,7 +198,7 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 				.chalNo(ccr.getChalNo())
 				.userNo(loginUser.getUserNo())
 				.build();
-		String isParticipant = chalDao.loginUserIsParticipant(sqlSession,lac);
+		String isParticipant = partiDao.loginUserIsParticipant(sqlSession,lac);
 		if(isParticipant==null || !isParticipant.equals("Y"))
 			throw new Exception("사기꾼이다!!");
 		

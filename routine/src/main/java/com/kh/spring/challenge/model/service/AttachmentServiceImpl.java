@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.io.FilenameUtils;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -159,7 +160,7 @@ public class AttachmentServiceImpl implements AttachmentService {
 
 	// 비동기 - 댓글 사진 업로드
 	@Override
-	public String insertAtComment(HttpSession session, MultipartFile file, int chalNo) throws Exception {
+	public ResponseEntity<String> insertAtComment(HttpSession session, MultipartFile file, int chalNo) throws Exception {
 		// 파일 없는데 뭐임?
 		if (file == null || file.isEmpty())
 			throw new Exception("없잖아! 날 속였어!");
@@ -179,38 +180,29 @@ public class AttachmentServiceImpl implements AttachmentService {
 				.fileSize((int) file.getSize())
 				.build();
 
-		// 사진 리사이즈
-		at.setFileContent(ResizeWebp.resizeWebp(at.getFileContent()));
-
+		// 사진 메타데이터 검사
 		String pictureRequired = chalDao.selectRequired(sqlSession, chalNo).getPictureRequired();
-		if (Exiftool.EXIFTOOL) {
-			// 사진 메타데이터 검사
-			// 해당 챌린지가 꿈과 희망이 넘치게 양심을 믿는지 각박딱딱하게 법규화된 질서를 신뢰하는지 살펴보기
-			if (pictureRequired.equals("I")) {
-				// 각박딱딱한 사람들
-				int metaInspect = Exiftool.inspectAttachment(at);
-				switch (metaInspect) {
-				case 2:
-					return "joongBock"; // 돚거는 가세요라
-				case 0:
-					throw new Exception("개발자도 알 수 없는 오류");
-				}
-			}
-
-			// 메타데이터 계엄령
-			at.setFileContent(Exiftool.sanitizeMetadata(at.getFileContent()));
-
-		} else if (pictureRequired.equals("I")) {
-			// exiftool은 없는데 메타데이터는 잡아내고 싶고...
+		if (pictureRequired.equals("I")) {
 			int metaInspect = ReadMetadata.inspectAttachment(at);
 			switch (metaInspect) {
 			case 2:
-				return "joongBock"; // 돚거는 가세요라
+				return ResponseEntity.status(400).build(); // 돚거는 가세요라
 			case 0:
 				throw new Exception("개발자도 알 수 없는 오류");
 			}
 		}
-
+		
+		// 사진 리사이즈
+		at.setFileContent(ResizeWebp.resizeWebp(at.getFileContent()));
+		
+		//webp로 확장자 이름 변경
+		String newName = FilenameUtils.getBaseName(at.getFileName()) + ".webp";
+		at.setFileName(newName);
+		
+		// 메타데이터 계엄령
+		if (Exiftool.EXIFTOOL)
+			at.setFileContent(Exiftool.sanitizeMetadata(at.getFileContent()));
+		
 		// 낙인 찍기
 		ProfileResponse myProfile = (ProfileResponse) session.getAttribute("myProfile");
 		if (myProfile == null) {
@@ -237,7 +229,7 @@ public class AttachmentServiceImpl implements AttachmentService {
 			throw new Exception("at DB저장 실패");
 
 		// uuid반환
-		return (String) uuidMap.get("uuid");
+		return ResponseEntity.ok((String) uuidMap.get("uuid"));
 	}
 
 	//비동기 - 디폴트 이미지 조회

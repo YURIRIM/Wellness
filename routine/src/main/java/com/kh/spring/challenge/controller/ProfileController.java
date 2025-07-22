@@ -65,4 +65,10 @@ public class ProfileController {
 			return "common/errorPage";
 		}
 	}
+	
+	//프로필 세부조회 페이지로
+	@GetMapping("/profileDetail")
+	public String lookProfile(int userNo) {
+		return "profile/detail?userNo="+userNo;
+	}
 }

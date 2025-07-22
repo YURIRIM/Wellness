@@ -51,13 +51,13 @@ public class AttachmentController {
 	//비동기 - chalDetail에서 댓글 사진 업로드
 	@ResponseBody
 	@PostMapping("/insertComment")
-	public String insertAtComment(HttpSession session, MultipartFile file, int chalNo) {
+	public ResponseEntity<String> insertAtComment(HttpSession session, MultipartFile file, int chalNo) {
 		try {
 			//연결하는데 쓰는 uuid반환
 			return service.insertAtComment(session,file,chalNo);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return "fail";
+			return ResponseEntity.status(500).build();
 		}
 	}
 	
@@ -74,7 +74,7 @@ public class AttachmentController {
 	}
 	
 	//비동기 - 각종 default이미지 요청
-	// /defaulImg/{filename} 요청 시 resources/static/img/{filename} 반환
+	//ex) /defaulImg/{filename} 요청 시 resources/static/img/{filename} 반환
 	@ResponseBody
 	@GetMapping("/defaultImg/{filename:.+}")
 	public ResponseEntity<byte[]> defaultImg(@PathVariable String filename){

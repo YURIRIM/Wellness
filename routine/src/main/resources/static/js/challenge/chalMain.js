@@ -214,6 +214,11 @@ document.addEventListener("DOMContentLoaded", function () {
     .getElementById("right-newChal")
     ?.addEventListener("click", function (e) {
       e.preventDefault();
+      if (!myProfile) {
+        alert("프로필을 추가해 주세요!");
+        return;
+      }
+
       loadCenterFragment("/challenge/newChal", newChalScript);
     });
 
@@ -222,7 +227,20 @@ document.addEventListener("DOMContentLoaded", function () {
     .getElementById("right-createdChal")
     ?.addEventListener("click", function (e) {
       e.preventDefault();
-      loadCenterFragment("/challenge/goMyChal?searchType=O", myChalScript);
+      if (!myProfile) {
+        alert("프로필을 추가해 주세요!");
+        return;
+      }
+
+      //이미 랜더링된 목록 있으면 비우기
+      const listContainer = document.getElementById("center-chal-container");
+      if (listContainer) {
+        listContainer.innerHTML = "";
+      }
+
+      // searchType 필드로 객체 생성 후 함수 실행
+      const searchKeyword = { searchType: "O" };
+      chalMainCenterScript(searchKeyword);
     });
 
   // 내가 참여한 챌린지
@@ -230,15 +248,23 @@ document.addEventListener("DOMContentLoaded", function () {
     .getElementById("right-joinedChal")
     ?.addEventListener("click", function (e) {
       e.preventDefault();
-      loadCenterFragment("/challenge/goMyChal?searchType=J", myChalScript);
+      if (!myProfile) {
+        alert("프로필을 추가해 주세요!");
+        return;
+      }
+
+      //이미 랜더링된 목록 있으면 비우기
+      const listContainer = document.getElementById("center-chal-container");
+      if (listContainer) {
+        listContainer.innerHTML = "";
+      }
+
+      const searchKeyword = { searchType: "J" };
+      chalMainCenterScript(searchKeyword);
     });
 });
 
 function chalMainLeftScript() {
-  const parentSel = document.getElementById("left-category-parent");
-  const childSel = document.getElementById("left-category-child");
-  const hiddenInp = document.getElementById("left-category-hidden");
-
   // 뒤로가기 버튼
   document
     .getElementById("left-back-btn")
@@ -470,6 +496,23 @@ function chalMainLeftScript() {
 }
 
 function newChalScript() {
+  // 새로운 챌린지 생성하기에서 뒤로가기
+  document.getElementById("new-back")?.addEventListener("click", function () {
+    axios
+      .get(contextPath + "/challenge/goChalMain", {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        responseType: "text", // 텍스트 응답 받기
+      })
+      .then((res) => {
+        document.querySelector("#main-challenge-list").innerHTML = res.data;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      })
+      .catch((err) => {
+        console.error("중앙 조각 로딩 실패", err);
+        alert("콘텐츠를 불러오는 중 오류가 발생했습니다.");
+      });
+  });
+
   /** ---------- Summernote 0.9.1 한국어 초기화 ---------- */
   $("#new-content").summernote({
     placeholder: "챌린지 내용을 입력하세요 (최대 1000자)",
@@ -789,6 +832,35 @@ function newChalScript() {
       return;
     }
 
+    // pictureRequired 처리
+    // 1) 기존 hidden값은 초기화
+    $(
+      '#new-form input[type="hidden"][name="pictureRequired"][data-auto]'
+    ).remove();
+    // 2) name 리셋 (submit 직전만 반영)
+    $('input[name="pictureRequired"]').attr("name", "pictureRequired");
+
+    // 3) '필수'+도용방지 체크한 경우만 hidden 생성
+    const picked = $('input[type="radio"][id="new-pic-req"]').is(":checked");
+    const isAnti = $("#new-anti").is(":checked");
+    if (picked && isAnti) {
+      // 기존 radio의 name을 submit에서 제외
+      $('input[type="radio"][id="new-pic-req"]').attr(
+        "name",
+        "ignorePictureRequired"
+      );
+      // hidden 등록
+      $(
+        '<input type="hidden" name="pictureRequired" value="I" data-auto>'
+      ).appendTo("#new-form");
+    } else {
+      // 혹시 이전에 name이 바꼈으면 복구
+      $('input[type="radio"][id="new-pic-req"]').attr(
+        "name",
+        "pictureRequired"
+      );
+    }
+
     // 비트마스크 처리
     const type = $("#new-cycle-type").val();
     if (type === "week") {
@@ -833,10 +905,7 @@ function newChalScript() {
   });
 }
 
-function myChalScript() {}
-
 function chalMainCenterScript(searchKeyword) {
-  console.log("검색어 : " + searchKeyword);
   let currentPage = searchKeyword?.currentPage ?? 0;
   let hasMore = true;
 
@@ -903,7 +972,7 @@ function chalMainCenterScript(searchKeyword) {
         .attr("id", `center-card-${c.chalNo}`);
       if (c.status === "N") {
         $card
-          .addClass("bg-dark text-white")
+          .addClass("bg-secondary text-white")
           .attr("title", "챌린지가 종료되었습니다.");
       }
       // 썸네일
