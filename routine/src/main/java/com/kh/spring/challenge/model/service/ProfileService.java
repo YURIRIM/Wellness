@@ -1,6 +1,9 @@
 package com.kh.spring.challenge.model.service;
 
+import org.springframework.http.ResponseEntity;
+
 import com.kh.spring.challenge.model.vo.ProfileRequest;
+import com.kh.spring.challenge.model.vo.ProfileResponse;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -12,4 +15,7 @@ public interface ProfileService {
 
 	void updateMyProfile(HttpSession session, ProfileRequest p) throws Exception;
 
+	ResponseEntity<ProfileResponse> profileDetail(int userNo) throws Exception;
+	
+	void updateSessionMyProfile(HttpSession session) throws Exception;
 }

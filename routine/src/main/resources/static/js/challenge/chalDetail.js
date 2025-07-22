@@ -127,7 +127,7 @@ function leftScript() {
     writerCard.classList.add("cursor-pointer"); // 클릭 가능 UI 강조
     writerCard.addEventListener("click", function () {
       axios
-        .get(`${contextPath}/profile/profileDetail`, {
+        .get(`${contextPath}/profile/detail`, {
           params: { userNo: leftWriterUserNo },
         })
         .then(function (r) {

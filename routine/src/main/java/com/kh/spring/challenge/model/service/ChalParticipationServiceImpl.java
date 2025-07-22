@@ -21,6 +21,8 @@ public class ChalParticipationServiceImpl implements ChalParticipationService{
 	private SqlSessionTemplate sqlSession;
 	@Autowired
 	private ChalParticipationDao dao;
+	@Autowired
+	private ProfileService profileService;
 	
 	//비동기 - 챌린지 참여하기
 	@Override
@@ -39,6 +41,9 @@ public class ChalParticipationServiceImpl implements ChalParticipationService{
 		
 		int result = dao.insertParticipant(sqlSession,lac);
 		if(!(result>0)) throw new Exception("참여 할 수 없네용 까비아깝숑");
+		
+		//profile 세션 업데이트
+		profileService.updateSessionMyProfile(session);
 	}
 
 	//비동기 - 챌린지 성공/실패하기
@@ -63,6 +68,9 @@ public class ChalParticipationServiceImpl implements ChalParticipationService{
 		//챌린지 성공 혹은 실패 처리하기
 		int result = dao.updateParticipant(sqlSession, lac);
 		if(!(result>0)) return ResponseEntity.status(500).build();
+		
+		//profile 세션 업데이트
+		profileService.updateSessionMyProfile(session);
 		
 		return ResponseEntity.ok().build();
 	}
