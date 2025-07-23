@@ -1,13 +1,17 @@
 package com.kh.spring.util.attachment;
 
 import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.font.FontRenderContext;
+import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -23,45 +27,61 @@ public class Watermark {
 
 	// 낙인 - 기본형
 	public static byte[] defaultStigma(byte[] fileContent, String nick) throws Exception {
-		System.out.println("기본형 낙인 찍는중... 가슴을 데인 것 처럼 눈물에 베인 것 처럼");
-		
-		// 1. webp 바이트 -> BufferedImage
-		ByteArrayInputStream in = new ByteArrayInputStream(fileContent);
-		BufferedImage image = ImageIO.read(in);
+	    System.out.println("기본형 낙인 찍는중... 가슴을 데인 것 처럼 눈물에 베인 것 처럼");
 
-		// 2. 그래픽스 준비 (투명 배경)
-		Graphics2D g2d = image.createGraphics();
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+	    //바이너리 -> BufferedImage
+	    ByteArrayInputStream in = new ByteArrayInputStream(fileContent);
+	    BufferedImage image = ImageIO.read(in);
 
-		// 폰트 및 색상(반투명 흰색)
-		InputStream fontStream = Watermark.class.getResourceAsStream("/config/maple.ttf");
-		Font mapleFont = Font.createFont(Font.TRUETYPE_FONT, fontStream);
-		Font font = mapleFont.deriveFont(Font.BOLD, image.getWidth() / 15);
-		g2d.setFont(font);
-		g2d.setColor(new Color(255, 255, 255, 180));
+	    //그래픽스 준비 (투명 배경)
+	    Graphics2D g2d = image.createGraphics();
+	    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-		// 워터마크 문구 생성
-		String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm"));
-		String mark = "ROUTINE - " + nick + ", " + time;
+	    //폰트 준비
+	    InputStream fontStream = Watermark.class.getResourceAsStream("/config/maple.ttf");
+	    Font mapleFont = Font.createFont(Font.TRUETYPE_FONT, fontStream);
+	    Font font = mapleFont.deriveFont(Font.BOLD, image.getWidth() / 15);
 
-		// 텍스트 위치 중앙, 비스듬히 (45도)
-		FontRenderContext frc = g2d.getFontRenderContext();
-		int textWidth = (int) font.getStringBounds(mark, frc).getWidth();
-		int textHeight = (int) font.getStringBounds(mark, frc).getHeight();
+	    //워터마크 문구 생성
+	    String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+	    String mark = nick + ", " + time;
 
-		int cx = image.getWidth() / 2;
-		int cy = image.getHeight() / 2;
+	    //TextLayout을 사용하여 Shape 생성
+	    FontRenderContext frc = g2d.getFontRenderContext();
+	    TextLayout textLayout = new TextLayout(mark, font, frc);
+	    Shape textShape = textLayout.getOutline(null);
 
-		AffineTransform orig = g2d.getTransform();
-		g2d.rotate(Math.toRadians(-23), cx, cy); // 약간 비스듬히
+	    //텍스트 위치 계산
+	    Rectangle2D bounds = textShape.getBounds2D();
+	    int cx = image.getWidth() / 2;
+	    int cy = image.getHeight() / 2;
 
-		g2d.drawString(mark, cx - textWidth / 2, cy + textHeight / 2);
-		g2d.setTransform(orig);
-		g2d.dispose();
+	    AffineTransform orig = g2d.getTransform();
+	    g2d.rotate(Math.toRadians(-23), cx, cy); // 약간 비스듬히
 
-		// 3. 다시 webp로 인코딩
-		return writeWebpToBytes(image);
+	    //텍스트 중앙 정렬을 위한 변환
+	    AffineTransform textTransform = AffineTransform.getTranslateInstance(
+	        cx - bounds.getWidth() / 2, 
+	        cy + bounds.getHeight() / 2
+	    );
+	    Shape positionedShape = textTransform.createTransformedShape(textShape);
+
+	    //흰색 테두리
+	    g2d.setStroke(new BasicStroke(3.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+	    g2d.setColor(new Color(255, 255, 255, 200)); // 반투명 흰색
+	    g2d.draw(positionedShape);
+
+	    //깜장글자
+	    g2d.setColor(new Color(0, 0, 0, 180)); // 반투명 검은색
+	    g2d.fill(positionedShape);
+
+	    g2d.setTransform(orig);
+	    g2d.dispose();
+
+	    //webp로 인코딩
+	    return writeWebpToBytes(image);
 	}
+
 
 	// 낙인 - 개인형
 	public static byte[] customStigma(byte[] fileContent, byte[] watermark) throws Exception {

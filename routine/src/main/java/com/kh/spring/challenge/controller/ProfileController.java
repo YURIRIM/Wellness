@@ -1,6 +1,7 @@
 package com.kh.spring.challenge.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.kh.spring.challenge.model.service.ProfileService;
 import com.kh.spring.challenge.model.vo.ProfileRequest;
+import com.kh.spring.challenge.model.vo.ProfileResponse;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -65,4 +67,25 @@ public class ProfileController {
 			return "common/errorPage";
 		}
 	}
+	
+	//프로필 세부조회 페이지로
+	@GetMapping("/detail")
+	public String goProfileDetail(int userNo) {
+		return "profile/detail?userNo="+userNo;
+	}
+	
+	//비동기 - 프로필 세부조회
+	@ResponseBody
+	@PostMapping("/detail")
+	public ResponseEntity<ProfileResponse> profileDetail(int userNo) {
+		try {
+			return service.profileDetail	(userNo);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(500).build();
+		}
+	}
+	
+	//비동기 - 프로필 세부조회 참여 챌린지 목록
+	
 }

@@ -3,16 +3,23 @@ package com.kh.spring.challenge.model.service;
 import java.io.ByteArrayOutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.io.FilenameUtils;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kh.spring.challenge.model.dao.AttachmentDao;
@@ -31,7 +38,6 @@ import jakarta.servlet.http.HttpSession;
 
 @Service
 public class AttachmentServiceImpl implements AttachmentService {
-
 	@Autowired
 	private SqlSessionTemplate sqlSession;
 	@Autowired
@@ -154,7 +160,7 @@ public class AttachmentServiceImpl implements AttachmentService {
 
 	// 비동기 - 댓글 사진 업로드
 	@Override
-	public String insertAtComment(HttpSession session, MultipartFile file, int chalNo) throws Exception {
+	public ResponseEntity<String> insertAtComment(HttpSession session, MultipartFile file, int chalNo) throws Exception {
 		// 파일 없는데 뭐임?
 		if (file == null || file.isEmpty())
 			throw new Exception("없잖아! 날 속였어!");
@@ -174,38 +180,29 @@ public class AttachmentServiceImpl implements AttachmentService {
 				.fileSize((int) file.getSize())
 				.build();
 
-		// 사진 리사이즈
-		at.setFileContent(ResizeWebp.resizeWebp(at.getFileContent()));
-
+		// 사진 메타데이터 검사
 		String pictureRequired = chalDao.selectRequired(sqlSession, chalNo).getPictureRequired();
-		if (Exiftool.EXIFTOOL) {
-			// 사진 메타데이터 검사
-			// 해당 챌린지가 꿈과 희망이 넘치게 양심을 믿는지 각박딱딱하게 법규화된 질서를 신뢰하는지 살펴보기
-			if (pictureRequired.equals("I")) {
-				// 각박딱딱한 사람들
-				int metaInspect = Exiftool.inspectAttachment(at);
-				switch (metaInspect) {
-				case 2:
-					return "joongBock"; // 돚거는 가세요라
-				case 0:
-					throw new Exception("개발자도 알 수 없는 오류");
-				}
-			}
-
-			// 메타데이터 계엄령
-			at.setFileContent(Exiftool.sanitizeMetadata(at.getFileContent()));
-
-		} else if (pictureRequired.equals("I")) {
-			// exiftool은 없는데 메타데이터는 잡아내고 싶고...
+		if (pictureRequired.equals("I")) {
 			int metaInspect = ReadMetadata.inspectAttachment(at);
 			switch (metaInspect) {
 			case 2:
-				return "joongBock"; // 돚거는 가세요라
+				return ResponseEntity.status(400).build(); // 돚거는 가세요라
 			case 0:
 				throw new Exception("개발자도 알 수 없는 오류");
 			}
 		}
-
+		
+		// 사진 리사이즈
+		at.setFileContent(ResizeWebp.resizeWebp(at.getFileContent()));
+		
+		//webp로 확장자 이름 변경
+		String newName = FilenameUtils.getBaseName(at.getFileName()) + ".webp";
+		at.setFileName(newName);
+		
+		// 메타데이터 계엄령
+		if (Exiftool.EXIFTOOL)
+			at.setFileContent(Exiftool.sanitizeMetadata(at.getFileContent()));
+		
 		// 낙인 찍기
 		ProfileResponse myProfile = (ProfileResponse) session.getAttribute("myProfile");
 		if (myProfile == null) {
@@ -232,6 +229,28 @@ public class AttachmentServiceImpl implements AttachmentService {
 			throw new Exception("at DB저장 실패");
 
 		// uuid반환
-		return (String) uuidMap.get("uuid");
+		return ResponseEntity.ok((String) uuidMap.get("uuid"));
+	}
+
+	//비동기 - 디폴트 이미지 조회
+	@Override
+	public ResponseEntity<byte[]> defaultImg(String filename) throws Exception {
+        Resource imgFile = new ClassPathResource("static/img/" + filename);
+
+        if (!imgFile.exists()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String contentType = Files.probeContentType(imgFile.getFile().toPath());
+        if (contentType == null) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+
+        byte[] bytes = StreamUtils.copyToByteArray(imgFile.getInputStream());
+
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.CONTENT_TYPE, contentType)
+                .body(bytes);
 	}
 }

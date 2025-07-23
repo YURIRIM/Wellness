@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import com.kh.spring.challenge.model.vo.ChallengeCommentRequest;
 import com.kh.spring.challenge.model.vo.ChallengeCommentResponse;
+import com.kh.spring.challenge.model.vo.LoginUserAndChal;
 import com.kh.spring.challenge.model.vo.SearchComment;
 
 @Repository
@@ -28,8 +29,12 @@ public class ChallengeCommentDao {
 		return sqlSession.update("challengeCommentMapper.updateComment",ccr);
 	}
 
-	public int deleteComment(SqlSessionTemplate sqlSession, ChallengeCommentRequest ccr) {
-		return sqlSession.update("challengeCommentMapper.deleteComment",ccr);
+	public int deleteComment(SqlSessionTemplate sqlSession, int commentNo) {
+		return sqlSession.update("challengeCommentMapper.deleteComment",commentNo);
+	}
+
+	public int isCommentExist(SqlSessionTemplate sqlSession, LoginUserAndChal lac) {
+		return sqlSession.selectOne("challengeCommentMapper.isCommentExist",lac);
 	}
 
 }

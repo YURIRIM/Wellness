@@ -1,7 +1,7 @@
-//==========================chalMain-right==========================
 document.addEventListener("DOMContentLoaded", function () {
+  chalMainCenterScript(searchKeyword);
   const rightContainer = document.querySelector("#main-right");
-  if (!loginUser.userNo) {
+  if (!loginUser || !loginUser.userNo) {
     return;
   }
 
@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
     );
     barContainer.appendChild(
       makeBar(
-        "#6c757d",
+        "white",
         otherPct,
         total - myProfile.successCount - myProfile.failCount
       )
@@ -214,6 +214,11 @@ document.addEventListener("DOMContentLoaded", function () {
     .getElementById("right-newChal")
     ?.addEventListener("click", function (e) {
       e.preventDefault();
+      if (!myProfile) {
+        alert("프로필을 추가해 주세요!");
+        return;
+      }
+
       loadCenterFragment("/challenge/newChal", newChalScript);
     });
 
@@ -222,7 +227,20 @@ document.addEventListener("DOMContentLoaded", function () {
     .getElementById("right-createdChal")
     ?.addEventListener("click", function (e) {
       e.preventDefault();
-      loadCenterFragment("/challenge/goMyChal?searchType=O", myChalScript);
+      if (!myProfile) {
+        alert("프로필을 추가해 주세요!");
+        return;
+      }
+
+      //이미 랜더링된 목록 있으면 비우기
+      const listContainer = document.getElementById("center-chal-container");
+      if (listContainer) {
+        listContainer.innerHTML = "";
+      }
+
+      // searchType 필드로 객체 생성 후 함수 실행
+      const searchKeyword = { searchType: "O" };
+      chalMainCenterScript(searchKeyword);
     });
 
   // 내가 참여한 챌린지
@@ -230,11 +248,22 @@ document.addEventListener("DOMContentLoaded", function () {
     .getElementById("right-joinedChal")
     ?.addEventListener("click", function (e) {
       e.preventDefault();
-      loadCenterFragment("/challenge/goMyChal?searchType=J", myChalScript);
+      if (!myProfile) {
+        alert("프로필을 추가해 주세요!");
+        return;
+      }
+
+      //이미 랜더링된 목록 있으면 비우기
+      const listContainer = document.getElementById("center-chal-container");
+      if (listContainer) {
+        listContainer.innerHTML = "";
+      }
+
+      const searchKeyword = { searchType: "J" };
+      chalMainCenterScript(searchKeyword);
     });
 });
 
-//==========================chalMain-left==========================
 function chalMainLeftScript() {
   // 뒤로가기 버튼
   document
@@ -262,35 +291,62 @@ function chalMainLeftScript() {
       }
     });
 
-  // 카테고리 부모 선택 시 자식 카테고리 업데이트
+  // 카테고리 선택 변경 이벤트
   document
     .getElementById("left-category-parent")
     .addEventListener("change", function () {
       const parent = parseInt(this.value, 10);
       const childSel = document.getElementById("left-category-child");
+      const hiddenInput = document.getElementById("left-category-no");
 
-      // 1) 초기화 - "전체" 옵션의 value는 0으로 설정
+      // 1) 자식 select 활성/비활성 및 초기화
       childSel.disabled = parent === 0;
       childSel.innerHTML = '<option value="0">전체</option>';
 
-      if (parent === 0) return; // 전체 선택이면 종료
+      // 2) hidden input 값 초기화 (대분류 값)
+      hiddenInput.value = parent;
 
-      // 2) catAll에서 자식 카테고리 필터링 (window.catAll 대신 catAll 직접 사용)
+      if (parent === 0) return; // 전체 선택이면 자식 없음
+
+      // 3) catAll에서 자식 카테고리 필터링
       const children = (catAll || []).filter((c) => {
         const categoryNo = parseInt(c.categoryNo, 10);
         const parentCategory = Math.floor(categoryNo / 10) * 10;
         const isChild = categoryNo % 10 !== 0;
-
         return parentCategory === parent && isChild;
       });
 
-      // 3) 옵션 동적 추가
+      // 4) 옵션 동적 추가
       children.forEach((c) => {
         const opt = document.createElement("option");
         opt.value = c.categoryNo;
         opt.textContent = c.categoryName;
         childSel.appendChild(opt);
       });
+
+      // 자식 select가 활성화된 경우, 값을 '전체'로 맞추고 hidden input도 맞추기
+      childSel.value = "0";
+      hiddenInput.value = parent;
+    });
+
+  // 소분류(자식) 선택 변경 이벤트
+  document
+    .getElementById("left-category-child")
+    .addEventListener("change", function () {
+      const val = parseInt(this.value, 10);
+      const hiddenInput = document.getElementById("left-category-no");
+
+      // 자식이 '전체(0)'이면 대분류 값으로,
+      // 아니라면 실제 자식 카테고리 값을 hidden input에 세팅
+      if (val === 0) {
+        const parentVal = parseInt(
+          document.getElementById("left-category-parent").value,
+          10
+        );
+        hiddenInput.value = parentVal;
+      } else {
+        hiddenInput.value = val;
+      }
     });
 
   // 인증 주기 선택 처리
@@ -340,14 +396,18 @@ function chalMainLeftScript() {
     let html = "";
     options.forEach((option, index) => {
       const checked = index === 0 ? "checked" : "";
+      if (index === 0) {
+        // 첫 번째 옵션의 값을 hidden input에 세팅
+        document.getElementById("left-verify-cycle").value = option[0];
+      }
       html += `
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="${name}" value="${option[0]}" 
-                 id="left-${name}-${option[0]}" ${checked} 
-                 onchange="updateVerifyCycle(${option[0]})">
-          <label class="form-check-label" for="left-${name}-${option[0]}">${option[1]}</label>
-        </div>
-      `;
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="${name}" value="${option[0]}"
+               id="left-${name}-${option[0]}" ${checked}
+               onchange="updateVerifyCycle(${option[0]})">
+        <label class="form-check-label" for="left-${name}-${option[0]}">${option[1]}</label>
+      </div>
+    `;
     });
     return html;
   }
@@ -383,14 +443,6 @@ function chalMainLeftScript() {
     document.getElementById("left-verify-cycle").value = bitSum;
   };
 
-  // 날짜 필드에 시간 부분 추가하는 함수
-  function formatDateTimeString(dateString) {
-    if (!dateString || dateString.trim() === "") {
-      return "1453-05-29 00:00:00";
-    }
-    return dateString + " 00:00:00";
-  }
-
   // 검색 버튼 클릭 처리 (수정: 날짜 형식 처리)
   document
     .getElementById("left-search-btn")
@@ -408,23 +460,16 @@ function chalMainLeftScript() {
       ["startDate1", "startDate2", "endDate1", "endDate2"].forEach((field) => {
         const input = document.querySelector(`[name="${field}"]`);
         if (input) {
-          params[field] = formatDateTimeString(input.value);
+          params[field] = input.value;
         }
       });
 
-      axios
-        .get(contextPath + "/challenge/chalMainSearchLeft", { params })
-        .then(function (response) {
-          document.getElementById("main-challenge-list").innerHTML =
-            response.data;
-        })
-        .catch(function (error) {
-          console.error("검색 중 오류 발생:", error);
-          alert("검색 중 오류가 발생했습니다.");
-        });
+      document.getElementById("center-chal-container").innerHTML = "";
+      window.searchKeyword = params;
+      chalMainCenterScript(window.searchKeyword);
     });
 
-  // 초기화 버튼 클릭 처리 (수정: verifyCycleBit 제거)
+  // 초기화 버튼 클릭 처리
   document
     .getElementById("left-reset-btn")
     .addEventListener("click", function () {
@@ -446,11 +491,28 @@ function chalMainLeftScript() {
 
       // hidden input 초기화
       document.getElementById("left-verify-cycle").value = "0";
+      document.getElementById("left-category-no").value = "0";
     });
 }
 
-//==========================newChal==========================
 function newChalScript() {
+  // 새로운 챌린지 생성하기에서 뒤로가기
+  document.getElementById("new-back")?.addEventListener("click", function () {
+    axios
+      .get(contextPath + "/challenge/goChalMain", {
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        responseType: "text", // 텍스트 응답 받기
+      })
+      .then((res) => {
+        document.querySelector("#main-challenge-list").innerHTML = res.data;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      })
+      .catch((err) => {
+        console.error("중앙 조각 로딩 실패", err);
+        alert("콘텐츠를 불러오는 중 오류가 발생했습니다.");
+      });
+  });
+
   /** ---------- Summernote 0.9.1 한국어 초기화 ---------- */
   $("#new-content").summernote({
     placeholder: "챌린지 내용을 입력하세요 (최대 1000자)",
@@ -770,6 +832,35 @@ function newChalScript() {
       return;
     }
 
+    // pictureRequired 처리
+    // 1) 기존 hidden값은 초기화
+    $(
+      '#new-form input[type="hidden"][name="pictureRequired"][data-auto]'
+    ).remove();
+    // 2) name 리셋 (submit 직전만 반영)
+    $('input[name="pictureRequired"]').attr("name", "pictureRequired");
+
+    // 3) '필수'+도용방지 체크한 경우만 hidden 생성
+    const picked = $('input[type="radio"][id="new-pic-req"]').is(":checked");
+    const isAnti = $("#new-anti").is(":checked");
+    if (picked && isAnti) {
+      // 기존 radio의 name을 submit에서 제외
+      $('input[type="radio"][id="new-pic-req"]').attr(
+        "name",
+        "ignorePictureRequired"
+      );
+      // hidden 등록
+      $(
+        '<input type="hidden" name="pictureRequired" value="I" data-auto>'
+      ).appendTo("#new-form");
+    } else {
+      // 혹시 이전에 name이 바꼈으면 복구
+      $('input[type="radio"][id="new-pic-req"]').attr(
+        "name",
+        "pictureRequired"
+      );
+    }
+
     // 비트마스크 처리
     const type = $("#new-cycle-type").val();
     if (type === "week") {
@@ -814,8 +905,162 @@ function newChalScript() {
   });
 }
 
-//==========================myChal(createdChal/joinedChal)==========================
-function myChalScript() {}
+function chalMainCenterScript(searchKeyword) {
+  let currentPage = searchKeyword?.currentPage ?? 0;
+  let hasMore = true;
+
+  function buildParams() {
+    const sk = searchKeyword || {};
+    const p = { currentPage };
+    if (sk.orderby) p.orderby = sk.orderby;
+    if (sk.search) p.search = sk.search;
+    if (sk.searchType) p.searchType = sk.searchType;
+    if (sk.categoryNo) p.categoryNo = sk.categoryNo;
+    if (sk.verifyCycle) p.verifyCycle = sk.verifyCycle;
+    if (sk.startDate1) p.startDate1 = sk.startDate1;
+    if (sk.startDate2) p.startDate2 = sk.startDate2;
+    if (sk.endDate1) p.endDate1 = sk.endDate1;
+    if (sk.endDate2) p.endDate2 = sk.endDate2;
+    if (sk.status) p.status = sk.status;
+    if (sk.pictureRequired) p.pictureRequired = sk.pictureRequired;
+    if (sk.replyRequired) p.replyRequired = sk.replyRequired;
+    return p;
+  }
+
+  function loadPage() {
+    if (!hasMore) return;
+
+    axios
+      .get(`${contextPath}/challenge/chalMainSearch`, { params: buildParams() })
+      .then((res) => {
+        renderCards(res.data);
+        if (!res.data || res.data.length === 0) {
+          hasMore = false;
+        }
+      })
+      .catch((err) => {
+        if (err.response?.status === 404) {
+          if ($("#center-chal-container").children(".col-6").length === 0) {
+            const imgUrl = `${contextPath}/attachment/defaultImg/not-found.webp`;
+            $("#center-chal-container").append(
+              `<div class="col-6 text-center">
+              <img src="${imgUrl}" class="img-fluid"/>
+             </div>`
+            );
+          }
+          hasMore = false;
+        } else {
+          const imgUrl = `${contextPath}/attachment/defaultImg/server-error.webp`;
+          if ($("#center-chal-container").children(".col-6").length === 0) {
+            $("#center-chal-container").append(
+              `<div class="col-6 text-center">
+              <img src="${imgUrl}" class="img-fluid"/>
+             </div>`
+            );
+          }
+          hasMore = false;
+        }
+      });
+  }
+
+  function renderCards(list) {
+    if (!Array.isArray(list) || list.length === 0) return;
+    list.forEach((c) => {
+      const $col = $("<div>").addClass("col-6");
+      const $card = $("<div>")
+        .addClass("card h-100 position-relative")
+        .attr("id", `center-card-${c.chalNo}`);
+      if (c.status === "N") {
+        $card
+          .addClass("bg-secondary text-white")
+          .attr("title", "챌린지가 종료되었습니다.");
+      }
+      // 썸네일
+      const thumbSrc = c.thumbnailBase64
+        ? `data:image/jpeg;base64,${c.thumbnailBase64}`
+        : `${contextPath}/attachment/defaultImg/challenge-default.webp`;
+      const $thumb = $("<img>")
+        .addClass("card-img-top position-absolute end-0 top-0 m-2")
+        .css({ width: "4rem", height: "4rem", objectFit: "cover" })
+        .attr("src", thumbSrc);
+
+      // 프로필
+      const profSrc = c.pictureBase64
+        ? `data:image/jpeg;base64,${c.pictureBase64}`
+        : `${contextPath}/attachment/defaultImg/challenge-writer-default.webp`;
+      const $profile = $("<img>")
+        .addClass("rounded-circle me-2")
+        .css({ width: "2rem", height: "2rem", objectFit: "cover" })
+        .attr("src", profSrc);
+
+      // 본문
+      const $body = $("<div>").addClass("card-body d-flex flex-column");
+      $body.append($("<small>").addClass("text-muted").text(c.categoryName));
+      $body.append($("<h5>").addClass("card-title").text(c.title));
+      $body.append($("<p>").addClass("card-text flex-grow-1").text(c.content));
+      // 날짜
+      const start = c.startDate;
+      const end = c.endDate || "누군가 사과나무를 심는 그날까지";
+      $body.append($("<p>").addClass("mb-1").text(`${start} / ${end}`));
+      $body.append($("<p>").addClass("mb-1").text(c.verifyCycleStr));
+      // 참여/성공률
+      $body.append(
+        $("<p>")
+          .addClass("mb-1")
+          .text(
+            `참여자 ${c.participateCount}명 / 성공률 ${c.successRatio.toFixed(
+              2
+            )}%`
+          )
+      );
+      // 옵션
+      const picReq = { I: "직찍 필수", Y: "필수", O: "선택", N: "불가" }[
+        c.pictureRequired
+      ];
+      const repReq = { Y: "필수", O: "선택", N: "불가" }[c.replyRequired];
+      $body.append(
+        $("<p>")
+          .addClass("mb-0 small")
+          .text(`사진: ${picReq} / 댓글: ${repReq}`)
+      );
+      // 작성자
+      const $writer = $("<div>")
+        .addClass("d-flex align-items-center mt-2")
+        .append($profile)
+        .append($("<small>").text(c.nick));
+      $body.append($writer);
+
+      $card
+        .append($thumb, $body)
+        .css("cursor", "pointer")
+        .on(
+          "click",
+          () =>
+            (location.href = `${contextPath}/challenge/chalDetail?chalNo=${c.chalNo}`)
+        );
+      $col.append($card);
+      $("#center-chal-container").append($col);
+    });
+  }
+
+  // 무한 스크롤
+  $(window).on(
+    "scroll",
+    _.throttle(() => {
+      if (!hasMore) return;
+      if (
+        $(window).scrollTop() + $(window).height() + 100 >=
+        $(document).height()
+      ) {
+        currentPage++;
+        loadPage();
+      }
+    }, 300)
+  );
+
+  // 초기 로드
+  loadPage();
+}
 
 // 조각이 로드될 때 스크립트 실행
 if (document.readyState === "loading") {

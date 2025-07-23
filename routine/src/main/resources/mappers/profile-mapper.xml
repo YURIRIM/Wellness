@@ -47,4 +47,52 @@
   where USER_NO = #{userNo}
 </update>
 
+<select id="profileIsOpen" resultType="string" parameterType="int">
+	select IS_OPEN
+	from PROFILE
+	where USER_NO = #{userNo}
+</select>
+
+<select id="updateSessionMyProfile" resultType="ProfileResponse" parameterType="int">
+	select count(cp.CHAL_NO) as chal_particiapte_count
+	        ,SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) as success_count
+	        ,SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END) as fail_count
+		    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
+		           SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) * 100.0
+		             / COUNT(cp.user_no) , 2) END AS SUCCESS_RATIO
+		    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
+		           SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END) * 100.0
+		             / COUNT(cp.user_no) , 2) END AS FAIL_RATIO
+	  from PROFILE p
+	  left join CHALLENGE_PARTICIPATION cp on(cp.USER_NO = p.USER_NO)
+	  where p.user_no = #{userNo}
+	  group by p.USER_NO
+</select>
+
+<select id="profileDetail" resultType="ProfileResponse" parameterType="int">
+  select a1.*, P.PICTURE
+  from (
+	  select p.USER_NO
+	        ,p.BIO
+	        ,p.IS_OPEN
+	        ,count(cp.CHAL_NO) as chal_particiapte_count
+	        ,SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) as success_count
+	        ,SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END) as fail_count
+		    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
+		           SUM(CASE WHEN cp.STATUS = 'S' THEN 1 ELSE 0 END) * 100.0
+		             / COUNT(cp.user_no) , 2) END AS SUCCESS_RATIO
+		    ,CASE WHEN COUNT(cp.user_no) = 0 THEN 0 ELSE ROUND(
+		           SUM(CASE WHEN cp.STATUS = 'F' THEN 1 ELSE 0 END) * 100.0
+		             / COUNT(cp.user_no) , 2) END AS FAIL_RATIO
+	  from PROFILE p
+	  left join CHALLENGE_PARTICIPATION cp on(cp.USER_NO = p.USER_NO)
+	  where p.user_no = #{userNo}
+	  and p.IS_OPEN = 'Y'
+	  group by p.USER_NO
+	          ,p.BIO
+	          ,p.IS_OPEN
+	  ) a1
+  left join PROFILE P ON a1.USER_NO = P.USER_NO
+</select>
+
 </mapper>

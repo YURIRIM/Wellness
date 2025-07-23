@@ -1,8 +1,8 @@
 ----------------시스템계정--------------------
---DROP USER ROUTINE CASCADE;--계정 삭제
+--DROP USER ROUTINE_LOCALHOST CASCADE;--계정 삭제
 --
---create user ROUTINE identified by ROUTINE;
---grant resource, connect to ROUTINE;
+--create user ROUTINE_LOCALHOST identified by ROUTINE_LOCALHOST;
+--grant resource, connect to ROUTINE_LOCALHOST;
 ----------------------------------------------
 
 --사진 정리하기

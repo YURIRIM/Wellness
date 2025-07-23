@@ -5,14 +5,15 @@ import java.time.LocalDate;
 import com.kh.spring.util.common.Regexp;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Builder
 public class SearchChallenge {
-
 	private int currentPage; //현재 페이지
 	private final int showLimit = Regexp.CHAL_SHOW_LIMIT; //한 페이지에서 보여줄 게시글 수
 	private String orderby; //정렬 방식. '빈문자열':최신순, P:참여인원 많은 순, S:성공률 순
@@ -21,7 +22,7 @@ public class SearchChallenge {
 	
 	private int categoryNo;
 	private int verifyCycle;
-	private LocalDate startDate1; //비었을 경우 -> 1453-05-29 00:00:00
+	private LocalDate startDate1;
     private LocalDate startDate2;
     private LocalDate endDate1;
     private LocalDate endDate2;

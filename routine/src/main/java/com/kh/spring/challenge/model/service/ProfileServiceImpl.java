@@ -4,6 +4,7 @@ import java.util.Base64;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.kh.spring.challenge.model.dao.ProfileDao;
@@ -23,6 +24,7 @@ public class ProfileServiceImpl implements ProfileService{
 	@Autowired
 	private ProfileDao dao;
 	
+	//내 프로필 조회
 	@Override
 	public int selectMyProfile(HttpSession session) throws Exception {
 		User loginUser = (User)session.getAttribute("loginUser");
@@ -127,6 +129,37 @@ public class ProfileServiceImpl implements ProfileService{
 		
 		//세션 업데이트
 		selectMyProfile(session);
+	}
+	
+	//챌린지 참가/성공/실패 시 프로필 업데이트
+	@Override
+	public void updateSessionMyProfile(HttpSession session) throws Exception {
+		User loginUser = (User)session.getAttribute("loginUser");
+		ProfileResponse userProfile = (ProfileResponse)session.getAttribute("myProfile");
+
+		ProfileResponse updateProfile = dao.updateSessionMyProfile(sqlSession, loginUser.getUserNo());
+		
+		userProfile.setChalParticiapteCount(updateProfile.getChalParticiapteCount());
+		userProfile.setSuccessCount(updateProfile.getSuccessCount());
+		userProfile.setFailCount(updateProfile.getFailCount());
+		userProfile.setSuccessRatio(updateProfile.getSuccessRatio());
+		userProfile.setFailRatio(updateProfile.getFailRatio());
+		
+		session.setAttribute("myProfile", userProfile);
+	}
+
+	//비동기 - 프로필 세부조회
+	@Override
+	public ResponseEntity<ProfileResponse> profileDetail(int userNo) throws Exception {
+		ProfileResponse profile = dao.profileDetail(sqlSession,userNo);
+		if(profile == null) return ResponseEntity.status(404).build();
+		
+		if(profile.getPicture()!=null) {
+			profile.setPictureBase64(Base64.getEncoder().encodeToString(profile.getPicture()));
+			profile.setPicture(null);
+		}
+		
+		return ResponseEntity.ok(profile);
 	}
 	
 

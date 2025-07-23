@@ -4,6 +4,22 @@
     <div th:switch="${chalDetail.loginUserIsParticipation}">
       <!-- Y: 댓글 작성 영역 -->
       <div th:case="'Y'">
+        <div class="mb-3 d-flex gap-2">
+          <button
+            type="button"
+            class="btn btn-outline-success flex-fill"
+            id="btn-success"
+          >
+            성공하기
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-danger flex-fill"
+            id="btn-fail"
+          >
+            실패하기
+          </button>
+        </div>
         <div class="d-flex align-items-start mb-3">
           <img
             id="right-top-profile-img"
@@ -102,6 +118,44 @@
       <div th:case="'U'" class="text-center text-secondary">
         <i class="bi bi-person-lock-fill fs-2"></i>
         <p class="mt-2 mb-0">로그인을 해 주세요</p>
+      </div>
+    </div>
+  </div>
+
+  <!--성공/실패 확인 모달-->
+  <div
+    class="modal fade"
+    id="status-confirm-modal"
+    tabindex="-1"
+    aria-labelledby="status-modal-label"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content text-center">
+        <div class="modal-header">
+          <h5 class="modal-title" id="status-modal-label">확인</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body" id="status-modal-body">
+          <!-- 동적으로 변경 -->
+        </div>
+        <div class="modal-footer border-0 justify-content-center">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            취소
+          </button>
+          <button type="button" class="btn btn-primary" id="modal-confirm-btn">
+            확인
+          </button>
+        </div>
       </div>
     </div>
   </div>
