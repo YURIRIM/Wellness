@@ -43,16 +43,9 @@ public class ChallengeServiceImpl implements ChallengeService {
 	private ChallengeDao chalDao;
 	@Autowired
 	private AttachmentDao atDao;
-	@Autowired
-	private ChallengeCategoryDao ccDao;
+
 	@Autowired
 	private ChalParticipationDao partiDao;
-
-	//controllerAdviser - CC조회
-	@Override
-	public List<ChallengeCategory> selectCCList() {
-		return ccDao.selectCCList(sqlSession);
-	}
 
 	//챌린지 리스트 조회
 	@Override
@@ -237,7 +230,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 	
 	//챌린지 수정
 	@Override
-	public void updateChal(HttpSession session, Model model, ChallengeRequest chal) throws Exception {
+	public ResponseEntity<Void> updateChal(HttpSession session, ChallengeRequest chal) throws Exception {
 		//수정 권한 확인
 		User loginUser = (User)session.getAttribute("loginUser");
 		LoginUserAndChal lac = LoginUserAndChal.builder()
@@ -245,13 +238,48 @@ public class ChallengeServiceImpl implements ChallengeService {
 				.chalNo(chal.getChalNo())
 				.build();
 		int loginUserIsWriter = chalDao.loginUserIsWriter(sqlSession,lac);
-		if(!(loginUserIsWriter>0)) throw new Exception("접근 권한이 없습니다.");
+		if(!(loginUserIsWriter>0)) return ResponseEntity.badRequest().build();
 		
-		if(ChallengeValidator.challengeUpdate(chal)) throw new Exception("유효성 통과 못함 ㅠㅠ");
+		//뭐뭣 사진 요구사항이 비었다고? 프론트 일 안 하냐?
+		if(chal.getPictureRequired()==null) chal.setPictureRequired("I");
+		
+		if(!ChallengeValidator.challengeUpdate(chal)) return ResponseEntity.badRequest().build();
+		
+		// 제목 trim
+		chal.setTitle(chal.getTitle().trim());
+		
+		// 썸네일 있으면 Base64 url-safe 디코딩, 리사이즈 및 소독
+		byte[] thumbnail = BinaryAndBase64.base64ToBinary(chal.getThumbnailBase64());
+		if (thumbnail !=null) {
+			//썸네일 있으면 thumbnail에 넣기
+			chal.setThumbnail(thumbnail);
+			chal.setThumbnailBase64(null);
+		}
 		
 		//수정하기
+		chal.setUserNo(loginUser.getUserNo());
 		int result = chalDao.updateChal(sqlSession,chal);
-		if(!(result>0)) throw new Exception("챌린지 수정 실패");
+		if(!(result>0)) return ResponseEntity.status(500).build();
+		
+		//------------------첨부사진 나와바리------------------
+		//이미지 uuid 목록 추출
+		Pattern pattern = Pattern.compile(Regexp.CHAL_CONTENT_ATTACHMENT);
+		Matcher matcher = pattern.matcher(chal.getContent());
+		
+		while (matcher.find()) {
+			//uuid로 모든 사진 연결하기
+			String uuidStr = matcher.group(1);
+			ConnectByUuid cbu = ConnectByUuid.builder()
+					.refNo(chal.getChalNo())
+					.uuid(UuidUtil.strToByteArr(uuidStr))
+					.build();
+			result = atDao.connectAtbyUuid(sqlSession,cbu);
+			
+			if (!(result>0)) return ResponseEntity.status(500).build();
+		}
+		
+		
+		return ResponseEntity.ok().build();
 	}
 	
 

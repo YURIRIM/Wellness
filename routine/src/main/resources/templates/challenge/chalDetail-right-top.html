@@ -21,12 +21,24 @@
           </button>
         </div>
         <div class="d-flex align-items-start mb-3">
+          <!-- 프로필 이미지가 있을 때 (base64) -->
           <img
-            id="right-top-profile-img"
-            class="rounded-circle me-2"
-            th:src="${(myProfile != null and myProfile.pictureBase64 != null and myProfile.pictureBase64 != '') ? 'data:image/webp;base64,' + myProfile.pictureBase64 : '/static/img/profile-default.webp'}"
+            th:if="${(myProfile != null and myProfile.pictureBase64 != null and myProfile.pictureBase64 != '')}"
+            th:src="'data:image/webp;base64,' + myProfile.pictureBase64"
             alt="프로필"
+            class="rounded-circle me-2"
+            sstyle="width: 48px; height: 48px"
+            id="right-top-profile-img"
+          />
+
+          <!-- 프로필 이미지가 없을 때 (기본 이미지) -->
+          <img
+            th:unless="${chalDetail.pictureBase64 != null and chalDetail.pictureBase64 != ''}"
+            th:src="@{/attachment/defaultImg/profile-default.webp}"
+            alt="프로필 이미지"
+            class="rounded-circle border"
             style="width: 48px; height: 48px"
+            id="right-top-profile-img"
           />
           <strong id="right-top-nickname" th:text="${loginUser.nick}"
             >닉네임</strong

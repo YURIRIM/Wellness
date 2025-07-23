@@ -1,10 +1,14 @@
 package com.kh.spring.challenge.model.dao;
 
+import java.util.List;
+
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.kh.spring.challenge.model.vo.ChallengeResponse;
 import com.kh.spring.challenge.model.vo.ProfileRequest;
 import com.kh.spring.challenge.model.vo.ProfileResponse;
+import com.kh.spring.challenge.model.vo.SearchMyChallenge;
 
 @Repository
 public class ProfileDao {
@@ -31,6 +35,10 @@ public class ProfileDao {
 
 	public ProfileResponse updateSessionMyProfile(SqlSessionTemplate sqlSession,int userNo) {
 		return sqlSession.selectOne("profileMapper.updateSessionMyProfile",userNo);
+	}
+
+	public List<ChallengeResponse> chalParticipate(SqlSessionTemplate sqlSession, SearchMyChallenge smc) {
+		return sqlSession.selectList("profileMapper.chalParticipate",smc);
 	}
 
 }

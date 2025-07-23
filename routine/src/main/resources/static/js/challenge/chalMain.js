@@ -134,8 +134,8 @@ document.addEventListener("DOMContentLoaded", function () {
   // 참여 현황 다이어그램
   const total = myProfile.chalParticiapteCount;
   if (total > 0) {
-    const successPct = Math.floor((myProfile.successRatio || 0) * 100);
-    const failPct = Math.floor((myProfile.failRatio || 0) * 100);
+    const successPct = Math.floor(myProfile.successRatio || 0);
+    const failPct = Math.floor(myProfile.failRatio || 0);
     const otherPct = 100 - successPct - failPct;
 
     const barContainer = document.createElement("div");
@@ -143,33 +143,43 @@ document.addEventListener("DOMContentLoaded", function () {
     barContainer.style.height = "16px";
     barContainer.style.cursor = "pointer";
 
-    const makeBar = (color, pct, count) => {
+    // 막대 생성 함수
+    const makeBar = (color, pct, count, label) => {
       const seg = document.createElement("div");
       seg.className = "progress-bar";
       seg.style.width = pct + "%";
       seg.style.backgroundColor = color;
-      seg.setAttribute("data-count", count);
-      seg.setAttribute("title", count);
-      seg.addEventListener("mouseenter", (e) => {
-        e.target.textContent = `${count}`;
-      });
-      seg.addEventListener("mouseleave", (e) => {
-        e.target.textContent = "";
-      });
+      seg.style.color = "white";
+      seg.style.fontWeight = "bold";
+      seg.style.fontSize = "0.8rem";
+      seg.style.display = "flex";
+      seg.style.justifyContent = "center";
+      seg.style.alignItems = "center";
+      seg.style.userSelect = "none";
+      seg.style.whiteSpace = "nowrap";
+
+      if (pct > 3) {
+        seg.textContent = `${pct}%`;
+      }
+
+      seg.setAttribute("title", `${label}: ${count}개`);
       return seg;
     };
 
     barContainer.appendChild(
-      makeBar("#0d6efd", successPct, myProfile.successCount)
+      makeBar("#0d6efd", successPct, myProfile.successCount, "성공")
     );
     barContainer.appendChild(
       makeBar(
-        "white",
+        "#198754",
         otherPct,
-        total - myProfile.successCount - myProfile.failCount
+        total - myProfile.successCount - myProfile.failCount,
+        "진행중"
       )
     );
-    barContainer.appendChild(makeBar("#dc3545", failPct, myProfile.failCount));
+    barContainer.appendChild(
+      makeBar("#dc3545", failPct, myProfile.failCount, "실패")
+    );
 
     profileDiv.appendChild(barContainer);
   }

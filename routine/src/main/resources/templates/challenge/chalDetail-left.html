@@ -151,9 +151,20 @@
       >
         <div class="d-flex align-items-center" id="left-writer-profilerow">
           <div class="me-3">
+            <!-- 프로필 이미지가 있을 때 (base64) -->
             <img
-              th:src="${chalDetail.pictureBase64 != null && chalDetail.pictureBase64 != '' ?
-                'data:image/webp;base64,'+chalDetail.pictureBase64 : '/static/img/profile-default.webp'}"
+              th:if="${chalDetail.pictureBase64 != null and chalDetail.pictureBase64 != ''}"
+              th:src="'data:image/webp;base64,' + ${chalDetail.pictureBase64}"
+              alt="프로필 이미지"
+              class="rounded-circle border"
+              style="width: 48px; height: 48px; object-fit: cover"
+              id="left-writer-picture"
+            />
+
+            <!-- 프로필 이미지가 없을 때 (기본 이미지) -->
+            <img
+              th:unless="${chalDetail.pictureBase64 != null and chalDetail.pictureBase64 != ''}"
+              th:src="@{/attachment/defaultImg/profile-default.webp}"
               alt="프로필 이미지"
               class="rounded-circle border"
               style="width: 48px; height: 48px; object-fit: cover"
