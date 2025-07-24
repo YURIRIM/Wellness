@@ -13,4 +13,12 @@ public class ChallengeCategoryDao {
 	public List<ChallengeCategory> selectCCList(SqlSessionTemplate sqlSession) {
 		return sqlSession.selectList("challengeCategoryMapper.selectCCList");
 	}
+
+	public int updateEmbedding(SqlSessionTemplate sqlSession, ChallengeCategory cce) {
+		return sqlSession.update("challengeCategoryMapper.updateEmbedding", cce);
+	}
+
+	public List<ChallengeCategory> selectEmbeddings(SqlSessionTemplate sqlSession) {
+		return sqlSession.selectList("challengeCategoryMapper.selectEmbeddings");
+	}
 }

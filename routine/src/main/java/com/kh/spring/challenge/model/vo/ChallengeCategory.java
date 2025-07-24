@@ -1,15 +1,18 @@
 package com.kh.spring.challenge.model.vo;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Builder
 public class ChallengeCategory {
 	private int categoryNo;
 	private String categoryName;
+	private String embedding;
 	/*
 	 * 카테고리
 	 * 

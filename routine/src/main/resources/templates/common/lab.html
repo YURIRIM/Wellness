@@ -43,6 +43,26 @@
             "
           ></div>
           <hr />
+          <div>
+            카테고리 맞추기!!! 와짱대다나다~~~ <br />
+            <form id="categoryForm">
+              <textarea
+                class="form-control"
+                id="inputText2"
+                rows="5"
+                name="inputText"
+              ></textarea>
+              <button type="submit" class="btn btn-primary">개추 요청</button>
+            </form>
+            <div id="result" class="mt-2"></div>
+          </div>
+          <hr />
+          <div>
+            카테고리 임베딩 : 시간 좀 걸리니까 참을성을 갖추고 누르자 <br />
+            <button id="embeddingBtn" class="btn btn-primary">DORO!!!</button>
+            <div id="statusArea" class="mt-2"></div>
+          </div>
+          <hr />
         </div>
         <div class="col-3"></div>
       </div>
@@ -80,6 +100,67 @@
             })
             .catch(function (error) {
               console.log(error.response?.data || error.message);
+            });
+        });
+      document
+        .getElementById("embeddingBtn")
+        .addEventListener("click", function () {
+          axios
+            .post(
+              contextPath + "/category/embedding",
+              {},
+              {
+                headers: { "Content-Type": "application/json" },
+              }
+            )
+            .then(function (response) {
+              // 성공 시 status 코드 출력
+              document.getElementById("statusArea").textContent =
+                "Status: " + response.status;
+            })
+            .catch(function (error) {
+              if (error.response) {
+                // 서버 응답이 있는 경우 상태 코드 출력
+                document.getElementById("statusArea").textContent =
+                  "Error Status: " + error.response.status;
+              } else {
+                // 네트워크, 요청 실패 등의 일반 에러
+                document.getElementById("statusArea").textContent =
+                  "Error: " + error.message;
+              }
+            });
+        });
+
+      document
+        .getElementById("categoryForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const inputText2 = document.getElementById("inputText2").value.trim();
+          const resultDiv = document.getElementById("result");
+          resultDiv.textContent = "로딩 중...";
+
+          const formData = new FormData();
+          formData.append("inputText", inputText2);
+
+          axios
+            .post(contextPath + "/lab/categoryRecommend", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            })
+            .then(function (response) {
+              const categories = response.data;
+
+              if (Array.isArray(categories) && categories.length > 0) {
+                resultDiv.textContent = `개추된 카테고리 번호: ${categories.join(
+                  ", "
+                )}`;
+              } else {
+                resultDiv.textContent = "추천된 카테고리가 없습니다.";
+              }
+            })
+            .catch(function (error) {
+              console.error(error);
+              resultDiv.textContent = "요청 중 오류가 발생했습니다.";
             });
         });
     </script>

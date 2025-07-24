@@ -14,9 +14,7 @@ import org.springframework.ui.Model;
 
 import com.kh.spring.challenge.model.dao.AttachmentDao;
 import com.kh.spring.challenge.model.dao.ChalParticipationDao;
-import com.kh.spring.challenge.model.dao.ChallengeCategoryDao;
 import com.kh.spring.challenge.model.dao.ChallengeDao;
-import com.kh.spring.challenge.model.vo.ChallengeCategory;
 import com.kh.spring.challenge.model.vo.ChallengeRequest;
 import com.kh.spring.challenge.model.vo.ChallengeResponse;
 import com.kh.spring.challenge.model.vo.ConnectByUuid;

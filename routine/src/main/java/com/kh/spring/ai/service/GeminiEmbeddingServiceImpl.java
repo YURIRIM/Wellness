@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import com.google.genai.Client;
 import com.google.genai.types.ContentEmbedding;
 import com.google.genai.types.EmbedContentResponse;
-import com.kh.spring.util.ai.VectorUtil;
 
 @Service
 public class GeminiEmbeddingServiceImpl implements GeminiEmbeddingService {
@@ -43,12 +42,6 @@ public class GeminiEmbeddingServiceImpl implements GeminiEmbeddingService {
 	        vectorArray[i] = vectorList.get(i);
 	    }
 	    
-	    System.out.println("잼미니 갈구는중... "+vectorArray.length+"차원의 벡터가 준비됨.");
-	    
-	    double[][] reducedVectors = VectorUtil.reduceRandomProj(vectorArray);
-	    
-	    System.out.println("랜덤 투영중... "+reducedVectors[0].length+"차원의 벡터가 준비됨.");
-
 	    return vectorArray;
 	}
 }
