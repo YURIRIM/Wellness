@@ -116,7 +116,8 @@ function leftScript() {
       thumbImgs[1].classList.remove("d-none");
     } else {
       // 없을 때는 차선책 (예: no-image.png 등)
-      thumbImgs[1].src = "/static/img/no-image.png";
+      thumbImgs[1].src =
+        contextPath + "/attachment/defaulImg/thumbnail-default.webp";
       thumbImgs[1].classList.remove("d-none");
     }
   }
@@ -126,20 +127,8 @@ function leftScript() {
   if (writerCard && leftWriterIsOpen === "Y") {
     writerCard.classList.add("cursor-pointer"); // 클릭 가능 UI 강조
     writerCard.addEventListener("click", function () {
-      axios
-        .get(`${contextPath}/profile/detail`, {
-          params: { userNo: leftWriterUserNo },
-        })
-        .then(function (r) {
-          if (r.data && r.data.success) {
-            location.href = `${contextPath}/profile/detail?userNo=${leftWriterUserNo}`;
-          } else {
-            alert("프로필 조회에 실패했습니다.");
-          }
-        })
-        .catch(function () {
-          alert("프로필 조회에 실패했습니다.");
-        });
+      // 비동기 API 호출 없이 바로 이동
+      location.href = `${contextPath}/profile/detail?userNo=${leftWriterUserNo}`;
     });
   } else if (writerCard) {
     writerCard.classList.remove("cursor-pointer");
@@ -362,7 +351,7 @@ function rightBottomScript() {
     if (c.isOpen !== "A") {
       const imgSrc = c.pictureBase64
         ? `data:image/webp;base64,${c.pictureBase64}`
-        : "/static/img/profile-default.webp";
+        : contextPath + "/attachment/defaultImg/profile-default.webp";
       const profileImg = document.createElement("img");
       profileImg.src = imgSrc;
       profileImg.alt = "프로필";

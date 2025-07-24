@@ -25,4 +25,7 @@ public class ProfileResponse {
 	private int failCount;
 	private Double successRatio;
 	private Double failRatio;
+	
+	//user
+	private String nick;
 }

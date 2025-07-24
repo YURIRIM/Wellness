@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -123,18 +124,15 @@ public class ChallengeController {
 	//챌린지 수정
 	@ResponseBody
 	@PostMapping("/updateChal")
-	public String updateChal(HttpSession session, Model model
-			,ChallengeRequest chal) {
+	public ResponseEntity<Void> updateChal(HttpSession session, @RequestBody ChallengeRequest chal) {
 		try {
-			service.updateChal(session, model, chal);
-			return "success";
+			return service.updateChal(session, chal);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return "fail";
+			return ResponseEntity.status(500).build();
 		}
 		
 	}
-	
 	
 	//비동기 - 챌린지 삭제
 	@ResponseBody

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 //챌린지에 사진/리플이 필요한가요?
-public class ChallengeReqired {
+public class ChallengeRequired {
     private String pictureRequired; //I:직접 촬영한 사진 필수 Y:필수 O:선택 N:불가
     private String replyRequired; //Y:필수 O:선택 N:불가
 }

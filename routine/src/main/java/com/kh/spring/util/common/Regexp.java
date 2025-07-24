@@ -50,6 +50,8 @@ public class Regexp {
 	public static final String PROFILE_IS_OPEN = "^[YNA]$";
 	public static final String PROFILE_WATERMARK_TYPE = "^[DCN]$";
 	
+	//ai
+	public static final int REDUCE_DIMENSION = 128;
 	
 	//VideoCall
 	public static final String VCNAME = "^.{1,30}$";

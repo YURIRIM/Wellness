@@ -6,6 +6,8 @@ import java.util.regex.Pattern;
 import jakarta.servlet.http.HttpServletRequest;
 
 public class ChallengeFix {
+	
+	//content의 img태그 링크 정상화 및 스크립트 주석처리
 	public static String fixScrAndScript(String content, HttpServletRequest request) {
 		String scheme = request.getScheme();
 		String host = request.getServerName();

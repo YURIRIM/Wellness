@@ -134,8 +134,8 @@ document.addEventListener("DOMContentLoaded", function () {
   // 참여 현황 다이어그램
   const total = myProfile.chalParticiapteCount;
   if (total > 0) {
-    const successPct = Math.floor((myProfile.successRatio || 0) * 100);
-    const failPct = Math.floor((myProfile.failRatio || 0) * 100);
+    const successPct = Math.floor(myProfile.successRatio || 0);
+    const failPct = Math.floor(myProfile.failRatio || 0);
     const otherPct = 100 - successPct - failPct;
 
     const barContainer = document.createElement("div");
@@ -143,33 +143,43 @@ document.addEventListener("DOMContentLoaded", function () {
     barContainer.style.height = "16px";
     barContainer.style.cursor = "pointer";
 
-    const makeBar = (color, pct, count) => {
+    // 막대 생성 함수
+    const makeBar = (color, pct, count, label) => {
       const seg = document.createElement("div");
       seg.className = "progress-bar";
       seg.style.width = pct + "%";
       seg.style.backgroundColor = color;
-      seg.setAttribute("data-count", count);
-      seg.setAttribute("title", count);
-      seg.addEventListener("mouseenter", (e) => {
-        e.target.textContent = `${count}`;
-      });
-      seg.addEventListener("mouseleave", (e) => {
-        e.target.textContent = "";
-      });
+      seg.style.color = "white";
+      seg.style.fontWeight = "bold";
+      seg.style.fontSize = "0.8rem";
+      seg.style.display = "flex";
+      seg.style.justifyContent = "center";
+      seg.style.alignItems = "center";
+      seg.style.userSelect = "none";
+      seg.style.whiteSpace = "nowrap";
+
+      if (pct > 3) {
+        seg.textContent = `${pct}%`;
+      }
+
+      seg.setAttribute("title", `${label}: ${count}개`);
       return seg;
     };
 
     barContainer.appendChild(
-      makeBar("#0d6efd", successPct, myProfile.successCount)
+      makeBar("#0d6efd", successPct, myProfile.successCount, "성공")
     );
     barContainer.appendChild(
       makeBar(
-        "white",
+        "#198754",
         otherPct,
-        total - myProfile.successCount - myProfile.failCount
+        total - myProfile.successCount - myProfile.failCount,
+        "진행중"
       )
     );
-    barContainer.appendChild(makeBar("#dc3545", failPct, myProfile.failCount));
+    barContainer.appendChild(
+      makeBar("#dc3545", failPct, myProfile.failCount, "실패")
+    );
 
     profileDiv.appendChild(barContainer);
   }
@@ -903,6 +913,84 @@ function newChalScript() {
   $(document).ready(function () {
     $("#new-cycle-type").trigger("change");
   });
+
+  //카테고리 개추받고 싶으면 개추~~~~ 일단 나부터
+  document
+    .getElementById("new-recommend-btn")
+    .addEventListener("click", async function () {
+      const btn = this;
+      const resultDiv = document.getElementById("new-recommend-result");
+      btn.disabled = true;
+      resultDiv.innerHTML = "추천 중…";
+
+      try {
+        const content = document.getElementById("new-content").value;
+        const title = document.getElementById("new-title").value;
+
+        const formData = new FormData();
+        formData.append("content", content);
+        formData.append("title", title);
+
+        const resp = await axios.post(
+          contextPath + "/category/recommend",
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        const list = resp.data;
+
+        //추천 목록 렌더링: {대분류 이름} -> {소분류 이름}
+        const seen = new Set();
+        let html = '<ul class="list-group">';
+        list.forEach((no) => {
+          if (seen.has(no)) return;
+          seen.add(no);
+
+          // 대분류 번호, 이름 찾기
+          const parentNo = Math.floor(no / 10) * 10;
+          const parentItem = catAll.find((c) => c.categoryNo === parentNo);
+          const parentName = parentItem ? parentItem.categoryName : parentNo;
+
+          // 소분류 이름 찾기
+          const childItem = catAll.find((c) => c.categoryNo === no);
+          const childName = childItem ? childItem.categoryName : no;
+
+          html += `
+        <li class="list-group-item list-group-item-action p-2"
+            data-no="${no}" data-parent="${parentNo}">
+          <strong>${parentName}</strong> → ${childName}
+        </li>`;
+        });
+        html += "</ul>";
+        //버튼 오른쪽에 렌더링되도록 구조상 resultDiv가 버튼 옆에 위치해야 함
+        resultDiv.innerHTML = html;
+
+        //li 전체 클릭 시 대/소분류 자동 선택
+        resultDiv
+          .querySelectorAll("li.list-group-item-action")
+          .forEach((li) => {
+            li.style.cursor = "pointer";
+            li.addEventListener("click", () => {
+              const no = parseInt(li.dataset.no, 10);
+              const parentNo = parseInt(li.dataset.parent, 10);
+
+              // 대분류 셀렉트 설정
+              const parentSelect = document.getElementById("new-cat-parent");
+              parentSelect.value = parentNo;
+              parentSelect.dispatchEvent(new Event("change")); // 자식 로딩 트리거
+
+              // 소분류 셀렉트 활성화 및 설정
+              const childSelect = document.getElementById("new-cat-child");
+              childSelect.removeAttribute("disabled");
+              childSelect.value = no;
+            });
+          });
+      } catch (e) {
+        console.error(e);
+        resultDiv.textContent = "추천 중 오류가 발생했습니다.";
+      } finally {
+        btn.disabled = false;
+      }
+    });
 }
 
 function chalMainCenterScript(searchKeyword) {

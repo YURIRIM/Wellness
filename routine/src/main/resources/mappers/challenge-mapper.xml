@@ -328,7 +328,7 @@
 	left join PROFILE P ON a1.USER_NO = P.USER_NO
 	</select>
 	
-	<select id="selectRequired" parameterType="int" resultType="ChallengeReqired">
+	<select id="selectRequired" parameterType="int" resultType="ChallengeRequired">
 		select PICTURE_REQUIRED, REPLY_REQUIRED
 		from CHALLENGE
 		where CHAL_NO = #{chalNo}
@@ -379,11 +379,19 @@
 			,TITLE = #{title}
 			,CONTENT = #{content}
 			,THUMBNAIL = #{thumbnail}
-			,VERIFY_CYCLE =#{verifyCle}
-			,START_DATE = #{startDate}
+			,VERIFY_CYCLE = #{verifyCycle}
+			<choose>
+				<when test="startDate == null">
+					,START_DATE = SYSDATE
+				</when>
+				<otherwise>
+					,START_DATE = #{startDate}
+				</otherwise>
+			</choose>
 			,END_DATE = #{endDate}
 			,PICTURE_REQUIRED = #{pictureRequired}
 			,REPLY_REQUIRED = #{replyRequired}
 		where CHAL_NO = #{chalNo}
+		and USER_NO = #{userNo}
 	</update>
 </mapper>

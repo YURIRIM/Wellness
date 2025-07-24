@@ -9,6 +9,19 @@
 	select CATEGORY_NO,CATEGORY_NAME
 	from CHALLENGE_CATEGORY
 </select>
-	
+
+<update id="updateEmbedding" parameterType="ChallengeCategory">
+	update CHALLENGE_CATEGORY
+	set EMBEDDING = #{embedding}
+	where CATEGORY_NO = #{categoryNo}
+</update>
+
+<select id="selectEmbeddings" resultType="ChallengeCategory">
+	select CATEGORY_NO, EMBEDDING
+	from CHALLENGE_CATEGORY
+	where MOD(CATEGORY_NO, 10) != 0
+</select>
+
+
 
 </mapper>

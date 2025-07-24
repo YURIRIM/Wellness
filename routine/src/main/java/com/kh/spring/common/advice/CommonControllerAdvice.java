@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-import com.kh.spring.challenge.model.service.ChallengeService;
+import com.kh.spring.challenge.model.service.ChallengeCategoryService;
 import com.kh.spring.challenge.model.service.ProfileService;
 import com.kh.spring.challenge.model.vo.ChallengeCategory;
 import com.kh.spring.challenge.model.vo.ProfileResponse;
@@ -21,7 +21,7 @@ import jakarta.servlet.http.HttpSession;
 @ControllerAdvice
 public class CommonControllerAdvice {
 	@Autowired
-	private ChallengeService chalService;
+	private ChallengeCategoryService categoryService;
 	@Autowired
 	private ProfileService profileService;
 	
@@ -42,7 +42,7 @@ public class CommonControllerAdvice {
 			if(session.getAttribute("ChallengeCategory") == null
 					||((List<ChallengeCategory>)session.getAttribute("ChallengeCategory")).isEmpty()) {
 				//CC가 없으면 조회해서 세션에 넣어주기
-				ccList = chalService.selectCCList();
+				ccList = categoryService.selectCCList();
 				session.setAttribute("ChallengeCategory", ccList);
 			}
 		} catch (Exception e) {
