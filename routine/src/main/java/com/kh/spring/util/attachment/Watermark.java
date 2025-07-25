@@ -27,8 +27,6 @@ public class Watermark {
 
 	// 낙인 - 기본형
 	public static byte[] defaultStigma(byte[] fileContent, String nick) throws Exception {
-	    System.out.println("기본형 낙인 찍는중... 가슴을 데인 것 처럼 눈물에 베인 것 처럼");
-
 	    //바이너리 -> BufferedImage
 	    ByteArrayInputStream in = new ByteArrayInputStream(fileContent);
 	    BufferedImage image = ImageIO.read(in);
@@ -85,8 +83,6 @@ public class Watermark {
 
 	// 낙인 - 개인형
 	public static byte[] customStigma(byte[] fileContent, byte[] watermark) throws Exception {
-		System.out.println("개인형 낙인 찍는중... 지워지지 않는 상처들이 괴롭다");
-
 		// 1. 원본, 워터마크 이미지 읽기
 		BufferedImage base = ImageIO.read(new ByteArrayInputStream(fileContent));
 		BufferedImage wm = ImageIO.read(new ByteArrayInputStream(watermark));

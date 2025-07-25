@@ -198,7 +198,6 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 		
 		//허용된 게시글인지 확인
 		ChallengeRequired cr = chalDao.selectRequired(sqlSession,ccr.getChalNo());
-		System.out.println(cr);
 		if(cr.getPictureRequired()==null
 				|| (cr.getPictureRequired().equals("N") && !ccr.getUuidStr().equals("")))
 			throw new Exception("사진 못 넣잖아 너 뭐야");
