@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title th:text="${post.title}">게시글 상세</title>
+  <style>
+    body { font-family: 'Arial'; margin: 20px; }
+    .meta { color: #555; font-size: 0.9em; margin-bottom: 10px; }
+    .content { margin-top: 20px; white-space: pre-line; }
+    .btn { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h2 th:text="${post.title}">제목</h2>
+  <div class="meta">
+    <span th:text="'작성자: ' + ${post.userId}">작성자</span> |
+    <span th:text="'작성일: ' + ${post.createDate}">2025-07-14</span> |
+    <span th:text="'조회수: ' + ${post.views}">0</span> |
+    <!--  <span th:text="'좋아요: ' + ${post.likes}">0</span>-->
+  </div>
+
+  <hr />
+  <div class="content" th:text="${post.content}">본문 내용</div>
+
+  <div class="btn">
+    <a th:href="@{/openforum/list}">← 목록으로</a>
+  </div>
+</body>
+</html>

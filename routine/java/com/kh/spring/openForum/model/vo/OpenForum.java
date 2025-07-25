@@ -14,11 +14,25 @@ public class OpenForum {
 	
 	private int postId; //POST_ID NUMBER
 	private int userNo;	//USER_NO	NUMBER	No		2	회원번호
+	private String userId;
 	private String title; //TITLE VARCHAR2(50 BYTE)
 	private String content; //CONTENT	CLOB
 	private Date createDate; //CREATED_AT	DATE
+	private int views; // VIEWS 조회수
+	private String originName;//	ORIGIN_NAME	VARCHAR2(100 BYTE)
+	private String changeName;
 
 	//추후 추가? 첨부파일을 담아올 ArrayList 추가해야함
 }	
 	
 
+/*
+ * private Long id; 
+ * private String title; 
+ * private String author; 
+ * private String
+ * content; private 
+ * LocalDateTime createdAt; 
+ * private int views; 
+ * private int likes;
+ */
