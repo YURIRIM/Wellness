@@ -19,7 +19,8 @@ import com.kh.spring.challenge.model.vo.Attachment;
 public class Exiftool {
 	
 	//exiftool 작동 하니?
-	public static final boolean EXIFTOOL = checkExiftool();
+//	public static final boolean EXIFTOOL = checkExiftool();
+	public static final boolean EXIFTOOL = false;//exiftool작동 안 하는 환경 확인
 	
 	public static boolean checkExiftool(){
 		try {
@@ -86,8 +87,6 @@ public class Exiftool {
 
 	//메타데이터 소각 
 	public static byte[] sanitizeMetadata(byte[] picture) throws Exception {
-		System.out.println("exiftool로 메타데이터 때치때치 중... 사진 길이 = "+picture.length);
-		
 		//임시 파일 생성 및 byte[] 저장
 		File tempInput = File.createTempFile("input_", ".webp");
 		try (FileOutputStream fos = new FileOutputStream(tempInput)) {

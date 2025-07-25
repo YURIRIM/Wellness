@@ -1,4 +1,14 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // 맨 위로 가기 버튼 표시 및 동작
+  window.addEventListener("scroll", function () {
+    const btn = document.getElementById("main-scroll-top-btn");
+    if (window.scrollY > 200) btn.style.display = "block";
+    else btn.style.display = "none";
+  });
+  document.getElementById("main-scroll-top-btn").onclick = function () {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   chalMainCenterScript(searchKeyword);
   const rightContainer = document.querySelector("#main-right");
   if (!loginUser || !loginUser.userNo) {
@@ -272,6 +282,52 @@ document.addEventListener("DOMContentLoaded", function () {
       const searchKeyword = { searchType: "J" };
       chalMainCenterScript(searchKeyword);
     });
+
+  //AI활성화
+  $(document).ready(function () {
+    $("#right-activateAi").click(function () {
+      const keyStr = $("#right-keyInput").val();
+
+      if (!keyStr) {
+        $("#right-activateAi-msg")
+          .text("키를 입력해 주세요")
+          .css({ color: "orange" });
+        return;
+      }
+
+      axios({
+        method: "post",
+        url: contextPath + "/activateAi",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        data: new URLSearchParams({ keyStr: keyStr }).toString(),
+      })
+        .then(function (response) {
+          if (response.status === 200) {
+            $("#right-activateAi-msg").text("성공").css({ color: "green" });
+          } else {
+            $("#right-activateAi-msg").text("");
+          }
+        })
+        .catch(function (error) {
+          if (error.response) {
+            const status = error.response.status;
+            if (status === 400) {
+              $("#right-activateAi-msg")
+                .text("열쇠가 이상해요")
+                .css({ color: "orange" });
+            } else if (status === 500) {
+              $("#right-activateAi-msg")
+                .text("서버 오류")
+                .css({ color: "red" });
+            } else {
+              $("#right-activateAi-msg").text("");
+            }
+          } else {
+            $("#right-activateAi-msg").text("요청 실패").css({ color: "red" });
+          }
+        });
+    });
+  });
 });
 
 function chalMainLeftScript() {
