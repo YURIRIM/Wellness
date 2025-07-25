@@ -279,8 +279,8 @@ function rightTopScript() {
         .post(`${contextPath}/chalComment/insertComment`, formData)
         .then((res) => {
           if (res.data === "success") {
-            replyText.value = "";
-            thumbContainer.innerHTML = "";
+            if (replyText) replyText.value = "";
+            if (uploadedUuid) thumbContainer.innerHTML = "";
             uploadedUuid = null;
             if (fileInput) fileInput.value = "";
             if (charCount) charCount.textContent = "0/1000";
@@ -300,7 +300,7 @@ function rightTopScript() {
             alert("댓글 등록 실패");
           }
         })
-        .catch(() => alert("서버 오류"))
+        .catch((e) => alert("서버 오류 : " + e))
         .finally(() => updateSubmitState());
     });
   }
