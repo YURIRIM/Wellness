@@ -44,6 +44,7 @@ public class Regexp {
 	public static final int ATTACHMENT_FILE_HEIGHT = 1200;
 	public static final int ATTACHMENT_FILE_WIDTH = 1200;
 	public static final int AT_RESIZE_MAX_LOOP = 5;
+	public static final double AT_RESIZE_SHRINKRAT = 0.8;
 	
 	//profile
 	public static final String PROFIEL_BIO = "^[\\s\\S]{0,100}$";
@@ -54,9 +55,7 @@ public class Regexp {
 	public static final int REDUCE_DIMENSION = 128;
 	
 	//VideoCall
-	public static final String VCNAME = "^.{1,30}$";
-	public static final String MAXPARTICIPANTS = "^(10|[1-9])$";
+	public static final String VC_ROOM_NAME = "^[\\p{L}\\p{N}._\\-]{1,100}$";
+	public static final String VC_RESTRICT = "^[YNS]$";
 	public static final int EXPIRETIME = 3600; //daily.co의 exp, 단위 : 초
-	public static final double AT_RESIZE_SHRINKRAT = 0.8;
-
 }

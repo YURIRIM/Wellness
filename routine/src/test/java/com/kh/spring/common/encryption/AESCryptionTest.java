@@ -24,7 +24,7 @@ public class AESCryptionTest {
 	 * 파일을 AES-128 CBC로 인코딩
 	 * resouces/config 경로의 파일 이름과 key 입력
 	 * 열쇠는 SHA-256 후 앞 16바이트만 사용됨
-	 * 열쇠로 인코딩 후 vi벡터를 암호문 앞에 둠
+	 * 열쇠로 인코딩 후 vi벡터(16바이트)를 암호문 앞에 둠
 	 */
 	@Test
 	public void encryptionFile() {
