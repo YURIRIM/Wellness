@@ -1,304 +1,388 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
-	<meta charset="UTF-8">
-	<title>습관 등록</title>
+  <meta charset="UTF-8" />
+  <title>습관 등록</title>
+  <style>
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin-top: 20px;
+    }
 
-	<script>
-		function onRepeatTypeChange() {
-			const type = document.getElementById("repeatType").value;
+    .day {
+      position: relative;
+      padding: 6px;
+      text-align: center;
+      border: 1px solid #ccc;
+      height: 80px;
+    }
 
-			const unitMap = {
-				DAILY: "일마다",
-				WEEKLY: "주마다",
-				MONTHLY: "개월마다",
-				YEARLY: "년마다"
-			};
+    .day.highlight {
+      background-color: #fff8b3; /* 노란 배경 = 반복 조건 충족 */
+    }
 
-			const maxMap = {
-				DAILY: 31,
-				WEEKLY: 52,
-				MONTHLY: 12,
-				YEARLY: 100
-			};
+    .day.today {
+      color: #1e90ff; /* 파란 글자 = 오늘 */
+      border: 2px solid #1e90ff;
+      font-weight: bold;
+    }
 
-			const unit = unitMap[type];
-			const max = maxMap[type];
+    .timeLabel {
+      font-size: 0.8em;
+      color: #555;
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+    }
+  </style>
+  <script>
+	let calendarYear, calendarMonth;
 
-			const intervalInput = document.querySelector("input[name='interval']");
-			const unitElement = document.getElementById("intervalUnit");
-			
-			if (intervalInput && max) {
-			        intervalInput.max = max;
-			    }
-			
-			if (unitElement && unit) {
-				unitElement.innerText = unit;
-			}
+	const weekdayMap = { SUN: 0, MON: 1, TUE: 2, WED: 3, THU: 4, FRI: 5, SAT: 6 };
 
-			const isWeekly = type === "WEEKLY";
-			document.getElementById("weekDaysSection").style.display = isWeekly ? "block" : "none";
-			document.getElementById("weeklyOptionSelector").style.display = isWeekly ? "block" : "none";
-			document.getElementById("nthWeekSection").style.display = "none";
+    const unitMap = {
+      DAILY: "일",
+      WEEKLY: "주",
+      WEEKLY_COUNT: "주",
+      MONTHLY_COUNT: "월"
+    };
 
-			if (isWeekly) {
-				onWeeklyOptionChange();
-			}
+    function updateIntervalUnit() {
+      const type = document.getElementById("repeatType").value;
+      const intervalInput = document.querySelector("input[name='repeat.interval']");
+      const unitElement = document.getElementById("intervalUnit");
+      const interval = parseInt(intervalInput.value, 10) || 1;
+      const unitText = unitMap[type];
+      unitElement.innerText = unitText ? (interval === 1 ? `매${unitText}` : `${interval}${unitText}마다`) : "";
+    }
 
-			document.getElementById("dateSection").style.display = (type === "MONTHLY" || type === "YEARLY") ? "block" : "none";
-			document.getElementById("yearlySection").style.display = (type === "YEARLY") ? "block" : "none";
-		}
+	function onRepeatTypeChange() {
+	  const type = document.getElementById("repeatType").value;
+	  const weeklyOption = document.querySelector("input[name='weeklyOption']:checked")?.value || "interval";
+
+	  const showInterval = (type === "DAILY") || (type === "WEEKLY" && weeklyOption === "interval");
+
+	  document.getElementById("intervalSection").style.display = showInterval ? "block" : "none";
+	  document.getElementById("repeatFrequencySection").style.display = (type === "WEEKLY_COUNT" || type === "MONTHLY_COUNT") ? "block" : "none";
+	  document.getElementById("frequencyUnitText").innerText = unitMap[type] || "";
+	  document.getElementById("timeOptionSection").style.display = (type === "DAILY" || type === "WEEKLY") ? "block" : "none";
+
+	  document.getElementById("weeklyOptionSelector").style.display = (type === "WEEKLY") ? "block" : "none";
+
+	  // 매주(WEEKLY)이고 옵션에 따라 반복 요일/주차 섹션 보이기
+	  if (type === "WEEKLY") {
+	    if (weeklyOption === "interval") {
+	      document.getElementById("weekDaysSection").style.display = "block";
+	      document.getElementById("nthWeekSection").style.display = "none";
+	    } else if (weeklyOption === "nth") {
+	      document.getElementById("weekDaysSection").style.display = "none";
+	      document.getElementById("nthWeekSection").style.display = "block";
+	    }
+	  } else {
+	    document.getElementById("weekDaysSection").style.display = "none";
+	    document.getElementById("nthWeekSection").style.display = "none";
+	  }
+
+	  updateIntervalUnit();
+	  updateTimeVisibility();
+	  renderCalendar();
+	}
+
+	function onWeeklyOptionChange() {
+	  // 동일하게 위와 같은 로직 반복
+	  onRepeatTypeChange();
+	}
 
 
-		function onWeeklyOptionChange() {
-			const selected = document.querySelector('input[name="weeklyOption"]:checked');
-			if (!selected) return;
 
-			const value = selected.value;
-			document.getElementById("weeklyIntervalSection").style.display = (value === "interval") ? "block" : "none";
-			document.getElementById("nthWeekSection").style.display = (value === "nth") ? "block" : "none";
-		}
 
-		function onAllDayToggle() {
-			const isChecked = document.getElementById("allDay").checked;
-			document.getElementById("timeSection").style.display = isChecked ? "none" : "block";
-		}
+    function updateTimeVisibility() {
+      const allDay = document.getElementById("allDay").checked;
+      document.getElementById("timeSection").style.display = allDay ? "none" : "block";
+    }
 
-		function selectWeekDays(type, checked) {
-			const selector = type === 'weekdays' ? '.weekday' : '.weekend';
-			document.querySelectorAll(selector).forEach(cb => cb.checked = checked);
-		}
+	function onWeeklyOptionChange() {
+	  const type = document.getElementById("repeatType").value;
+	  const selected = document.querySelector("input[name='weeklyOption']:checked").value;
 
-		window.addEventListener("DOMContentLoaded", function () {
-			onRepeatTypeChange(); 
-		});
-		
-		
-		
-		
-		
-		
-		
-		function onGoalChange() {
-		    const select = document.getElementById("goalSelect");
-		    const value = select.value;
-		    const newGoalDiv = document.getElementById("newGoalInputDiv");
-		    const selectedGoalText = document.getElementById("selectedGoalText");
+	  // 요일/주차 섹션 표시
+	  document.getElementById("weekDaysSection").style.display = selected === "interval" ? "block" : "none";
+	  document.getElementById("nthWeekSection").style.display = selected === "nth" ? "block" : "none";
 
-		    if (value === "new") {
-		      newGoalDiv.style.display = "block";
-		      selectedGoalText.textContent = ""; // 초기화
-		    } else if (value !== "") {
-		      newGoalDiv.style.display = "none";
-		      const selectedText = select.options[select.selectedIndex].text;
-		      selectedGoalText.textContent = `목표 : ${selectedText}`;
-		    } else {
-		      newGoalDiv.style.display = "none";
-		      selectedGoalText.textContent = "";
-		    }
-		  }
+	  // 반복간격 표시 조건 업데이트
+	  const showInterval = (type === "DAILY") || (type === "WEEKLY" && selected === "interval");
+	  document.getElementById("intervalSection").style.display = showInterval ? "block" : "none";
 
-		  function updateSelectedGoal() {
-		    const input = document.getElementById("newGoalInput").value.trim();
-		    const selectedGoalText = document.getElementById("selectedGoalText");
-		    if (input) {
-		      selectedGoalText.textContent = `목표 : ${input}`;
-		    } else {
-		      selectedGoalText.textContent = "";
-		    }
-		  }
-		
-		
-		
-		
-		
-	</script>
-</head>
+	  renderCalendar();
+	}
 
-<body>
-	<h2>습관 등록</h2>
 
-	<form th:action="@{/habit/add}" method="post">
-		
-		<label for="goalSelect"></label>
-		<select id="goalSelect" name="goalNo" onchange="onGoalChange()">
-		  <option value="">-- 목표 선택 --</option>
-		  <option value="1">운동하기</option>
-		  <option value="2">책 읽기</option>
-		  <option value="new">+ 새 목표 입력 +</option>
-		</select>
+    function toggleWeekDays() {
+      const section = document.getElementById("weekDaysSection");
+      section.style.display = section.style.display === "none" ? "block" : "none";
+    }
 
-		<!-- 새 목표 입력 필드 (기본은 숨김) -->
-		<div id="newGoalInputDiv" style="margin-top: 8px; display: none;">
-		  <input type="text" id="newGoalInput" placeholder="목표를 입력하세요" oninput="updateSelectedGoal()" />
-		</div>
+	function selectWeekDays(group, checked) {
+	  const className = group === 'weekdays' ? 'weekday' : 'weekend';
+	  document.querySelectorAll(`.${className}`).forEach(cb => cb.checked = checked);
+	  renderCalendar(); // 달력 다시 그림
+	}
 
-		<!-- 목표 표시 -->
-		<p id="selectedGoalText" style="font-weight: bold; margin-top: 8px;"></p>
-		
-		<!-- 습관 이름 -->
-		<div>
-			<label>습관 이름</label>
-			<input type="text" name="title" required>
-		</div>
-
-		<!-- 반복 유형 선택 -->
-		<div>
-			<label>반복 유형</label>
-			<select name="repeat.repeatType" id="repeatType" onchange="onRepeatTypeChange()">
-				<option value="DAILY">매일</option>
-				<option value="WEEKLY">매주</option>
-				<option value="MONTHLY">매월</option>
-				<option value="YEARLY">매년</option>
-			</select>
-		</div>
-
-		<!-- WEEKLY 옵션 선택 -->
-		<div id="weeklyOptionSelector" style="display: none;">
-			<label><input type="radio" name="weeklyOption" value="interval" checked onclick="onWeeklyOptionChange()"> N주마다 반복</label>
-			<label><input type="radio" name="weeklyOption" value="nth" onclick="onWeeklyOptionChange()"> N째주마다</label>
-		</div>
-
-		<!-- 반복 간격 -->
-		<div id="intervalSection">
-			<label>반복 간격</label>
-			<input type="number" name="repeat.interval" min="1" value="1">
-			<span id="intervalUnit">일마다</span>
-		</div>
-
-		<!-- WEEKLY: N째주 N요일 -->
-		<div id="nthWeekSection" style="display: none;">
-			<label>해당 주차 선택</label><br>
-			<label><input type="checkbox" name="repeat.nthWeeks" value="1">1째주</label>
-			<label><input type="checkbox" name="repeat.nthWeeks" value="2">2째주</label>
-			<label><input type="checkbox" name="repeat.nthWeeks" value="3">3째주</label>
-			<label><input type="checkbox" name="repeat.nthWeeks" value="4">4째주</label>
-			<label><input type="checkbox" name="repeat.nthWeeks" value="5">5째주</label>
-			<label><input type="checkbox" name="repeat.nthWeeks" value="LAST">마지막째주</label>
-			<br><br>
-
-			<label>해당 요일 선택</label><br>
-			<label><input type="checkbox" name="repeat.nthWeekDays" value="MON">월</label>
-			<label><input type="checkbox" name="repeat.nthWeekDays" value="TUE">화</label>
-			<label><input type="checkbox" name="repeat.nthWeekDays" value="WED">수</label>
-			<label><input type="checkbox" name="repeat.nthWeekDays" value="THU">목</label>
-			<label><input type="checkbox" name="repeat.nthWeekDays" value="FRI">금</label>
-			<label><input type="checkbox" name="repeat.nthWeekDays" value="SAT">토</label>
-			<label><input type="checkbox" name="repeat.nthWeekDays" value="SUN">일</label>
-		</div>
-
-		<!-- 반복 요일 선택 -->
-		<div id="weekDaysSection" style="display: none;">
-			<label>반복 요일</label><br>
-			<label><input type="checkbox" onclick="selectWeekDays('weekdays', this.checked)">평일</label>
-			<label><input type="checkbox" onclick="selectWeekDays('weekends', this.checked)">주말</label><br>
-			<label><input type="checkbox" name="repeat.weekDays" value="MON" class="weekday">월</label>
-			<label><input type="checkbox" name="repeat.weekDays" value="TUE" class="weekday">화</label>
-			<label><input type="checkbox" name="repeat.weekDays" value="WED" class="weekday">수</label>
-			<label><input type="checkbox" name="repeat.weekDays" value="THU" class="weekday">목</label>
-			<label><input type="checkbox" name="repeat.weekDays" value="FRI" class="weekday">금</label>
-			<label><input type="checkbox" name="repeat.weekDays" value="SAT" class="weekend">토</label>
-			<label><input type="checkbox" name="repeat.weekDays" value="SUN" class="weekend">일</label>
-		</div>
-
-		<!-- 날짜 선택 (MONTHLY, YEARLY) -->
-		<div id="dateSection" style="display: none;">
-			<label>날짜</label>
-			<input type="number" name="repeat.dayOfMonth" min="1" max="31">
-		</div>
-
-		<!-- 연도 반복 설정 -->
-		<div id="yearlySection" style="display: none;">
-			<label>월</label>
-			<input type="number" name="repeat.yearlyMonth" min="1" max="12">
-
-			<label>주차</label>
-			<select name="repeat.yearlyNthWeek">
-				<option value="">--선택--</option>
-				<option value="1">1째주</option>
-				<option value="2">2째주</option>
-				<option value="3">3째주</option>
-				<option value="4">4째주</option>
-				<option value="5">5째주</option>
-			</select>
-
-			<label>요일</label>
-			<select name="repeat.yearlyDayOfWeek">
-				<option value="">--선택--</option>
-				<option value="MON">월</option>
-				<option value="TUE">화</option>
-				<option value="WED">수</option>
-				<option value="THU">목</option>
-				<option value="FRI">금</option >
-				<option value="SAT">토</option>
-				<option value="SUN">일</option>
-			</select>
-		</div>
-
-		<!-- 반복 시간 -->
-		<div>
-			<label>하루 종일</label>
-			<input type="checkbox" name="repeat.allDay" id="allDay" onchange="onAllDayToggle()">
-		</div>
-
-		<div id="timeSection">
-			<label>반복 시간</label>
-			<input type="time" name="repeat.repeatTime">
-		</div>
-
-		
-		<br>
-		<button type="submit">습관 등록</button>
-		
-	</form>
 	
-	<form id="habitForm">
+	
+	
+	
+	
+	function getWeekNumber(date) {
+	  const d = new Date(date);
+	  d.setDate(d.getDate() - d.getDay() + 1); // 주의 시작 (월요일 기준)
+	  const start = new Date(d.getFullYear(), 0, 1);
+	  return Math.ceil((((d - start) / 86400000) + start.getDay()) / 7);
+	}
 
-	  <!-- S (구체적): 무엇을 할 건가요? -->
-	  <label for="action">1️⃣ 어떤 습관을 만들고 싶나요?</label>
-	  <div class="example">예: 영어 단어 암기 / 스트레칭 / 일기쓰기</div>
-	  <input type="text" id="action" name="action" placeholder="예: 아침마다 스트레칭 하기" required />
+	function isLastWeekOfMonth(date) {
+	  const test = new Date(date);
+	  test.setDate(test.getDate() + 7);
+	  return test.getMonth() !== date.getMonth();
+	}
+	
+	
+	
+	
+	
+	
 
-	  <!-- M (측정 가능 + 반복 주기) -->
-	  <label>2️⃣ 얼마나 자주 실천할 건가요?</label>
-	  <div class="example">예: 하루에 1번 / 주 3회 / 매일</div>
-	  <input type="number" name="amount" min="1" style="width:60px;" required />
-	  <select name="unit" required>
-	    <option value="DAY">일</option>
-	    <option value="WEEK">주</option>
-	    <option value="MONTH">월</option>
-	  </select>
-	  <span>에</span>
-	  <input type="number" name="times" min="1" style="width:60px;" required />
-	  <span>회</span>
+	function renderCalendar() {
+	  const calendar = document.getElementById("calendar");
+	  calendar.innerHTML = "";
 
-	  <!-- A (달성 가능성) -->
-	  <label for="reasonable">3️⃣ 이 습관이 현실적으로 가능한가요?</label>
-	  <div class="example">예: 하루 10분이면 충분 / 점심시간에 가능</div>
-	  <input type="text" id="reasonable" name="reasonable" required />
+	  const today = new Date();
+	  today.setHours(0, 0, 0, 0);
 
-	  <!-- R (목표 연관성) -->
-	  <label for="relatedGoal">4️⃣ 어떤 목표와 관련이 있나요?</label>
-	  <div class="example">예: 다이어트 / 자존감 회복 / 자기계발</div>
-	  <input type="text" id="relatedGoal" name="relatedGoal" required />
+	  const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+	  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+	  const repeatType = document.getElementById("repeatType").value;
+	  const allDay = document.getElementById("allDay").checked;
+	  const startTime = document.querySelector("input[name='repeat.repeatTime']")?.value || "";
+	  const interval = parseInt(document.querySelector("input[name='repeat.interval']")?.value || "1", 10);
+	  const weeklyOption = document.querySelector("input[name='weeklyOption']:checked")?.value || "interval";
 
-	  <!-- T (기간 설정) -->
-	  <label for="period">5️⃣ 얼마나 유지할 계획인가요?</label>
-	  <input type="number" name="periodValue" min="1" style="width:60px;" required />
-	  <select name="periodUnit" required>
-	    <option value="WEEK">주</option>
-	    <option value="MONTH">개월</option>
-	  </select>
+	  const checkedDays = Array.from(document.querySelectorAll("input[name='repeat.weekDays']:checked"))
+	    .map(cb => weekdayMap[cb.value]);
 
-	  <br><br>
-	  <button type="submit">습관 등록하기</button>
-	</form>
+	  const nthWeeks = Array.from(document.querySelectorAll("input[name='repeat.nthWeeks']:checked"))
+	    .map(cb => cb.value === "LAST" ? "LAST" : parseInt(cb.value));
+	  const nthWeekDays = Array.from(document.querySelectorAll("input[name='repeat.nthWeekDays']:checked"))
+	    .map(cb => weekdayMap[cb.value]);
 
-	<br>
-	<a th:href="@{/habit/list}">목록으로</a>
-	<a th:href="@{/habit/cal}">캘린더</a>
+	  document.getElementById("calendarHeader").innerText = `${calendarYear}년 ${calendarMonth + 1}월`;
 
+	  for (let i = 0; i < firstDay; i++) {
+	    calendar.innerHTML += `<div class="day"></div>`;
+	  }
+
+	  for (let day = 1; day <= daysInMonth; day++) {
+	    const currentDate = new Date(calendarYear, calendarMonth, day);
+	    const currentMidnight = new Date(currentDate);
+	    currentMidnight.setHours(0, 0, 0, 0);
+	    const dayOfWeek = currentDate.getDay();
+	    const isToday = currentMidnight.getTime() === today.getTime();
+	    let highlight = false;
+
+	    if (repeatType === "DAILY") {
+	      const diffDays = Math.floor((currentMidnight - today) / (1000 * 60 * 60 * 24));
+	      highlight = diffDays % interval === 0 && diffDays >= 0;
+	    }
+
+		if (repeatType === "WEEKLY") {
+		  if (weeklyOption === "interval") {
+		    const baseDate = new Date(today);
+		    const baseWeekStart = new Date(baseDate);
+		    baseWeekStart.setDate(baseWeekStart.getDate() - baseWeekStart.getDay());
+
+		    const weekStart = new Date(currentMidnight);
+		    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+
+		    const diffWeeks = Math.floor((weekStart - baseWeekStart) / (1000 * 60 * 60 * 24 * 7));
+
+		    if (
+		      diffWeeks % interval === 0 &&
+		      diffWeeks >= 0 &&
+		      checkedDays.includes(dayOfWeek) &&
+		      currentMidnight >= today
+		    ) {
+		      highlight = true;
+		    }
+		  }
+
+		  // ✅ 여기 추가
+		  if (weeklyOption === "nth") {
+		    if (currentMidnight >= today && nthWeekDays.includes(dayOfWeek)) {
+		      const firstOfMonth = new Date(calendarYear, calendarMonth, 1);
+		      const offset = (dayOfWeek - firstOfMonth.getDay() + 7) % 7;
+		      const weekIndex = Math.floor((day - 1 - offset) / 7) + 1;
+		      const isLast = isLastWeekOfMonth(currentDate);
+
+		      const isMatchedWeek =
+		        nthWeeks.includes(weekIndex) || (isLast && nthWeeks.includes("LAST"));
+
+		      if (isMatchedWeek) {
+		        highlight = true;
+		      }
+		    }
+		  }
+		}
+
+
+	    const timeText = (!allDay && highlight) ? `<div class="timeLabel">${startTime}</div>` : "";
+
+	    calendar.innerHTML += `
+	      <div class="day ${highlight ? "highlight" : ""} ${isToday ? "today" : ""}">
+	        ${day}
+	        ${timeText}
+	      </div>
+	    `;
+	  }
+	}
+
+
+	  function goToPrevMonth() {
+	    if (calendarMonth === 0) {
+	      calendarMonth = 11;
+	      calendarYear -= 1;
+	    } else {
+	      calendarMonth -= 1;
+	    }
+	    renderCalendar();
+	  }
+
+	  function goToNextMonth() {
+	    if (calendarMonth === 11) {
+	      calendarMonth = 0;
+	      calendarYear += 1;
+	    } else {
+	      calendarMonth += 1;
+	    }
+	    renderCalendar();
+	  }
+
+	  window.addEventListener("DOMContentLoaded", () => {
+	    const today = new Date();
+	    calendarYear = today.getFullYear();
+	    calendarMonth = today.getMonth();
+
+	    document.getElementById("prevMonthBtn").addEventListener("click", goToPrevMonth);
+	    document.getElementById("nextMonthBtn").addEventListener("click", goToNextMonth);
+
+	    document.getElementById("repeatType").addEventListener("change", onRepeatTypeChange);
+	    document.querySelector("input[name='repeat.interval']").addEventListener("input", () => {
+	      updateIntervalUnit();
+	      renderCalendar();
+	    });
+
+	    document.getElementById("allDay").addEventListener("change", () => {
+	      updateTimeVisibility();
+	      renderCalendar();
+	    });
+
+	    const inputs = [
+	      ...document.querySelectorAll("input[name='repeat.weekDays']"),
+	      ...document.querySelectorAll("input[name='repeat.nthWeeks']"),
+	      ...document.querySelectorAll("input[name='repeat.nthWeekDays']"),
+	      ...document.querySelectorAll("input[name='weeklyOption']")
+	    ];
+	    inputs.forEach(input => input.addEventListener("change", renderCalendar));
+
+	    onRepeatTypeChange();
+	    renderCalendar();
+	  });
+  </script>
+</head>
+<body>
+  <h2>습관 반복 설정</h2>
+  
+  <div>
+    <button id="prevMonthBtn">&lt; 이전달</button>
+    <span id="calendarHeader"></span>
+    <button id="nextMonthBtn">다음달 &gt;</button>
+  </div>
+  
+  <div id="calendar" class="calendar"></div>
+
+  <h2>습관 등록</h2>
+  <form th:action="@{/habit/add}" method="post">
+    <div>
+      <label>습관 이름</label>
+      <input type="text" name="title" required>
+    </div>
+
+    <div>
+      <label>반복 유형</label>
+      <select name="repeat.repeatType" id="repeatType">
+        <option value="DAILY">매일</option>
+        <option value="WEEKLY">매주</option>
+        <option value="WEEKLY_COUNT">주 N회</option>
+        <option value="MONTHLY_COUNT">월 N회</option>
+      </select>
+    </div>
+
+    <div id="weeklyOptionSelector" style="display: none;">
+      <label><input type="radio" name="weeklyOption" value="interval" checked onclick="onWeeklyOptionChange()"> N주마다 반복</label>
+      <label><input type="radio" name="weeklyOption" value="nth" onclick="onWeeklyOptionChange()"> N째주마다</label>
+    </div>
+
+	    <div id="intervalSection" style="display: none;">
+      <label>반복 간격</label>
+      <input type="number" name="repeat.interval" min="1" value="1">
+      <span id="intervalUnit">일마다</span>
+    </div>
+
+    <div id="repeatFrequencySection" style="display: none;">
+      <label>반복 횟수</label>
+      <span id="frequencyUnitText">주</span>
+      <input type="number" name="repeat.frequencyCount" min="1" max="365" value="1">
+      <span>회</span>
+    </div>
+
+
+    <div id="nthWeekSection" style="display: none;">
+      <label>해당 주차</label><br>
+      <label><input type="checkbox" name="repeat.nthWeeks" value="1">1째주</label>
+      <label><input type="checkbox" name="repeat.nthWeeks" value="2">2째주</label>
+      <label><input type="checkbox" name="repeat.nthWeeks" value="3">3째주</label>
+      <label><input type="checkbox" name="repeat.nthWeeks" value="4">4째주</label>
+      <label><input type="checkbox" name="repeat.nthWeeks" value="LAST">마지막</label><br>
+    </div>
+
+
+    <div id="weekDaysSection" style="display: none;">
+      <label>반복 요일</label><br>
+      <label><input type="checkbox" onclick="selectWeekDays('weekdays', this.checked)">평일</label>
+      <label><input type="checkbox" onclick="selectWeekDays('weekends', this.checked)">주말</label><br>
+      <label><input type="checkbox" name="repeat.weekDays" value="MON" class="weekday">월</label>
+      <label><input type="checkbox" name="repeat.weekDays" value="TUE" class="weekday">화</label>
+      <label><input type="checkbox" name="repeat.weekDays" value="WED" class="weekday">수</label>
+      <label><input type="checkbox" name="repeat.weekDays" value="THU" class="weekday">목</label>
+      <label><input type="checkbox" name="repeat.weekDays" value="FRI" class="weekday">금</label>
+      <label><input type="checkbox" name="repeat.weekDays" value="SAT" class="weekend">토</label>
+      <label><input type="checkbox" name="repeat.weekDays" value="SUN" class="weekend">일</label>
+    </div>
+
+    <div id="timeOptionSection" style="display: none;">
+      <div>
+        <label>하루 종일</label>
+        <input type="checkbox" name="repeat.allDay" id="allDay" checked>
+      </div>
+      <div id="timeSection">
+        <label>시간</label>
+        <input type="time" name="repeat.repeatTime">
+      </div>
+    </div>
+
+    <br>
+    <button type="submit">등록</button>
+  </form>
 </body>
-
 </html>
