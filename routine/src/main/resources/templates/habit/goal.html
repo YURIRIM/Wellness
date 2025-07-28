@@ -11,10 +11,20 @@
     .example { font-size: 0.9rem; color: #666; margin-top: 0.3rem; }
     button { margin-top: 2rem; padding: 0.8rem 1.2rem; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; }
     button:hover { background: #45a049; }
+	
+	form {
+	  background-color: #fff;
+	  border-radius: 16px;
+	  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+	  padding: 36px 48px;
+	  max-width: 720px;
+	  width: 100%;
+	  box-sizing: border-box;
+	}
   </style>
 </head>
 <body>
-
+	<form th:action="@{/habit/add}" method="post">
   <h2>🎯 목표 등록</h2>
 
   <form id="goalForm" th:action="@{/goal/save}" method="post">
@@ -35,17 +45,27 @@
     <label for="roughGoal">1️⃣ 당신의 목표는?</label>
     <input type="text" id="roughGoal" name="roughGoal" placeholder="예) 영어를 잘하고 싶다 / 다이어트" required />
 
-    <!-- 2. 구체적인 목표 -->
-    <label for="specificGoal">2️⃣ 목표를 위해 무엇을 할 건 가요?</label>  
-    <input type="text" id="specificGoal" name="specificGoal" placeholder="예) 토익 점수를 750점으로 올리겠다 / 3kg 감량해서 체지방률 20% 이하로" required />
-
     <!-- 3. 목표 이유 -->
     <label for="why">3️⃣ 왜 이 목표를 이루고 싶나요?</label>
     <input type="text" id="why" name="why" placeholder="예) 해외 취업 준비를 위해 / 자존감을 높이기 위해 등" required />
 
-    <!-- 4. 측정 가능한 결과 -->
-    <label for="result">4️⃣ 목표가 달성된 상태는 어떤 모습인가요?</label>
-    <input type="text" id="result" name="result" placeholder="예) 체중 55kg / TOEIC 800점 / 블로그 글 10개 등" required />
+	<!-- 4. 목표 전후 상태 -->
+	<label>4️⃣ 어떤 변화를 원하나요? (Before → After)</label>
+	<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+	  <div style="flex: 1; min-width: 80px;">
+	    <input type="number" id="beforeState" name="beforeState" placeholder="현재 상태 숫자만" min="1" required style="width: 100%;" />
+	  </div>
+	  <span id="beforeUnit" style="white-space: nowrap; min-width: 30px;"></span>
+
+	  <span style="font-weight: bold; margin: 0 0.4rem;">=&gt;&nbsp;&nbsp;&nbsp;</span>
+
+	  <div style="flex: 1; min-width: 80px;">
+	    <input type="number" id="afterState" name="afterState" placeholder="목표 상태 숫자만" min="1" required style="width: 100%;" />
+	  </div>
+	  <span id="afterUnit" style="white-space: nowrap; min-width: 30px;"></span>
+	</div>
+	<div id="beforeAfterError" class="example" style="color: red; margin-top: 0.3rem;"></div>
+	<div class="example">예: 영어 점수 Before: 500점 → After: 800점 / 체중 Before: 60kg → After: 55kg</div>
 
     <!-- 5. 목표 기간 -->
     <label for="deadlineType">5️⃣ 언제까지 이루고 싶나요?</label>
@@ -58,14 +78,21 @@
     </select>
     <input type="date" id="deadlineDate" name="deadlineDate" style="margin-top: 0.6rem;" />
 
-    <!-- 6. 실현 가능성 -->
-    <label for="feasibility">6️⃣ 목표를 달성할 수 있는 이유</label>
-    <textarea id="feasibility" name="feasibility" placeholder="예: 주 3회 1시간씩 가능 / 교재 구매비용 있음 등" rows="3" required></textarea>
-
     <button type="submit">목표 등록하기</button>
+    <button type="button" th:onclick="|location.href='@{/habit/add}'|">목표 등록하기</button>
+		
+  </form>
+ 
+  <br>
+  <a th:href="@{/habit/list}">목록으로</a>
+  <a th:href="@{/habit/cal}">캘린더</a>
+  <a th:href="@{/habit/today}">오늘의 </a>
+
   </form>
 
   <script>
+	
+	
     const deadlineTypeSelect = document.getElementById("deadlineType");
     const deadlineDateInput = document.getElementById("deadlineDate");
 
@@ -90,14 +117,67 @@
         deadlineDateInput.readOnly = false;
       }
     });
+
+	const unitInput = document.getElementById('unit');
+	const beforeUnitSpan = document.getElementById('beforeUnit');
+	const afterUnitSpan = document.getElementById('afterUnit');
+
+	function updateUnits() {
+	  const unit = unitInput?.value.trim() ?? '';
+	  beforeUnitSpan.textContent = unit;
+	  afterUnitSpan.textContent = unit;
+	}
+	updateUnits();
+	unitInput?.addEventListener('input', updateUnits);
+
+	const beforeInput = document.getElementById('beforeState');
+	const afterInput = document.getElementById('afterState');
+	const beforeAfterError = document.getElementById('beforeAfterError');
+
+	function validateBeforeAfter() {
+	  const beforeVal = parseInt(beforeInput.value);
+	  const afterVal = parseInt(afterInput.value);
+
+	  let errorMessage = '';
+
+	  if (!beforeVal || beforeVal < 1) {
+	    errorMessage = '현재 상태는 1 이상의 숫자만 입력해주세요.';
+	    beforeInput.setCustomValidity(errorMessage);
+	  } else {
+	    beforeInput.setCustomValidity('');
+	  }
+
+	  if (!afterVal || afterVal < 1) {
+	    errorMessage = '목표 상태는 1 이상의 숫자만 입력해주세요.';
+	    afterInput.setCustomValidity(errorMessage);
+	  } else {
+	    afterInput.setCustomValidity('');
+	  }
+
+	  if (beforeInput.validationMessage) {
+	    beforeAfterError.textContent = beforeInput.validationMessage;
+	  } else if (afterInput.validationMessage) {
+	    beforeAfterError.textContent = afterInput.validationMessage;
+	  } else {
+	    beforeAfterError.textContent = '';
+	  }
+	}
+
+	beforeInput.addEventListener('input', validateBeforeAfter);
+	afterInput.addEventListener('input', validateBeforeAfter);
+
+	document.getElementById('goalForm').addEventListener('submit', function(e) {
+	  validateBeforeAfter();
+	  if (!beforeInput.checkValidity()) {
+	    beforeInput.focus();
+	    e.preventDefault();
+	  } else if (!afterInput.checkValidity()) {
+	    afterInput.focus();
+	    e.preventDefault();
+	  }
+	});
   </script>
 
 
-
-	<br>
-	<a th:href="@{/habit/list}">목록으로</a>
-	<a th:href="@{/habit/cal}">캘린더</a>
-
 </body>
-
 </html>

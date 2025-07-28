@@ -107,7 +107,12 @@ public class HabitController {
 	        ra.addFlashAttribute("msg", "습관이 삭제되었습니다.");
 	        return "redirect:/habit/list";
 	    }
-
+	    
+	    
+	    @GetMapping("/today")
+	    public String showTodayHabits(Model model) {
+	        return "habit/today"; 
+	    }
 	    
 
 }
