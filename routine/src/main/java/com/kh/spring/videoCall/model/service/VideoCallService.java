@@ -24,5 +24,7 @@ public interface VideoCallService {
 
 	ResponseEntity<List<VideoCallResponse>> invitedRoom(HttpSession session) throws Exception;
 
-	ResponseEntity<Void> openRoom(HttpSession session, String roomUuidStr) throws Exception;
+	ResponseEntity<String> openRoom(HttpSession session, String roomUuidStr) throws Exception;
+
+	ResponseEntity<String> participateRoom(HttpSession session, String roomUuidStr) throws Exception;
 }

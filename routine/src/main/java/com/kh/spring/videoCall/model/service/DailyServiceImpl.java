@@ -11,7 +11,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.kh.spring.user.model.vo.User;
 import com.kh.spring.util.common.Regexp;
 import com.kh.spring.util.cryption.AESCryption;
-import com.kh.spring.videoCall.model.vo.VideoCallRequest;
 
 import reactor.core.publisher.Mono;
 
@@ -39,18 +38,19 @@ public class DailyServiceImpl implements DailyService{
     //토큰 생성
 	@Override
     public Mono<String> createMeetingToken(String uuidStr, User u, String roleType) throws Exception {
+		
     	//호출한 유저가 주인장일 경우
     	boolean isOwner = "O".equals(roleType);
     	
     	//요청 몸매 만들기
     	Map<String, Object> requestBody = Map.of(
-    		    "properties", Map.of(
-    		        "room_name", uuidStr,
-    		        "is_owner", isOwner,
-    		        "user_name", u.getNick(),
-    		        "enable_screenshare", true,
-    		        "exp", System.currentTimeMillis()/1000 + 86400
-    		    )
+			"properties", Map.of(
+				"room_name", uuidStr,
+				"is_owner", isOwner,
+				"user_name", u.getNick(),
+				"enable_screenshare", true,
+				"exp", System.currentTimeMillis()/1000 + 86400
+			)
     		);
     	
     	return dailyWebClient().post()
@@ -63,15 +63,13 @@ public class DailyServiceImpl implements DailyService{
     
     //새로운 방 생성
 	@Override
-    public String createRoom(String uuidStr, VideoCallRequest vc) throws Exception{
+    public String createRoom(String uuidStr) throws Exception{
     	
-    	//현재 시간 추출
-		LocalDateTime currentTime = LocalDateTime.now();
-		vc.setCreateDate(currentTime);
-		long epochSecond = currentTime.toEpochSecond(ZoneOffset.UTC);
+		//현재 시간 추출
+		long epochSecond = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
 		int expireTimestamp = (int)(epochSecond + Regexp.EXPIRETIME);
 
-    	//요청 몸매 만들기
+    		//요청 몸매 만들기
         Map<String, Object> requestBody = Map.of(
             "name", uuidStr,
             "privacy", "private",

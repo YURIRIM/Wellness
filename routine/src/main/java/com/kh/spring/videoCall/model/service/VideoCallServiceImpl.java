@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kh.spring.challenge.model.dao.ChallengeDao;
 import com.kh.spring.challenge.model.vo.ConnectByUuid;
 import com.kh.spring.challenge.model.vo.LoginUserAndChal;
-import com.kh.spring.config.ApiConfig;
 import com.kh.spring.user.model.vo.User;
 import com.kh.spring.util.challenge.ChallengeFix;
 import com.kh.spring.util.common.Regexp;
@@ -28,7 +27,6 @@ import jakarta.servlet.http.HttpSession;
 @Service
 public class VideoCallServiceImpl implements VideoCallService{
 
-    private final ApiConfig apiConfig;
 	@Autowired
 	private SqlSessionTemplate sqlSession;
 	@Autowired
@@ -37,10 +35,6 @@ public class VideoCallServiceImpl implements VideoCallService{
 	private ChallengeDao chalDao;
 	@Autowired
 	private DailyService dailyService;
-
-    VideoCallServiceImpl(ApiConfig apiConfig) {
-        this.apiConfig = apiConfig;
-    }
 	
 	//비동기 - 새로운 방 생성
 	@Override
@@ -48,7 +42,6 @@ public class VideoCallServiceImpl implements VideoCallService{
 	public ResponseEntity<String> createRoom(HttpSession session, VideoCallRequest vcr) throws Exception {
 		if(!VideoCallValidator.createRoom(vcr)) return ResponseEntity.badRequest().build();
 		User loginUser = (User)session.getAttribute("loginUser");
-		vcr.setUserNo(loginUser.getUserNo());
 		vcr.setStatus("N");
 		vcr.setRoomName(vcr.getRoomName().trim());
 		
@@ -63,19 +56,7 @@ public class VideoCallServiceImpl implements VideoCallService{
 		//uuid생성하기
 		Map<String, Object> createdUuid = UuidUtil.createUUID();
 		vcr.setRoomUuid((byte[])createdUuid.get("uuidRaw"));
-		String uuidStr = (String)createdUuid.get("uuid");
 		
-		//방 생성자용 토큰 생성
-		String ownerToken = dailyService.createMeetingToken(uuidStr, loginUser, "O").block();
-		if(ownerToken==null) return ResponseEntity.status(500).build();
-		
-		//daily.co에 방 생성(방 url)
-        String createdRoom = dailyService.createRoom(uuidStr, vcr);
-        if(createdRoom==null) return ResponseEntity.status(500).build();
-        
-        //방 접근 url생성
-        String accessUrl = createdRoom + "?t=" + ownerToken;
-        
         //DB에 방 저장
         int result = dao.insertRoom(sqlSession, vcr);
         
@@ -137,22 +118,61 @@ public class VideoCallServiceImpl implements VideoCallService{
 	
 	//비동기 - 방 열기
 	@Override
-	public ResponseEntity<Void> openRoom(HttpSession session, String roomUuidStr) throws Exception{
+	@Transactional
+	public ResponseEntity<String> openRoom(HttpSession session, String roomUuidStr) throws Exception{
 		User loginUser = (User)session.getAttribute("loginUser");
 		byte[] roomUuid = UuidUtil.strToByteArr(roomUuidStr);
-		ConnectByUuid uuid = ConnectByUuid.builder()
+		ConnectByUuid uuidAndUserNo = ConnectByUuid.builder()
 				.uuid(roomUuid)
 				.refNo(loginUser.getUserNo())
 				.build();
 		
-		//작성자가 해당 방의 주인인지 확인
-		int isOwner = dao.isParticipant(sqlSession, uuid);
-		if(!(isOwner>0)) return ResponseEntity.badRequest().build();
+		//작성자가 해당 방의 주인인지 확인하고 열기
+		int openRoom = dao.openRoom(sqlSession, uuidAndUserNo);
+		if(!(openRoom>0)) return ResponseEntity.badRequest().build();
 		
-		return ResponseEntity.ok().build();
+		//Daily.co에서 방 만들기
+		String ownerToken = dailyService.createMeetingToken(roomUuidStr, loginUser, "O").block();
+		if(ownerToken==null) return ResponseEntity.status(500).build();
+		
+		//Daily.co에서 방 열기
+		String createdRoom = dailyService.createRoom(roomUuidStr);
+		if(createdRoom==null) return ResponseEntity.status(500).build();
+		
+		//방 접근 url생성
+		String accessUrl = createdRoom + "?t=" + ownerToken;
+		
+		return ResponseEntity.ok(accessUrl);
 	}
 	
-	
+	//비동기 - 방 참여하기
+	@Override
+	public ResponseEntity<String> participateRoom(HttpSession session, String roomUuidStr) throws Exception{
+		User loginUser = (User)session.getAttribute("loginUser");
+		byte[] roomUuid = UuidUtil.strToByteArr(roomUuidStr);
+		ConnectByUuid uuidAndUserNo = ConnectByUuid.builder()
+				.uuid(roomUuid)
+				.refNo(loginUser.getUserNo())
+				.build();
+		
+		//작성자가 해당 방에 참여할 권한이 있니?
+		int isParticipant = dao.isParticipant(sqlSession, uuidAndUserNo);
+		if(!(isParticipant>0)) return ResponseEntity.badRequest().build();
+		
+		//----------------------------------------------------
+		//Daily.co에서 방 만들기
+		String ownerToken = dailyService.createMeetingToken(roomUuidStr, loginUser, "P").block();
+		if(ownerToken==null) return ResponseEntity.status(500).build();
+		
+		//Daily.co에서 방 열기
+		String createdRoom = dailyService.createRoom(roomUuidStr);
+		if(createdRoom==null) return ResponseEntity.status(500).build();
+		
+		//방 접근 url생성
+		String accessUrl = createdRoom + "?t=" + ownerToken;
+		
+		return ResponseEntity.ok(accessUrl);
+	}
 	
 	
 	

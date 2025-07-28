@@ -29,8 +29,12 @@ public class VideoCallDao {
 		return sqlSession.selectList("videoCallMapper.invitedRoom", userNo);
 	}
 
-	public int isParticipant(SqlSessionTemplate sqlSession, ConnectByUuid uuid) {
-		return sqlSession.selectOne("videoCallMapper.isParticipant", uuid);
+	public int openRoom(SqlSessionTemplate sqlSession, ConnectByUuid uuidAndUserNo) {
+		return sqlSession.update("videoCallMapper.openRoom", uuidAndUserNo);
+	}
+
+	public int isParticipant(SqlSessionTemplate sqlSession, ConnectByUuid uuidAndUserNo) {
+		return sqlSession.selectOne("videoCallMapper.isParticipant",uuidAndUserNo);
 	}
 
 }
