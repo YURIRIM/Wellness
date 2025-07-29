@@ -42,6 +42,23 @@ public class HabitDao {
         return session.update("habitMapper.updateHabit", habit);
     }
 
+    
+    
+    
+    
+    
+    public void deleteStreakRewardsByHabitNo(SqlSessionTemplate session, int  habitNo) {
+    	session.delete("habitMapper.deleteStreakRewardsByHabitNo", habitNo);
+    }
+
+    public void deleteHabitChecks(SqlSessionTemplate session, int  habitNo) {
+    	session.delete("habitMapper.deleteHabitChecks", habitNo);
+    }
+
+    public void deleteHabitRepeats(SqlSessionTemplate session, int  habitNo) {
+    	session.delete("habitMapper.deleteHabitRepeats", habitNo);
+    }
+    
     public int deleteHabit(SqlSessionTemplate session, int habitNo) {
         return session.delete("habitMapper.deleteHabit", habitNo);
     }

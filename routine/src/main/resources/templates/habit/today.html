@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>습관 체크</title>
+  <style>  
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      background-color: #f7f9fc;
+      margin: 0;
+      padding: 40px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 40px;
+    }
+
+    .habit-container {
+      max-width: 700px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .habit-card {
+      background-color: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .habit-card label {
+      font-size: 1rem;
+      color: #333;
+      flex: 1;
+    }
+
+    .habit-card input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+    }
+
+    .submit-btn {
+      display: block;
+      margin: 40px auto 0;
+      padding: 12px 30px;
+      font-size: 1rem;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .submit-btn:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>오늘의 습관 체크</h1>
+
+  <form th:action="@{/habit/check}" method="post">
+    <div class="habit-container">
+      <div class="habit-card" th:each="habit : ${habitList}">
+        <label th:for="${'habit_' + habit.id}" th:text="${habit.name}">습관 이름</label>
+        <input type="checkbox"
+               th:id="${'habit_' + habit.id}"
+               th:name="habits"
+               th:value="${habit.id}" />
+      </div>
+	  <div th:if="${habitList == null or #lists.isEmpty(habitList)}">
+	    <div class="habit-card">
+	      <label for="habit_1">물 8잔 마시기</label>
+	      <input type="checkbox" id="habit_1" name="habits" value="1" />
+	    </div>
+	    <div class="habit-card">
+	      <label for="habit_2">30분 운동하기</label>
+	      <input type="checkbox" id="habit_2" name="habits" value="2" />
+	    </div>
+	    <div class="habit-card">
+	      <label for="habit_3">책 10페이지 읽기</label>
+	      <input type="checkbox" id="habit_3" name="habits" value="3" />
+	    </div>
+	  </div>
+    </div>
+
+    <button type="submit" class="submit-btn">저장하기</button>
+  </form>
+
+</body>
+</html>
