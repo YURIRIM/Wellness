@@ -1,105 +1,62 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
   <meta charset="UTF-8">
   <title>목표 등록</title>
   <style>
-    body {
-      font-family: sans-serif;
-      line-height: 1.6;
-      padding: 2rem;
-      max-width: 600px;
-      margin: auto;
-    }
-    label {
-      display: block;
-      margin-top: 1.5rem;
-      font-weight: bold;
-    }
-    input, select, textarea {
-      width: 100%;
-      padding: 0.6rem;
-      margin-top: 0.4rem;
-      box-sizing: border-box;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    .example {
-      font-size: 0.9rem;
-      color: #666;
-      margin-top: 0.3rem;
-    }
-    button {
-      margin-top: 2rem;
-      padding: 0.8rem 1.2rem;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #45a049;
-    }
-    form {
-      background-color: #fff;
-      border-radius: 16px;
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-      padding: 36px 48px;
-      max-width: 720px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .error {
-      color: red;
-      font-size: 0.9rem;
-      margin-top: 0.4rem;
-    }
+    body { font-family: sans-serif; line-height: 1.6; padding: 2rem; max-width: 600px; margin: auto; }
+    label { display: block; margin-top: 1.5rem; font-weight: bold; }
+    input, select, textarea { width: 100%; padding: 0.6rem; margin-top: 0.4rem; box-sizing: border-box; border-radius: 6px; border: 1px solid #ccc; }
+    .example { font-size: 0.9rem; color: #666; margin-top: 0.3rem; }
+    button { margin-top: 2rem; padding: 0.8rem 1.2rem; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #45a049; }
+	
+	form {
+	  background-color: #fff;
+	  border-radius: 16px;
+	  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+	  padding: 36px 48px;
+	  max-width: 720px;
+	  width: 100%;
+	  box-sizing: border-box;
+	}
   </style>
 </head>
 <body>
+	<form th:action="@{/habit/add}" method="post">
+  <h2>🎯 목표 등록</h2>
 
   <form id="goalForm" th:action="@{/goal/save}" method="post">
-    <h2>🎯 목표 등록</h2>
+	
+	<label for="goalCategory">💡 어떤 분야의 목표인가요?</label>
+	<select id="goalCategory" name="goalCategory">
+	  <option value="">-- 선택 안 함 --</option>
+	  <option value="health">건강 / 운동</option> 
+	  <option value="learning">학습 / 자격증</option>
+	  <option value="career">커리어 / 업무</option>
+	  <option value="finance">재무 / 절약</option>
+	  <option value="relationship">인간관계 / 가족</option>
+	  <option value="hobby">취미 / 자기계발</option>
+	  <option value="daily">생활 습관</option>
+	</select>
 
-    <!-- 1. 목표 카테고리 -->
-    <label for="goalCategory">1️⃣ 어떤 분야의 목표인가요?</label>
-    <select id="goalCategory" name="goalCategory">
-      <option value="">-- 선택 안 함 --</option>
-      <option value="health">건강 / 운동</option>
-      <option value="learning">학습 / 자격증</option>
-      <option value="career">커리어 / 업무</option>
-      <option value="finance">재무 / 절약</option>
-      <option value="relationship">인간관계 / 가족</option>
-      <option value="hobby">취미 / 자기계발</option>
-      <option value="daily">생활 습관</option>
-    </select>
-
-    <!-- 2. 전체적인 목표 -->
-    <label for="roughGoal">2️⃣ 당신의 목표는 무엇인가요?</label>
-    <input type="text" id="roughGoal" name="roughGoal" placeholder="예) 토익 800점 달성 / 체중 55kg 만들기 / 하루 30분 운동" required />
-    <div class="example">예: 토익 800점 달성 / 체중 55kg 만들기 / 하루 30분 운동 / 부모님께 매주 전화드리기</div>
+    <!-- 1. 전체적인 목표 -->
+    <label for="roughGoal">1️⃣ 당신의 목표는?</label>
+    <input type="text" id="roughGoal" name="roughGoal" placeholder="예) 영어를 잘하고 싶다 / 다이어트" required />
 
     <!-- 3. 목표 이유 -->
     <label for="why">3️⃣ 왜 이 목표를 이루고 싶나요?</label>
-    <input type="text" id="why" name="why" placeholder="예) 유학을 준비 중이라 / 건강한 몸을 만들고 싶어서 등" required />
-    <div class="example">예: 유학을 위해 토익 점수가 필요해서 / 더 건강하고 활기찬 삶을 살기 위해 / 부모님과의 관계를 돈독히 하고 싶어서</div>
+    <input type="text" id="why" name="why" placeholder="예) 해외 취업 준비를 위해 / 자존감을 높이기 위해 등" required />
 
-    <!-- 4. 구체적인 변화 -->
-    <label>4️⃣ 목표가 달성되면 어떤 모습일까요? (수치 변화 중심)</label>
-    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
-      <input type="text" id="action" name="action" placeholder="예: 토익 점수 / 체중 / 하루 운동 시간" style="flex: 2;" required />
-      <input type="number" id="beforeState" name="beforeState" placeholder="현재 수치" min="0" style="flex: 1;" required />
-      <input type="number" id="afterState" name="afterState" placeholder="목표 수치" min="0" style="flex: 1;" required />
-      <input type="text" id="unit" name="unit" placeholder="예: 점 / kg / 분" style="flex: 1.5;" required />
-    </div>
-    <div id="beforeAfterError" class="error"></div>
-    <div class="example">
-      예:  
-      토익 점수 500 → 800 점 /  
-      체중 60 → 55 kg /  
-      하루 운동 10 → 30 분
-    </div>
+	<!-- 4. 목표 세부 구성 -->
+	<label>4️⃣ 목표를 위해 무엇을 얼마나 할 건가요?</label>
+	<div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+	  <input type="text" id="detailAction" name="detailAction" placeholder="예: 단어 암기" style="flex: 2; min-width: 80px;" required />
+	  <input type="number" id="detailAmount" name="detailAmount" placeholder="예: 30" min="1" style="flex: 1; min-width: 60px;" required />
+	  <input type="text" id="unit" name="unit" placeholder="예: 개 / km / 회" style="flex: 1.5; min-width: 60px;" required />
+	</div>
+	<div class="example">예: 단어 암기 30개 / 러닝 5km / 문제 풀이 3회</div>
 
     <!-- 5. 목표 기간 -->
     <label for="deadlineType">5️⃣ 언제까지 이루고 싶나요?</label>
@@ -113,15 +70,33 @@
     <input type="date" id="deadlineDate" name="deadlineDate" style="margin-top: 0.6rem;" />
 
     <button type="submit">목표 등록하기</button>
+    <button type="button" th:onclick="|location.href='@{/habit/add}'|">목표 등록하기</button>
+		
   </form>
-
+ 
   <br>
   <a th:href="@{/habit/list}">목록으로</a>
   <a th:href="@{/habit/cal}">캘린더</a>
-  <a th:href="@{/habit/today}">오늘의</a>
+  <a th:href="@{/habit/today}">오늘의 </a>
+
+  </form>
 
   <script>
-    // 목표 기간 자동 날짜 설정
+
+	function updateUnits() {
+	  const unit = unitInput?.value.trim() ?? '';
+	  beforeUnitSpan.textContent = unit;
+	  afterUnitSpan.textContent = unit;
+	}
+	updateUnits();
+	unitInput?.addEventListener('input', updateUnits);
+
+	
+	
+	
+	
+	
+	
     const deadlineTypeSelect = document.getElementById("deadlineType");
     const deadlineDateInput = document.getElementById("deadlineDate");
 
@@ -130,18 +105,16 @@
       let deadline = null;
 
       if (this.value === "week") {
-        deadline = new Date();
-        deadline.setDate(today.getDate() + 7);
+        deadline = new Date(today.setDate(today.getDate() + 7));
       } else if (this.value === "month") {
-        deadline = new Date();
-        deadline.setMonth(today.getMonth() + 1);
+        deadline = new Date(today.setMonth(today.getMonth() + 1));
       } else if (this.value === "year") {
-        deadline = new Date();
-        deadline.setFullYear(today.getFullYear() + 1);
+        deadline = new Date(today.setFullYear(today.getFullYear() + 1));
       }
 
       if (deadline) {
-        deadlineDateInput.value = deadline.toISOString().split("T")[0];
+        const formatted = deadline.toISOString().split("T")[0];
+        deadlineDateInput.value = formatted;
         deadlineDateInput.readOnly = true;
       } else {
         deadlineDateInput.value = "";
@@ -149,53 +122,66 @@
       }
     });
 
-    // before-after 검증
-    const beforeInput = document.getElementById('beforeState');
-    const afterInput = document.getElementById('afterState');
-    const beforeAfterError = document.getElementById('beforeAfterError');
+	const unitInput = document.getElementById('unit');
+	const beforeUnitSpan = document.getElementById('beforeUnit');
+	const afterUnitSpan = document.getElementById('afterUnit');
 
-    function validateBeforeAfter() {
-      const beforeVal = parseInt(beforeInput.value);
-      const afterVal = parseInt(afterInput.value);
+	function updateUnits() {
+	  const unit = unitInput?.value.trim() ?? '';
+	  beforeUnitSpan.textContent = unit;
+	  afterUnitSpan.textContent = unit;
+	}
+	updateUnits();
+	unitInput?.addEventListener('input', updateUnits);
 
-      let errorMessage = '';
+	const beforeInput = document.getElementById('beforeState');
+	const afterInput = document.getElementById('afterState');
+	const beforeAfterError = document.getElementById('beforeAfterError');
 
-      if (!beforeVal || beforeVal < 1) {
-        errorMessage = '현재 상태는 1 이상의 숫자만 입력해주세요.';
-        beforeInput.setCustomValidity(errorMessage);
-      } else {
-        beforeInput.setCustomValidity('');
-      }
+	function validateBeforeAfter() {
+	  const beforeVal = parseInt(beforeInput.value);
+	  const afterVal = parseInt(afterInput.value);
 
-      if (!afterVal || afterVal < 1) {
-        errorMessage = '목표 상태는 1 이상의 숫자만 입력해주세요.';
-        afterInput.setCustomValidity(errorMessage);
-      } else {
-        afterInput.setCustomValidity('');
-      }
+	  let errorMessage = '';
 
-      if (beforeInput.validationMessage) {
-        beforeAfterError.textContent = beforeInput.validationMessage;
-      } else if (afterInput.validationMessage) {
-        beforeAfterError.textContent = afterInput.validationMessage;
-      } else {
-        beforeAfterError.textContent = '';
-      }
-    }
+	  if (!beforeVal || beforeVal < 1) {
+	    errorMessage = '현재 상태는 1 이상의 숫자만 입력해주세요.';
+	    beforeInput.setCustomValidity(errorMessage);
+	  } else {
+	    beforeInput.setCustomValidity('');
+	  }
 
-    beforeInput.addEventListener('input', validateBeforeAfter);
-    afterInput.addEventListener('input', validateBeforeAfter);
+	  if (!afterVal || afterVal < 1) {
+	    errorMessage = '목표 상태는 1 이상의 숫자만 입력해주세요.';
+	    afterInput.setCustomValidity(errorMessage);
+	  } else {
+	    afterInput.setCustomValidity('');
+	  }
 
-    document.getElementById('goalForm').addEventListener('submit', function (e) {
-      validateBeforeAfter();
-      if (!beforeInput.checkValidity()) {
-        beforeInput.focus();
-        e.preventDefault();
-      } else if (!afterInput.checkValidity()) {
-        afterInput.focus();
-        e.preventDefault();
-      }
-    });
+	  if (beforeInput.validationMessage) {
+	    beforeAfterError.textContent = beforeInput.validationMessage;
+	  } else if (afterInput.validationMessage) {
+	    beforeAfterError.textContent = afterInput.validationMessage;
+	  } else {
+	    beforeAfterError.textContent = '';
+	  }
+	}
+
+	beforeInput.addEventListener('input', validateBeforeAfter);
+	afterInput.addEventListener('input', validateBeforeAfter);
+
+	document.getElementById('goalForm').addEventListener('submit', function(e) {
+	  validateBeforeAfter();
+	  if (!beforeInput.checkValidity()) {
+	    beforeInput.focus();
+	    e.preventDefault();
+	  } else if (!afterInput.checkValidity()) {
+	    afterInput.focus();
+	    e.preventDefault();
+	  }
+	});
   </script>
+
+
 </body>
 </html>
