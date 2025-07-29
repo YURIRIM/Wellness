@@ -1,0 +1,43 @@
+<div th:fragment="left">
+  <!-- 2사분면: 생성한 방 목록 -->
+  <div class="row mb-3">
+    <div class="col-12">
+      <h5 class="text-center mb-3">
+        <i class="bi bi-house-fill"></i> 내가 생성한 방
+      </h5>
+      <div
+        id="left-top-container"
+        style="
+          height: 300px;
+          overflow-y: auto;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          padding: 10px;
+        "
+      >
+        <!-- 생성한 방 카드들이 여기에 동적으로 추가됩니다 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 3사분면: 생성 가능한 방 목록 -->
+  <div class="row">
+    <div class="col-12">
+      <h5 class="text-center mb-3">
+        <i class="bi bi-plus-circle-fill"></i> 방 생성하기
+      </h5>
+      <div
+        id="left-bottom-container"
+        style="
+          height: 300px;
+          overflow-y: auto;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          padding: 10px;
+        "
+      >
+        <!-- 생성 가능한 챌린지 카드들이 여기에 동적으로 추가됩니다 -->
+      </div>
+    </div>
+  </div>
+</div>

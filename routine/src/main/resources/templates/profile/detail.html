@@ -136,7 +136,7 @@
     </div>
 
     <script th:inline="javascript">
-      const contextPath = /*[[${rootContextPath}]]*/ "/routine"; //context-root
+      const contextPath = /*[[${rootContextPath}]]*/ "/routine";
       const userNo = /*[[${userNo}]]*/ 0;
 
       // 전역 변수
@@ -251,7 +251,7 @@
             {
               params: {
                 userNo: userNo,
-                type: "P",
+                type: "O",
                 currentPage: currentPage,
               },
             }
@@ -295,7 +295,7 @@
             {
               params: {
                 userNo: userNo,
-                type: "O",
+                type: "P",
                 currentPage: currentPage,
               },
             }
