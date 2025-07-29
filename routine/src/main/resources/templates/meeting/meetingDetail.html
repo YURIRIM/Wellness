@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <title>모임 정보</title>
     <th:block th:replace="~{common/fragment :: library}"></th:block>
+    <script type="text/javascript" th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoJsApiKey} + '&libraries=services'}"></script>
+    <style>
+        #detailMap {
+            width: 100%;
+            height: 300px; 
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 15px; 
+        }
+    </style>
 </head>
 <body>
 	<th:block th:replace="~{common/fragment :: header}"></th:block>
@@ -26,9 +36,12 @@
                             <hr>
                         </div>
                         <div class="row">
-                            <div class="col-md-6" th:if="${meeting.location != null and !#strings.isEmpty(meeting.location)}">
-                                <strong><i class="bi bi-geo-alt"></i> 지역/분야:</strong>
-                                <span th:text="${meeting.location}">지역</span>
+                            <div class="col-md-6">
+                                <strong><i class="bi bi-geo-alt"></i> 장소:</strong>
+                                <span th:if="${meeting.locationObject != null and meeting.locationObject.address != null and !#strings.isEmpty(meeting.locationObject.address)}"
+                                      th:text="${meeting.locationObject.address}">모임 장소 주소</span>
+                                <span th:unless="${meeting.locationObject != null and meeting.locationObject.address != null and !#strings.isEmpty(meeting.locationObject.address)}"
+                                      class="text-danger">장소 미정 또는 주소 없음</span>
                             </div>
                             <div class="col-md-6">
                                 <strong><i class="bi bi-person"></i> 개설자:</strong>
@@ -39,6 +52,16 @@
                                 <span th:text="${participantCount}">0</span>명
                             </div>
                         </div>
+                        
+                        <div th:if="${meeting.locationObject != null and meeting.locationObject.latitude != null and meeting.locationObject.longitude != null}">
+                            <hr>
+                            <h6>모임 장소 지도</h6>
+                            <div id="detailMap"></div>
+                        </div>
+                        <div th:unless="${meeting.locationObject != null and meeting.locationObject.latitude != null and meeting.locationObject.longitude != null}">
+                            <hr>
+                            <p class="text-info small">지정된 상세 모임 장소 지도가 없습니다.</p>
+                        </div>
                     </div>
                 </div>
                 
@@ -48,6 +71,7 @@
                     </div>
                     <div class="card-body">
                         <div th:if="${#lists.isEmpty(participants)}">
+                            <p class="text-muted">아직 참여자가 없습니다.</p>
                         </div>
                         <div th:unless="${#lists.isEmpty(participants)}">
                             <div class="row">
@@ -73,7 +97,7 @@
                             </a>
                             <div class="alert alert-info">
                                 <small>
-                                    <i class="bi bi-info-circle"></i> 
+                                    <i class="bi bi-info-circle"></i> 이 모임에 참여하여 채팅을 시작해보세요!
                                 </small>
                             </div>
                         </div>
@@ -89,7 +113,7 @@
                                 </button>
                                 <div class="alert alert-warning">
                                     <small>
-                                        <i class="bi bi-exclamation-triangle"></i> 
+                                        <i class="bi bi-exclamation-triangle"></i> 모임에 참여 중입니다. 개설자는 나갈 수 없습니다.
                                     </small>
                                 </div>
                             </div>
@@ -107,7 +131,7 @@
                             </div>
                             <div class="alert alert-light mt-2">
                                 <small>
-                                    <i class="bi bi-crown"></i> 
+                                    <i class="bi bi-crown"></i> 당신이 개설한 모임입니다.
                                 </small>
                             </div>
                         </div>
@@ -124,9 +148,27 @@
     
     <script th:inline="javascript">
         const meetingNo = /*[[${meeting.meetingNo}]]*/ 1;
+        const locationLatitude = /*[[${meeting.locationObject?.latitude}]]*/ null; 
+        const locationLongitude = /*[[${meeting.locationObject?.longitude}]]*/ null; 
+
+        if (locationLatitude != null && locationLongitude != null) {
+            window.kakao.maps.load(function() {
+                var mapContainer = document.getElementById('detailMap');
+                var mapOption = { 
+                    center: new kakao.maps.LatLng(locationLatitude, locationLongitude), 
+                    level: 3 
+                };
+                var map = new kakao.maps.Map(mapContainer, mapOption); 
+
+                var marker = new kakao.maps.Marker({
+                    position: new kakao.maps.LatLng(locationLatitude, locationLongitude) 
+                });
+                marker.setMap(map);
+            });
+        }
         
         function leaveMeeting() {
-            if (confirm('이 모임에서 나가시겠습니까?\n나가기 후에도 언제든 다시 참여할 수 있습니다.')) {
+            if (confirm('이 모임에서 나가시겠습니까?\\n나가기 후에도 언제든 다시 참여할 수 있습니다.')) {
                 fetch('/routine/meeting/leave/' + meetingNo, {
                     method: 'POST'
                 })
@@ -145,7 +187,7 @@
         }
         
         function deleteMeeting() {
-            if (confirm('정말로 이 모임을 삭제하시겠습니까?\n삭제된 모임과 모든 대화 내용은 복구할 수 없습니다.')) {
+            if (confirm('정말로 이 모임을 삭제하시겠습니까?\\n삭제된 모임과 모든 대화 내용은 복구할 수 없습니다.')) {
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '/routine/meeting/delete/' + meetingNo;

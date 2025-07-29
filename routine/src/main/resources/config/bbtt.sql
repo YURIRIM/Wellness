@@ -25,9 +25,10 @@ CREATE TABLE meetings (
     user_no NUMBER NOT NULL,                    
     title VARCHAR2(200) NOT NULL,                
     description CLOB,                            
-    location VARCHAR2(200),                                               
+   	location_no NUMBER,                                               
  	meeting_date DATE DEFAULT SYSDATE,            
     CONSTRAINT fk_meetings_user FOREIGN KEY (user_no) REFERENCES users(user_no) ON DELETE CASCADE
+    CONSTRAINT fk_meetings_location FOREIGN KEY (location_no) REFERENCES LOCATION(LOCATION_NO) ON DELETE SET NULL;
 );
 
 
@@ -35,7 +36,7 @@ COMMENT ON COLUMN meetings.meeting_no IS '모임 고유 번호';
 COMMENT ON COLUMN meetings.user_no IS '모임 생성자 사용자 식별번호';
 COMMENT ON COLUMN meetings.title IS '모임 제목';
 COMMENT ON COLUMN meetings.description IS '모임 상세 설명';
-COMMENT ON COLUMN meetings.location IS '모임 장소';
+COMMENT ON COLUMN meetings.location_no IS '모임 장소 위치 번호';
 COMMENT ON COLUMN meetings.meeting_date IS '모임 생성일시';
 
 --모임 참가자
