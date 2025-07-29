@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>새 모임 만들기</title>
+    <th:block th:replace="~{common/fragment :: library}"></th:block>
+</head>
+<body>
+	<th:block th:replace="~{common/fragment :: header}"></th:block>
+	
+    <div class="container mt-4">
+        <h2>새 모임 만들기</h2>
+        
+        <form th:action="@{/meeting/create}" method="post">
+            <div class="mb-3">
+                <label for="title" class="form-label">모임 제목 <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="description" class="form-label">모임 소개</label>
+                <textarea class="form-control" id="description" name="description" rows="4"></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label for="location" class="form-label">지역/관심 분야</label>
+                <input type="text" class="form-control" id="location" name="location">
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+            </div>
+            
+            <div class="mb-3">
+                <button type="submit" class="btn btn-primary">모임 생성하고 채팅 시작</button>
+                <a th:href="@{/meeting/list}" class="btn btn-secondary">취소</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

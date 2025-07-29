@@ -1,0 +1,38 @@
+@charset "UTF-8";
+
+/*------------------chalMain-----------------*/
+#main-container {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+#main-row {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+}
+
+#main-left,
+#main-right {
+  border: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#main-sidebar-left,
+#main-sidebar-right {
+  height: 150px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #ccc;
+  margin-top: auto;
+}
+
+#main-center {
+  border: 1px solid #ddd;
+  overflow-y: auto;
+}
+
+#main-challenge-list {
+  min-height: 100%;
+}

@@ -68,7 +68,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         SELECT COUNT(*)
         FROM USERS
         WHERE USER_ID = #{userId}
-        AND STATUS = 'Y'
+        AND STATUS = 'Y' 
     </select>
 
 </mapper>

@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>챌린지 수정하기</title>
+    <th:block th:replace="~{/common/fragment :: library}"></th:block>
+    <script
+      th:src="@{/webjars/summernote/0.9.1/dist/summernote-bs5.min.js}"
+    ></script>
+    <script th:src="@{/js/common/summernote-ko-KR.js}"></script>
+    <link
+      th:href="@{/webjars/summernote/0.9.1/dist/summernote-bs5.min.css}"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" th:href="@{/css/challenge/chalMain.css}" />
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-3"></div>
+        <div class="col-6">
+          <div id="update-wrapper" class="card shadow-sm">
+            <div
+              class="card-header py-2 d-flex justify-content-between align-items-center"
+            >
+              <h5 class="m-0 fw-bold">챌린지 수정하기</h5>
+              <button class="btn btn-primary btn-sm" onclick="history.back();">
+                뒤로가기
+              </button>
+            </div>
+
+            <div class="card-body">
+              <form
+                id="update-form"
+                th:action="@{/challenge/updateChal}"
+                method="post"
+                class="needs-validation"
+                novalidate
+                enctype="multipart/form-data"
+              >
+                <!-- 숨겨진 필드들 -->
+                <input
+                  type="hidden"
+                  id="update-chalNo"
+                  name="chalNo"
+                  th:value="${updateChal.chalNo}"
+                />
+
+                <!-- ========== 제목 ========== -->
+                <div class="mb-3">
+                  <label for="update-title" class="form-label"
+                    >제목 <span class="text-danger">*</span></label
+                  >
+                  <input
+                    id="update-title"
+                    name="title"
+                    type="text"
+                    class="form-control"
+                    maxlength="100"
+                    placeholder="최대 100자"
+                    th:value="${updateChal.title}"
+                    required
+                  />
+                  <div class="invalid-feedback">제목을 입력하세요.</div>
+                </div>
+
+                <!-- ========== 내용(Summernote) ========== -->
+                <div class="mb-3">
+                  <label class="form-label"
+                    >내용 <span class="text-danger">*</span></label
+                  >
+                  <div style="width: 100%">
+                    <textarea
+                      id="update-content"
+                      name="content"
+                      required
+                      th:text="${updateChal.content}"
+                    ></textarea>
+                  </div>
+                  <div class="form-text">
+                    사진 최대 5장 · 1200×1200 픽셀 · ≤ 200 KB · 자동 WebP 변환
+                  </div>
+                  <div class="invalid-feedback">내용을 입력하세요.</div>
+                </div>
+
+                <!-- ========== 카테고리 ========== -->
+                <div class="row g-2 mb-3">
+                  <div class="col-md-6">
+                    <label for="update-cat-parent" class="form-label"
+                      >대분류 <span class="text-danger">*</span></label
+                    >
+                    <select id="update-cat-parent" class="form-select" required>
+                      <option value="" disabled>선택…</option>
+                      <option
+                        th:each="c : ${ChallengeCategory}"
+                        th:if="${c.categoryNo % 10 == 0}"
+                        th:value="${c.categoryNo}"
+                        th:text="${c.categoryName}"
+                        th:selected="${c.categoryNo == (updateChal.categoryNo / 10) * 10}"
+                      ></option>
+                    </select>
+                    <div class="invalid-feedback">대분류 선택</div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="update-cat-child" class="form-label"
+                      >세부 분류 <span class="text-danger">*</span></label
+                    >
+                    <select
+                      id="update-cat-child"
+                      name="categoryNo"
+                      class="form-select"
+                      required
+                    >
+                      <option value="" disabled>먼저 대분류 선택</option>
+                      <option
+                        th:each="c : ${ChallengeCategory}"
+                        th:if="${c.categoryNo % 10 != 0 and #numbers.formatDecimal(c.categoryNo / 10, 0, 0) * 10 == #numbers.formatDecimal(updateChal.categoryNo / 10, 0, 0) * 10}"
+                        th:value="${c.categoryNo}"
+                        th:text="${c.categoryName}"
+                        th:selected="${c.categoryNo == updateChal.categoryNo}"
+                      ></option>
+                    </select>
+                    <div class="invalid-feedback">세부 분류 선택</div>
+                  </div>
+                </div>
+
+                <!-- ========== 썸네일 ========== -->
+                <div class="mb-3">
+                  <label for="update-thumb" class="form-label"
+                    >썸네일 (선택)</label
+                  >
+                  <input
+                    id="update-thumb"
+                    type="file"
+                    accept="image/*"
+                    class="form-control"
+                  />
+                  <div class="mt-2 d-flex align-items-center gap-2">
+                    <button
+                      id="update-copy-first"
+                      type="button"
+                      class="btn btn-sm btn-outline-secondary"
+                    >
+                      첫 번째 첨부사진 사용
+                    </button>
+                    <img
+                      id="update-thumb-preview"
+                      src="#"
+                      alt="미리보기"
+                      class="border rounded"
+                      style="width: 72px; height: 72px; object-fit: cover"
+                      th:classappend="${updateChal.thumbnailBase64 == null or updateChal.thumbnailBase64 == ''} ? 'd-none' : ''"
+                      th:src="${updateChal.thumbnailBase64 != null and updateChal.thumbnailBase64 != ''} ? 'data:image/webp;base64,' + ${updateChal.thumbnailBase64} : '#'"
+                    />
+                  </div>
+                  <div class="form-text">
+                    1200×1200 픽셀 · ≤ 200 KB · WebP 자동 변환
+                  </div>
+                </div>
+                <!-- 썸네일이 인코딩 후 실제로 담기는 input -->
+                <input
+                  type="hidden"
+                  id="update-thumb-base64"
+                  name="thumbnailBase64"
+                  th:value="${updateChal.thumbnailBase64}"
+                />
+
+                <!-- ========== 인증 주기 ========== -->
+                <div class="mb-3">
+                  <label class="form-label">인증 주기</label>
+                  <select id="update-cycle-type" class="form-select">
+                    <option value="0">없음</option>
+                    <option value="day">일</option>
+                    <option value="week">요일</option>
+                    <option value="weeknum">주</option>
+                    <option value="month">월</option>
+                  </select>
+                  <div id="update-cycle-options" class="mt-2"></div>
+                </div>
+
+                <!-- ========== 시작·종료일 ========== -->
+                <div class="row g-2 mb-3">
+                  <div class="col-md-6">
+                    <label class="form-label">시작일</label>
+                    <div class="input-group">
+                      <input
+                        id="update-start"
+                        name="startDate"
+                        type="text"
+                        class="form-control"
+                        placeholder="지금부터 시작"
+                        th:value="${updateChal.startDate != null} ? ${#temporals.format(updateChal.startDate, 'yyyy-MM-dd')} : ''"
+                        readonly
+                      />
+                      <button
+                        id="update-start-now"
+                        type="button"
+                        class="btn btn-outline-secondary"
+                      >
+                        지금
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">종료일</label>
+                    <div class="input-group">
+                      <input
+                        id="update-end"
+                        name="endDate"
+                        type="text"
+                        class="form-control"
+                        placeholder="종료 기간 없음"
+                        th:value="${updateChal.endDate != null} ? ${#temporals.format(updateChal.endDate, 'yyyy-MM-dd')} : ''"
+                        readonly
+                      />
+                      <button
+                        id="update-end-none"
+                        type="button"
+                        class="btn btn-outline-secondary"
+                      >
+                        없음
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ========== 사진·댓글 필수 여부 ========== -->
+                <div class="mb-3">
+                  <label class="form-label">인증 시 사진</label>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="pictureRequired"
+                      id="update-pic-opt"
+                      value="O"
+                      th:checked="${updateChal.pictureRequired == 'O'}"
+                    />
+                    <label class="form-check-label" for="update-pic-opt"
+                      >선택</label
+                    >
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="pictureRequired"
+                      id="update-pic-req"
+                      value="Y"
+                      th:checked="${updateChal.pictureRequired == 'Y'}"
+                    />
+                    <label class="form-check-label" for="update-pic-req"
+                      >필수</label
+                    >
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="pictureRequired"
+                      id="update-pic-no"
+                      value="N"
+                      th:checked="${updateChal.pictureRequired == 'N'}"
+                    />
+                    <label class="form-check-label" for="update-pic-no"
+                      >불가</label
+                    >
+                  </div>
+                  <div id="update-anti-area" class="mt-2 d-none">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="update-anti"
+                      />
+                      <label class="form-check-label" for="update-anti"
+                        >직접 촬영한 사진만 허용</label
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">인증 시 텍스트</label>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="replyRequired"
+                      id="update-rep-opt"
+                      value="O"
+                      th:checked="${updateChal.replyRequired == 'O'}"
+                    />
+                    <label class="form-check-label" for="update-rep-opt"
+                      >선택</label
+                    >
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="replyRequired"
+                      id="update-rep-req"
+                      value="Y"
+                      th:checked="${updateChal.replyRequired == 'Y'}"
+                    />
+                    <label class="form-check-label" for="update-rep-req"
+                      >필수</label
+                    >
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input
+                      class="form-check-input"
+                      type="radio"
+                      name="replyRequired"
+                      id="update-rep-no"
+                      value="N"
+                      th:checked="${updateChal.replyRequired == 'N'}"
+                    />
+                    <label class="form-check-label" for="update-rep-no"
+                      >불가</label
+                    >
+                  </div>
+                </div>
+
+                <!-- ========== 버튼 ========== -->
+                <div class="d-flex justify-content-end gap-2">
+                  <button
+                    id="update-reset"
+                    type="reset"
+                    class="btn btn-outline-secondary"
+                  >
+                    초기화
+                  </button>
+                  <button
+                    id="update-submit"
+                    type="submit"
+                    class="btn btn-primary"
+                    disabled
+                  >
+                    <span id="update-submit-text">수정하기</span>
+                    <span
+                      id="update-submit-spinner"
+                      class="spinner-border spinner-border-sm d-none"
+                      role="status"
+                    ></span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="col-3"></div>
+      </div>
+    </div>
+    <script th:inline="javascript">
+      const catAll = /*[[${ChallengeCategory}]]*/ ["안아줘요", "싫은데요"];
+      const contextPath = /*[[${rootContextPath}]]*/ "/routine";
+      const loginUser =
+        /*[[${loginUser} != null ? ${loginUser} : null]]*/ "로그인한 회원";
+      const myProfile = /*[[${myProfile}]]*/ "프로필";
+      const searchKeyword = /*[[${searchKeyword}]]*/ {};
+
+      document.addEventListener("DOMContentLoaded", function () {
+        updateChalScript();
+      });
+
+      function updateChalScript() {
+        // 수정 페이지에서 뒤로가기
+        document
+          .getElementById("update-back")
+          ?.addEventListener("click", function () {
+            axios
+              .get(contextPath + "/challenge/goChalMain", {
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+                responseType: "text",
+              })
+              .then((res) => {
+                document.querySelector("#main-challenge-list").innerHTML =
+                  res.data;
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              })
+              .catch((err) => {
+                console.error("중앙 조각 로딩 실패", err);
+                alert("콘텐츠를 불러오는 중 오류가 발생했습니다.");
+              });
+          });
+
+        /** ---------- Summernote 초기화 ---------- */
+        $("#update-content").summernote({
+          placeholder: "챌린지 내용을 입력하세요 (최대 1000자)",
+          height: 300,
+          width: "100%",
+          lang: "ko-KR",
+          maximumImageFileSize: 200 * 1024,
+          toolbar: [
+            ["style", ["style"]],
+            ["font", ["bold", "italic", "underline", "clear"]],
+            ["fontname", ["fontname"]],
+            ["color", ["color"]],
+            ["para", ["ul", "ol", "paragraph"]],
+            ["table", ["table"]],
+            ["insert", ["picture", "link"]],
+            ["view", ["fullscreen", "codeview", "help"]],
+          ],
+          callbacks: {
+            onInit: function () {
+              $("#update-submit").prop("disabled", false);
+            },
+            onImageUpload: function (files) {
+              handleImages(files, this);
+            },
+          },
+        });
+
+        /** ---------- 이미지 압축 & WebP 변환 ---------- */
+        async function compressImage(file) {
+          return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              const max = 1200;
+              let { width, height } = img;
+              if (width > max || height > max) {
+                const ratio = Math.min(max / width, max / height);
+                width = Math.round(width * ratio);
+                height = Math.round(height * ratio);
+              }
+              canvas.width = width;
+              canvas.height = height;
+              canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+              canvas.toBlob(
+                (blob) => {
+                  resolve(blob);
+                },
+                "image/webp",
+                0.85
+              );
+            };
+            img.src = URL.createObjectURL(file);
+          });
+        }
+
+        /** ---------- Summernote 이미지 업로드 ---------- */
+        async function handleImages(files, editor) {
+          const maxCnt = 5;
+          const currentCnt =
+            $(editor).summernote("code").match(/<img/g)?.length || 0;
+          if (currentCnt + files.length > maxCnt) {
+            alert("사진은 최대 5장까지 첨부할 수 있습니다.");
+            return;
+          }
+          for (const f of files) {
+            if (!f.type.startsWith("image/")) continue;
+
+            let finalFile = f;
+            try {
+              if (typeof compressImage === "function") {
+                const blob = await compressImage(f);
+                finalFile = new File(
+                  [blob],
+                  f.name.replace(/\.\w+$/, ".webp"),
+                  {
+                    type: "image/webp",
+                  }
+                );
+              }
+            } catch (e) {
+              finalFile = f;
+            }
+
+            if (finalFile.size > 200 * 1024) {
+              alert(`"${f.name}"은(는) 200KB를 초과합니다.`);
+              continue;
+            }
+
+            const formData = new FormData();
+            formData.append("file", finalFile);
+            let uuid = "fail";
+            try {
+              const resp = await axios.post(
+                contextPath + "/attachment/insert",
+                formData,
+                {
+                  headers: { "Content-Type": "multipart/form-data" },
+                }
+              );
+              uuid = resp.data;
+            } catch (e) {
+              uuid = "fail";
+            }
+            if (!uuid || uuid === "fail") {
+              alert("이미지 업로드에 실패했습니다.");
+              continue;
+            }
+            const imgUrl = contextPath + "/attachment/select?at=" + uuid;
+            $(editor).summernote("insertImage", imgUrl, finalFile.name);
+          }
+        }
+
+        /** ---------- 썸네일 처리 ---------- */
+        $("#update-thumb").on("change", async function () {
+          const file = this.files[0];
+          if (!file) return;
+
+          let blob = file;
+          if (typeof compressImage === "function") {
+            blob = await compressImage(file);
+          }
+
+          if (blob.size > 200 * 1024) {
+            alert("썸네일은 200KB 이하만 허용됩니다.");
+            this.value = "";
+            return;
+          }
+
+          const url = URL.createObjectURL(blob);
+          $("#update-thumb-preview").attr("src", url).removeClass("d-none");
+
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const base64 = e.target.result.split(",")[1];
+            const safeBase64 = base64
+              .replace(/\+/g, "-")
+              .replace(/\//g, "_")
+              .replace(/=+$/, "");
+            $("#update-thumb-base64").val(safeBase64);
+          };
+          reader.readAsDataURL(blob);
+        });
+
+        $("#update-copy-first").on("click", async function () {
+          const firstImg = $("#update-content")
+            .next(".note-editor")
+            .find("img")
+            .first();
+          if (firstImg.length === 0) {
+            alert("첨부한 사진이 없습니다.");
+            return;
+          }
+
+          const imageUrl = firstImg.attr("src");
+          const resp = await fetch(imageUrl);
+          const blob = await resp.blob();
+
+          const thumbUrl = URL.createObjectURL(blob);
+          $("#update-thumb-preview")
+            .attr("src", thumbUrl)
+            .removeClass("d-none");
+
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const base64 = e.target.result.split(",")[1];
+            const safeBase64 = base64
+              .replace(/\+/g, "-")
+              .replace(/\//g, "_")
+              .replace(/=+$/, "");
+            $("#update-thumb-base64").val(safeBase64);
+          };
+          reader.readAsDataURL(blob);
+        });
+
+        /** ---------- 카테고리 연결 ---------- */
+        $("#update-cat-parent").on("change", function () {
+          const parent = Number(this.value);
+          const childSel = $("#update-cat-child")
+            .prop("disabled", false)
+            .empty();
+          childSel.append(
+            '<option value="" selected disabled>세부 선택…</option>'
+          );
+          catAll
+            .filter(
+              (c) =>
+                Math.floor(c.categoryNo / 10) * 10 === parent &&
+                c.categoryNo % 10 !== 0
+            )
+            .forEach((c) =>
+              childSel.append(
+                `<option value="${c.categoryNo}">${c.categoryName}</option>`
+              )
+            );
+        });
+
+        /** ---------- 인증 주기 초기화 및 처리 ---------- */
+        function initializeCycleType(verifyCycle) {
+          const cycleTypeEl = $("#update-cycle-type");
+          let selectedType = "0";
+
+          if (verifyCycle === 0) {
+            selectedType = "0";
+          } else if (verifyCycle >= 201 && verifyCycle <= 203) {
+            selectedType = "day";
+          } else if (verifyCycle >= 1 && verifyCycle <= 127) {
+            selectedType = "week";
+          } else if (verifyCycle >= 211 && verifyCycle <= 212) {
+            selectedType = "weeknum";
+          } else if (verifyCycle === 221) {
+            selectedType = "month";
+          }
+
+          cycleTypeEl.val(selectedType);
+          cycleTypeEl.trigger("change");
+
+          // 옵션이 생성된 후 값 설정
+          setTimeout(() => {
+            if (selectedType === "week") {
+              // 비트마스크 처리
+              for (let bit = 1; bit <= 64; bit *= 2) {
+                if (verifyCycle & bit) {
+                  $(`input[name='verifyCycleBit'][value='${bit}']`).prop(
+                    "checked",
+                    true
+                  );
+                }
+              }
+            } else {
+              $(`input[name='verifyCycle'][value='${verifyCycle}']`).prop(
+                "checked",
+                true
+              );
+            }
+          }, 100);
+        }
+
+        $("#update-cycle-type").on("change", function () {
+          const $opt = $("#update-cycle-options");
+          $opt.empty();
+          const type = this.value;
+
+          if (type === "day") {
+            $opt.html(
+              createRadios(
+                "verifyCycle",
+                [201, "매일"],
+                [202, "이틀"],
+                [203, "사흘"]
+              )
+            );
+          } else if (type === "week") {
+            $opt.html(
+              createCheckboxes(
+                "verifyCycleBit",
+                [1, "월"],
+                [2, "화"],
+                [4, "수"],
+                [8, "목"],
+                [16, "금"],
+                [32, "토"],
+                [64, "일"]
+              )
+            );
+          } else if (type === "weeknum") {
+            $opt.html(createRadios("verifyCycle", [211, "매주"], [212, "2주"]));
+          } else if (type === "month") {
+            $opt.html(createRadios("verifyCycle", [221, "매달"]));
+          } else {
+            $opt.html(createRadios("verifyCycle", [0, "없음"]));
+          }
+        });
+
+        function createRadios(name, ...items) {
+          return items
+            .map(
+              ([v, t], index) => `
+        <div class="form-check form-check-inline">
+          <input type="radio" class="form-check-input" name="${name}" value="${v}" id="update-${name}-${v}" ${
+                index === 0 ? "checked" : ""
+              }>
+          <label class="form-check-label" for="update-${name}-${v}">${t}</label>
+        </div>`
+            )
+            .join("");
+        }
+
+        function createCheckboxes(name, ...items) {
+          return items
+            .map(
+              ([v, t]) => `
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" name="${name}" id="update-${name}-${v}" value="${v}">
+          <label class="form-check-label" for="update-${name}-${v}">${t}</label>
+        </div>`
+            )
+            .join("");
+        }
+
+        /** ---------- Bootstrap Datepicker (현재 날짜 이후만 선택 가능) ---------- */
+        const today = new Date();
+
+        $("#update-start").datepicker({
+          format: "yyyy-mm-dd",
+          language: "ko",
+          autoclose: true,
+          todayHighlight: true,
+          startDate: today,
+        });
+
+        $("#update-end").datepicker({
+          format: "yyyy-mm-dd",
+          language: "ko",
+          autoclose: true,
+          todayHighlight: true,
+          startDate: today,
+        });
+
+        function validateEndDate() {
+          const startVal = $("#update-start").val();
+          const endVal = $("#update-end").val();
+          if (!startVal) return;
+
+          const startDate = new Date(startVal);
+          const minEndDate = new Date(startDate);
+          minEndDate.setDate(minEndDate.getDate() + 7);
+
+          if (endVal) {
+            const endDate = new Date(endVal);
+            if (endDate < minEndDate) {
+              $("#update-end").datepicker("update", minEndDate);
+            }
+          }
+          $("#update-end").datepicker("setStartDate", minEndDate);
+        }
+
+        $("#update-start").on("changeDate", validateEndDate);
+        $("#update-end").on("changeDate", validateEndDate);
+
+        $("#update-start-now").on("click", function () {
+          $("#update-start").val("").datepicker("update");
+          $("#update-end")
+            .datepicker("setStartDate", today)
+            .val("")
+            .datepicker("update");
+        });
+
+        $("#update-end-none").on("click", function () {
+          $("#update-end").val("").datepicker("update");
+        });
+
+        /** ---------- 사진 필수 → 도용방지 옵션 ---------- */
+        $('input[name="pictureRequired"]').on("change", function () {
+          $("#update-anti-area").toggleClass("d-none", this.value !== "Y");
+          if (this.value !== "Y") $("#update-anti").prop("checked", false);
+        });
+
+        /** ---------- 폼 제출 전 검증 처리 ---------- */
+        $("#update-form").on("submit", function (e) {
+          e.preventDefault(); // 기본 제출 방지
+
+          if (!this.checkValidity()) {
+            e.stopPropagation();
+            $(this).addClass("was-validated");
+            return;
+          }
+
+          // 제출 버튼 로딩 상태로 변경
+          $("#update-submit-text").addClass("d-none");
+          $("#update-submit-spinner").removeClass("d-none");
+          $("#update-submit").prop("disabled", true);
+
+          // 폼 데이터 수집
+          const formData = new FormData(this);
+
+          // pictureRequired 처리
+          const pickedAnti = $('input[type="radio"][id="update-pic-req"]').is(
+            ":checked"
+          );
+          const isAnti = $("#update-anti").is(":checked");
+          if (pickedAnti && isAnti) {
+            formData.set("pictureRequired", "I");
+          }
+
+          // 비트마스크 처리
+          const type = $("#update-cycle-type").val();
+          if (type === "week") {
+            const bits = $("input[name='verifyCycleBit']:checked")
+              .map(function () {
+                return parseInt(this.value);
+              })
+              .get();
+            const sum = bits.reduce((a, b) => a + b, 0);
+            formData.set("verifyCycle", sum);
+            // verifyCycleBit 제거
+            formData.delete("verifyCycleBit");
+          }
+
+          // 날짜가 비었으면 제거
+          if (!$("#update-start").val()) formData.delete("startDate");
+          if (!$("#update-end").val()) formData.delete("endDate");
+
+          // axios로 제출
+          const postData = {};
+          for (let [key, value] of formData.entries()) {
+            if (key !== "userNo") {
+              // userNo 제외
+              postData[key] = value;
+            }
+          }
+
+          axios
+            .post(contextPath + "/challenge/updateChal", postData, {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            })
+            .then((response) => {
+              if (response.status === 200) {
+                history.back();
+              }
+            })
+            .catch((error) => {
+              if (
+                error.response &&
+                (error.response.status === 400 || error.response.status === 500)
+              ) {
+                alert("수정에 실패했습니다. 다시 시도해주세요.");
+              } else {
+                alert("수정에 실패했습니다. 다시 시도해주세요.");
+              }
+            })
+            .finally(() => {
+              // 로딩 상태 해제
+              $("#update-submit-text").removeClass("d-none");
+              $("#update-submit-spinner").addClass("d-none");
+              $("#update-submit").prop("disabled", false);
+            });
+        });
+
+        /** ---------- 초기화 확인 ---------- */
+        $("#update-reset").on("click", function (e) {
+          e.preventDefault();
+          if (confirm("모든 입력을 초기화할까요?")) {
+            // 페이지 새로고침으로 원래 값으로 복원
+            location.reload();
+          }
+        });
+
+        /** ---------- 페이지 로드 시 초기화 ---------- */
+        $(document).ready(function () {
+          /* ---------- 1) 대분류·세부분류 기본 선택 ---------- */
+          const childValue = $("#update-cat-child").val(); // 세부 분류 값 = categoryNo
+          if (childValue) {
+            const parentValue = Math.floor(childValue / 10) * 10; // 대분류 = 10의 자리
+            $("#update-cat-parent").val(parentValue); // 대분류 select 선택
+            $("#update-cat-parent").trigger("change"); // 세부 분류 옵션 동적 세팅
+            // change 이벤트 안에서 옵션을 생성하므로, DOM 생성 후 child 값을 다시 세팅
+            setTimeout(() => $("#update-cat-child").val(childValue), 0);
+          }
+
+          /* ---------- 2) pictureRequired 기본 선택 & 도용방지 영역 ---------- */
+          const picReq = $(
+            "#update-form input[name='pictureRequired']:checked"
+          ).val();
+
+          if (picReq === "Y") {
+            // '필수'인 경우
+            $("#update-anti-area").removeClass("d-none");
+          } else if (picReq === "I") {
+            // '직접 촬영만'이 서버 값으로 들어온 경우
+            // I 는 DB 값이므로, 화면에서는 'Y' + 체크박스 체크로 표현
+            $("#update-pic-req").prop("checked", true);
+            $("#update-anti-area").removeClass("d-none");
+            $("#update-anti").prop("checked", true);
+          }
+
+          /* ---------- 3) 인증 주기(verifyCycle) ---------- */
+          const verifyCycle = /*[[${updateChal.verifyCycle}]]*/ 0; // 서버 값 삽입
+          initializeCycleType(verifyCycle); // 기존 함수 그대로 호출
+        });
+      }
+    </script>
+  </body>
+</html>

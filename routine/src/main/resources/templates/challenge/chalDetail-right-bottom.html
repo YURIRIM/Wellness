@@ -1,0 +1,30 @@
+<th:block th:fragment="chalDetail-right-bottom">
+  <!-- 댓글/대댓글 목록 컨테이너 -->
+  <div id="right-top-bottom-container" class="mb-3">
+    <!-- 동적으로 카드가 추가될 영역 -->
+    <div id="right-top-comment-list" class="d-flex flex-column gap-3"></div>
+
+    <!-- 로딩 스피너 -->
+    <div id="right-top-loading" class="text-center my-4" style="display: none">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading…</span>
+      </div>
+    </div>
+
+    <!-- 인터섹션 옵저버용 센티널 -->
+    <div id="right-top-sentinel"></div>
+  </div>
+
+  <!-- 사진 확대용 모달 -->
+  <div class="modal fade" id="right-top-img-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content bg-dark">
+        <img
+          id="right-top-modal-img"
+          class="w-100"
+          style="object-fit: contain"
+        />
+      </div>
+    </div>
+  </div>
+</th:block>

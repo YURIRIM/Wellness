@@ -1,0 +1,40 @@
+<!-- templates/habit/list.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>습관 목록</title>
+</head>
+<body>
+    <h2>습관 목록</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>상태</th>
+                <th>수정</th>
+                <th>삭제</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="habit : ${habit}">
+                <td th:text="${habit.habitNo}"></td>
+                <td th:text="${habit.title}"></td>
+                <td th:text="${habit.status}"></td>
+                <td>				
+					<form th:action="@{'/habit/edit/' + ${habit.habitNo}}" method="post" onsubmit="return confirm('수정하시겠습니까?');">
+                        <button type="submit">수정</button>
+						</form>
+					</td>
+                <td>
+                    <form th:action="@{'/habit/delete/' + ${habit.habitNo}}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                        <button type="submit">삭제</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <a th:href="@{/habit/add}">새 습관 추가</a>
+</body>
+</html>

@@ -1,47 +1,292 @@
 <th:block th:fragment="newChal">
-  <!--
-*중요 - 모든 태그의 id는 `new-`로 시작하기(다른 조각과 충돌 방지), 동적으로 생성되는 영역
+  <div id="new-wrapper" class="card shadow-sm">
+    <div
+      class="card-header py-2 d-flex justify-content-between align-items-center"
+    >
+      <h5 class="m-0 fw-bold">챌린지 생성하기</h5>
+      <button class="btn btn-primary btn-sm" id="new-back">뒤로가기</button>
+    </div>
 
-summernote는 0.9.1버전 한국어를 사용
+    <div class="card-body">
+      <form
+        id="new-form"
+        th:action="@{/challenge/newChal}"
+        method="post"
+        class="needs-validation"
+        novalidate
+        enctype="multipart/form-data"
+      >
+        <!-- ========== 제목 ========== -->
+        <div class="mb-3">
+          <label for="new-title" class="form-label"
+            >제목 <span class="text-danger">*</span></label
+          >
+          <input
+            id="new-title"
+            name="title"
+            type="text"
+            class="form-control"
+            maxlength="100"
+            placeholder="최대 100자"
+            required
+          />
+          <div class="invalid-feedback">제목을 입력하세요.</div>
+        </div>
 
--->
+        <!-- ========== 내용(Summernote) ========== -->
+        <div class="mb-3">
+          <label class="form-label"
+            >내용 <span class="text-danger">*</span></label
+          >
+          <div style="width: 100%">
+            <textarea id="new-content" name="content" required></textarea>
+          </div>
+          <div class="form-text">
+            사진 최대 5장 · 1200×1200 픽셀 · ≤ 200 KB · 자동 WebP 변환
+          </div>
+          <div class="invalid-feedback">내용을 입력하세요.</div>
+        </div>
 
-  <div>새로운 챌린지 생성</div>
-  <form th:action="@{/challenge/newChal}" method="post">
-    제목 : <input type="text" placeholder="제목" required />
+        <!-- ========== 카테고리 ========== -->
+        <div class="row g-2 mb-3 align-items-start">
+          <div class="col-md-6">
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label for="new-cat-parent" class="form-label"
+                  >대분류 <span class="text-danger">*</span></label
+                >
+                <select id="new-cat-parent" class="form-select" required>
+                  <option value="" selected disabled>선택…</option>
+                  <th:block th:each="c : ${ChallengeCategory}">
+                    <option
+                      th:if="${c.categoryNo % 10 == 0}"
+                      th:value="${c.categoryNo}"
+                      th:text="${c.categoryName}"
+                    ></option>
+                  </th:block>
+                </select>
+                <div class="invalid-feedback">대분류 선택</div>
+              </div>
+              <div class="col-md-6">
+                <label for="new-cat-child" class="form-label"
+                  >세부 분류 <span class="text-danger">*</span></label
+                >
+                <select
+                  id="new-cat-child"
+                  name="categoryNo"
+                  class="form-select"
+                  required
+                  disabled
+                >
+                  <option value="" selected disabled>먼저 대분류 선택</option>
+                </select>
+                <div class="invalid-feedback">세부 분류 선택</div>
+              </div>
+            </div>
+            <!-- 개추 버튼 -->
+            <div class="mt-2">
+              <button
+                type="button"
+                id="new-recommend-btn"
+                class="btn btn-outline-success"
+              >
+                카테고리 추천
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <ul id="new-recommend-result" class="list-group"></ul>
+          </div>
+        </div>
 
-    <!--
-    내용 : summernote를 이용해 입력받기
-    -->
-    내용 :
+        <!-- ========== 썸네일 ========== -->
+        <div class="mb-3">
+          <label for="new-thumb" class="form-label">썸네일 (선택)</label>
+          <input
+            id="new-thumb"
+            type="file"
+            accept="image/*"
+            class="form-control"
+          />
+          <div class="mt-2 d-flex align-items-center gap-2">
+            <button
+              id="new-copy-first"
+              type="button"
+              class="btn btn-sm btn-outline-secondary"
+            >
+              첫 번째 첨부사진 사용
+            </button>
+            <img
+              id="new-thumb-preview"
+              src="#"
+              alt="미리보기"
+              class="d-none border rounded"
+              style="width: 72px; height: 72px; object-fit: cover"
+            />
+          </div>
+          <div class="form-text">
+            1200×1200 픽셀 · ≤ 200 KB · WebP 자동 변환
+          </div>
+        </div>
+        <!-- 썸네일이 인코딩 후 실제로 담기는 input -->
+        <input type="hidden" id="new-thumb-base64" name="thumbnailBase64" />
 
-    <!--
-    카테고리 : model에 담긴 값 활용
-    -->
-    카테고리 :
+        <!-- ========== 인증 주기 ========== -->
+        <div class="mb-3">
+          <label class="form-label">인증 주기</label>
+          <select id="new-cycle-type" class="form-select">
+            <option value="0" selected>없음</option>
+            <option value="day">일</option>
+            <option value="week">요일</option>
+            <option value="weeknum">주</option>
+            <option value="month">월</option>
+          </select>
+          <div id="new-cycle-options" class="mt-2"></div>
+        </div>
 
-    <!--썸네일 : wepb 200kb이하 사진만 허용-->
-    썸네일 :
+        <!-- ========== 시작·종료일 ========== -->
+        <div class="row g-2 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">시작일</label>
+            <div class="input-group">
+              <input
+                id="new-start"
+                name="startDate"
+                type="text"
+                class="form-control"
+                placeholder="지금부터 시작"
+                readonly
+              />
+              <button
+                id="new-start-now"
+                type="button"
+                class="btn btn-outline-secondary"
+              >
+                지금
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">종료일</label>
+            <div class="input-group">
+              <input
+                id="new-end"
+                name="endDate"
+                type="text"
+                class="form-control"
+                placeholder="종료 기간 없음"
+                readonly
+              />
+              <button
+                id="new-end-none"
+                type="button"
+                class="btn btn-outline-secondary"
+              >
+                없음
+              </button>
+            </div>
+          </div>
+        </div>
 
-    <!--
-    시작일 : "yyyy-MM-dd HH:mm:ss" 포맷,
-    년/월/일/시 조작 가능,
-    현재 날짜보다 과거를 선택할 수 없음,
-    현재 날짜의 세 달 뒤 이후부터는 선택할 수 없음
-    -->
-    시작일 :
+        <!-- ========== 사진·댓글 필수 여부 ========== -->
+        <div class="mb-3">
+          <label class="form-label">인증 시 사진</label>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="pictureRequired"
+              id="new-pic-opt"
+              value="O"
+              checked
+            />
+            <label class="form-check-label" for="new-pic-opt">선택</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="pictureRequired"
+              id="new-pic-req"
+              value="Y"
+            />
+            <label class="form-check-label" for="new-pic-req">필수</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="pictureRequired"
+              id="new-pic-no"
+              value="N"
+            />
+            <label class="form-check-label" for="new-pic-no">불가</label>
+          </div>
+          <div id="new-anti-area" class="mt-2 d-none">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="new-anti" />
+              <label class="form-check-label" for="new-anti"
+                >직접 촬영한 사진만 허용</label
+              >
+            </div>
+          </div>
+        </div>
 
-    <!--
-    종료일 : "yyyy-MM-dd HH:mm:ss" 포맷,
-    년/월/일/시 조작 가능,
-    시작일의 일주일 후를 기준으로 그 이전은 선택할 수 없음,
-    '종료 기간 없음' 선택 가능
-    -->
-    종료일 :
+        <div class="mb-3">
+          <label class="form-label">인증 시 텍스트</label>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="replyRequired"
+              id="new-rep-opt"
+              value="O"
+              checked
+            />
+            <label class="form-check-label" for="new-rep-opt">선택</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="replyRequired"
+              id="new-rep-req"
+              value="Y"
+            />
+            <label class="form-check-label" for="new-rep-req">필수</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="replyRequired"
+              id="new-rep-no"
+              value="N"
+            />
+            <label class="form-check-label" for="new-rep-no">불가</label>
+          </div>
+        </div>
 
-    <!--
-    
-    -->
-    인증에 사진 필수 여부
-  </form>
+        <!-- ========== 버튼 ========== -->
+        <div class="d-flex justify-content-end gap-2">
+          <button id="new-reset" type="reset" class="btn btn-outline-secondary">
+            초기화
+          </button>
+          <button
+            id="new-submit"
+            type="submit"
+            class="btn btn-primary"
+            disabled
+          >
+            <span id="new-submit-text">생성하기</span>
+            <span
+              id="new-submit-spinner"
+              class="spinner-border spinner-border-sm d-none"
+              role="status"
+            ></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </th:block>

@@ -1,22 +1,9 @@
 <!--
-오른쪽 사이드바
-
-*중요 - 모든 태그의 id는 `right-`로 시작하기(다른 조각과 충돌 방지)
-
-
-새로운 챌린지 생성하기
-<a th:href="@{/challenge/newChal}">챌린지 새로 생성하기</a>
-
-내가 생성한 챌린지
-<a th:href="@{/challenge/createdChal}">내가 생성한 챌린지</a>
-
-내가 참여한 챌린지
-<a th:href="@{/challenge/joinedChal}">참여한 챌린지</a>
-
+오른쪽 사이드바 - 모든 태그의 id는 `right-`로 시작
 -->
 <th:block th:fragment="chalMain-right">
+  <!--프로필 생성 영역-->
   <div id="right-chal-right" class="p-3">
-    <h5>개인 영역</h5>
     <div class="list-group">
       <a
         th:href="@{/challenge/newChal}"
@@ -25,17 +12,33 @@
         >새로운 챌린지 생성하기</a
       >
       <a
-        th:href="@{/challenge/createdChal}"
+        th:href="@{/challenge/goMyChal?searchType=O}"
         id="right-createdChal"
         class="list-group-item list-group-item-action"
         >내가 생성한 챌린지</a
       >
       <a
-        th:href="@{/challenge/joinedChal}"
+        th:href="@{/challenge/goMyChal?searchType=J}"
         id="right-joinedChal"
         class="list-group-item list-group-item-action"
         >내가 참여한 챌린지</a
       >
     </div>
+  </div>
+  <br> <br> <br> <br>
+  <div id="right-dangerArea" class="alert alert-warning" role="alert">
+    <div class="mt-2 d-flex">
+      <input
+        type="text"
+        class="form-control me-2"
+        id="right-keyInput"
+        placeholder="키를 입력하세요"
+        aria-label="키 입력"
+      />
+      <button type="button" class="btn btn-warning" id="right-activateAi">
+        활성화
+      </button>
+    </div>
+    <div id="right-activateAi-msg" class="mt-2"></div>
   </div>
 </th:block>

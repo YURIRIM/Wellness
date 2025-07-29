@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>습관 등록</title>
+  <style>
+      /* 전체 배경 및 폰트 */
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f0f3f7;
+        margin: 0;
+        padding: 50px 20px;
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+        color: #333;
+      }
+
+      /* 폼 박스 */
+      form {
+        background-color: #fff;
+        border-radius: 16px;
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+        padding: 36px 48px;
+        max-width: 720px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      /* 제목 */
+      h2 {
+        text-align: center;
+        margin-bottom: 36px;
+        font-weight: 700;
+        font-size: 1.8rem;
+        color: #1a202c;
+        letter-spacing: -0.02em;
+      }
+	  
+
+      /* 폼 각 항목 간격 */
+      form > div {
+        margin-bottom: 24px;
+      }
+
+      /* 라벨 */
+      label {
+        display: inline-block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #4a5568;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      /* 텍스트, 셀렉트, 넘버, 타임 입력 */
+      input[type="text"],
+      input[type="number"],
+      input[type="time"],
+      select {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1.8px solid #cbd5e1;
+        font-size: 1rem;
+        transition: border-color 0.25s ease;
+        box-sizing: border-box;
+        outline-offset: 2px;
+      }
+      input[type="text"]:focus,
+      input[type="number"]:focus,
+      input[type="time"]:focus,
+      select:focus {
+        border-color: #4299e1;
+        box-shadow: 0 0 6px #90cdf4;
+      }
+
+      /* 체크박스 스타일 */
+      input[type="checkbox"] {
+        margin-right: 8px;
+        width: 18px;
+        height: 18px;
+        vertical-align: middle;
+        cursor: pointer;
+      }
+
+      /* 라디오, 체크박스 라벨 */
+      #weeklyOptionSelector label,
+      #weekDaysIntervalSection label,
+      #weekDaysNthSection label,
+      #nthWeekSection label {
+        font-weight: 500;
+        color: #2d3748;
+        cursor: pointer;
+        user-select: none;
+        margin-right: 16px;
+        margin-bottom: 10px;
+        display: inline-flex;
+        align-items: center;
+        font-size: 0.95rem;
+      }
+
+      /* 그룹 제목 */
+      .option-group strong {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 700;
+        color: #2c5282;
+        font-size: 1.05rem;
+      }
+
+      /* form-row 플렉스 */
+      .form-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 10px;
+      }
+
+      /* 버튼 */
+      button {
+        width: 100%;
+        background-color: #2b6cb0;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 14px 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.25s ease;
+        user-select: none;
+      }
+      button:hover {
+        background-color: #2c5282;
+      }
+
+      /* 달력 헤더 */
+      #calendarHeaderContainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 18px;
+        margin: 28px 0 12px;
+      }
+
+      #calendarHeader {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #2a4365;
+        min-width: 150px;
+        text-align: center;
+        user-select: none;
+      }
+
+      #prevMonthBtn, #nextMonthBtn {
+		width: 10%;
+        background-color: #e2e8f0;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 10px;
+        font-weight: 600;
+        color: #2a4365;
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.2s ease;
+      }
+      #prevMonthBtn:hover, #nextMonthBtn:hover {
+        background-color: #cbd5e1;
+      }
+
+      /* 달력 그리드 */
+      .calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        width: 100%;
+        min-height: 380px;
+        box-sizing: border-box;
+      }
+
+      /* 달력 일자 */
+      .day {
+        background-color: #fff;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 12px;
+        text-align: center;
+        padding: 8px 6px;
+        height: 66px;
+        position: relative;
+        font-size: 0.9rem;
+        color: #2d3748;
+        user-select: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 500;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+      }
+
+      .day.header {
+        font-weight: 700;
+        background-color: #e9f0fc;
+        border: none;
+        color: #4a5568;
+        user-select: none;
+      }
+	  
+
+      /* 강조된 날 */
+      .day.highlight {
+        background-color: #bee3f8;
+        border-color: #4299e1;
+        color: #1a365d;
+        font-weight: 700;
+      }
+
+      /* 오늘 날짜 */
+      .day.today {
+        border: 2.5px solid #3182ce;
+        color: #3182ce;
+        font-weight: 700;
+        box-shadow: 0 0 6px #90cdf4;
+      }
+
+      /* 시간 라벨 */
+      .timeLabel {
+        font-size: 0.75rem;
+        color: #2c5282;
+        position: absolute;
+        bottom: 6px;
+        right: 6px;
+        font-weight: 600;
+      }
+
+      /* 체크박스 그룹 정렬 */
+      .checkbox-group label {
+        display: inline-block;
+        margin-right: 12px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        color: #2d3748;
+      }
+
+      /* 반응형 */
+      @media (max-width: 768px) {
+        body {
+          padding: 30px 10px;
+        }
+        form {
+          padding: 28px 20px;
+          max-width: 100%;
+        }
+        input[type="text"],
+        input[type="number"],
+        select,
+        input[type="time"] {
+          width: 100%;
+        }
+        .form-row {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        #calendarHeaderContainer {
+          flex-direction: column;
+          gap: 12px;
+        }
+        #prevMonthBtn, #nextMonthBtn {
+          width: 100%;
+          max-width: 200px;
+        }
+        #calendar {
+          min-height: 320px;
+        }
+      }
+	  
+	  
+	  .example { font-size: 0.9rem; color: #666; margin-top: 0.3rem; }
+    </style>
+	
+	
+	
+	
+	
+	
+  <script>
+	let calendarYear, calendarMonth;
+
+	const weekdayMap = { SUN: 0, MON: 1, TUE: 2, WED: 3, THU: 4, FRI: 5, SAT: 6 };
+
+    const unitMap = {
+      DAILY: "일",
+      WEEKLY: "주",
+      WEEKLY_COUNT: "주",
+      MONTHLY_COUNT: "월"
+    };
+
+    function updateIntervalUnit() {
+      const type = document.getElementById("repeatType").value;
+      const intervalInput = document.querySelector("input[name='repeat.interval']");
+      const unitElement = document.getElementById("intervalUnit");
+      const interval = parseInt(intervalInput.value, 10) || 1;
+      const unitText = unitMap[type];
+      unitElement.innerText = unitText ? (interval === 1 ? `매${unitText}` : `${interval}${unitText}마다`) : "";
+    }
+
+	function onRepeatTypeChange() {
+	  const type = document.getElementById("repeatType").value;
+	  // "weeklyOption" 라디오 중 선택된 값 가져오기, 없으면 기본 "interval" 할당
+	  const weeklyOptions = document.getElementsByName("weeklyOption");
+	  let weeklyOption = "interval";
+	  for(let opt of weeklyOptions) {
+		if(opt.checked) {
+		  weeklyOption = opt.value;
+		  break;
+		}
+	  }
+
+	  // 만약 반복 유형이 WEEKLY가 아니면 라디오 버튼 초기화 및 숨김
+	  if(type !== "WEEKLY") {
+		document.getElementById("weeklyOptionSelector").style.display = "none";
+		// 라디오 초기화 (interval 체크)
+		weeklyOptions.forEach(opt => opt.checked = false);
+		weeklyOptions[0].checked = true; // 첫번째 'interval' 체크
+		weeklyOption = "interval";
+	  } else {
+		document.getElementById("weeklyOptionSelector").style.display = "block";
+	  }
+
+	  // WEEKLY인 경우
+	  if (type === "WEEKLY") {
+	    document.getElementById("weekDaysSection").style.display = "block";
+	    document.getElementById("nthWeekSection").style.display = (weeklyOption === "nth") ? "block" : "none";
+	  } else {
+	    document.getElementById("weekDaysSection").style.display = "none";
+	    document.getElementById("nthWeekSection").style.display = "none";
+	  }
+
+	  // 반복 간격 표시 여부 (DAILY 또는 WEEKLY + interval일때만)
+	  const showInterval = (type === "DAILY") || (type === "WEEKLY" && weeklyOption === "interval");
+	  document.getElementById("intervalSection").style.display = showInterval ? "block" : "none";
+
+	  // 주 N회, 월 N회 반복 횟수 표시 여부
+	  document.getElementById("repeatFrequencySection").style.display = (type === "WEEKLY_COUNT" || type === "MONTHLY_COUNT") ? "block" : "none";
+	  document.getElementById("frequencyUnitText").innerText = unitMap[type] || "";
+
+	  // 시간 옵션 표시 여부 (DAILY 또는 WEEKLY)
+	  document.getElementById("timeOptionSection").style.display = (type === "DAILY" || type === "WEEKLY") ? "block" : "none";
+
+	  // 요일 체크박스 세부 표시 조정
+	  if(type === "WEEKLY") {
+		document.getElementById("weekDaysIntervalSection").style.display = (weeklyOption === "interval") ? "block" : "none";
+		document.getElementById("weekDaysNthSection").style.display = (weeklyOption === "nth") ? "block" : "none";
+	  } else {
+		document.getElementById("weekDaysIntervalSection").style.display = "none";
+		document.getElementById("weekDaysNthSection").style.display = "none";
+	  }
+
+	  updateIntervalUnit();
+	  updateTimeVisibility();
+	  
+	  const calendarVisible = (type === "DAILY" || type === "WEEKLY");
+	   document.getElementById("calendar").style.display = calendarVisible ? "grid" : "none";
+	   document.getElementById("calendarHeaderContainer").style.display = calendarVisible ? "block" : "none";
+
+	  
+	  renderCalendar();
+	}
+
+	function onWeeklyOptionChange() {
+	  const type = document.getElementById("repeatType").value;
+	  const selected = document.querySelector("input[name='weeklyOption']:checked")?.value || "interval";
+
+	  // 요일 체크박스 세부 영역 표시
+	  document.getElementById("weekDaysSection").style.display = "block";
+	  document.getElementById("nthWeekSection").style.display = selected === "nth" ? "block" : "none";
+
+	  document.getElementById("weekDaysIntervalSection").style.display = selected === "interval" ? "block" : "none";
+	  document.getElementById("weekDaysNthSection").style.display = selected === "nth" ? "block" : "none";
+
+	  // 반복 간격 표시
+	  const showInterval = (type === "DAILY") || (type === "WEEKLY" && selected === "interval");
+	  document.getElementById("intervalSection").style.display = showInterval ? "block" : "none";
+
+	  renderCalendar();
+	}
+
+    function updateTimeVisibility() {
+      const allDay = document.getElementById("allDay").checked;
+      document.getElementById("timeSection").style.display = allDay ? "none" : "block";
+    }
+
+	function selectWeekDays(group, checked) {
+	  const className = group === 'weekdays' ? 'weekday-interval' : 'weekend-interval';
+	  document.querySelectorAll(`.${className}`).forEach(cb => cb.checked = checked);
+	  renderCalendar();
+	}
+
+	function selectNthWeekDays(group, checked) {
+	  const className = group === 'weekday-nth' ? 'weekday-nth' : 'weekend-nth';
+	  document.querySelectorAll(`.${className}`).forEach(cb => cb.checked = checked);
+	  renderCalendar();
+	}
+
+	function getKoreanWeekIndex(date) {
+	    const first = new Date(date.getFullYear(), date.getMonth(), 1);
+	    const firstMondayOffset = (first.getDay() === 0) ? 6 : first.getDay() - 1;
+	    const dayOffset = date.getDate() + firstMondayOffset - 1;
+	    return Math.floor(dayOffset / 7) + 1;
+	}
+
+	function isLastWeekOfMonth(date) {
+	    const test = new Date(date);
+	    test.setDate(test.getDate() + 7);
+	    return test.getMonth() !== date.getMonth();
+	}
+
+	function renderCalendar() {
+	  const calendar = document.getElementById("calendar");
+	  calendar.innerHTML = "";
+
+	  const today = new Date();
+	  today.setHours(0, 0, 0, 0);
+
+	  const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+	  const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+	  const repeatType = document.getElementById("repeatType").value;
+	  const allDay = document.getElementById("allDay").checked;
+	  const startTime = document.querySelector("input[name='repeat.repeatTime']")?.value || "";
+	  const interval = parseInt(document.querySelector("input[name='repeat.interval']")?.value || "1", 10);
+	  const weeklyOption = document.querySelector("input[name='weeklyOption']:checked")?.value || "interval";
+
+	  // 선택된 요일 가져오기
+	  const checkedDaysInterval = Array.from(document.querySelectorAll("input[name='repeat.weekDaysInterval']:checked"))
+	    .map(cb => weekdayMap[cb.value]);
+	  const checkedDaysNth = Array.from(document.querySelectorAll("input[name='repeat.weekDays']:checked"))
+	    .map(cb => weekdayMap[cb.value]);
+
+	  // 선택된 N째주
+	  const nthWeeks = Array.from(document.querySelectorAll("input[name='repeat.nthWeeks']:checked"))
+	    .map(cb => cb.value);
+
+	  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+	  weekdays.forEach(dayName => {
+	    const weekdayHeader = document.createElement("div");
+	    weekdayHeader.className = "day header";
+	    weekdayHeader.textContent = dayName;
+	    calendar.appendChild(weekdayHeader);
+	  });
+
+	  document.getElementById("calendarHeader").innerText = `${calendarYear}년 ${calendarMonth + 1}월`;
+
+	  // 빈칸 (첫째주 시작요일 앞 공백)
+	  for (let i = 0; i < firstDay; i++) {
+	    calendar.innerHTML += `<div class="day"></div>`;
+	  }
+
+	  for (let day = 1; day <= daysInMonth; day++) {
+	    const currentDate = new Date(calendarYear, calendarMonth, day);
+	    const currentMidnight = new Date(currentDate);
+	    currentMidnight.setHours(0, 0, 0, 0);
+	    const dayOfWeek = currentDate.getDay();
+	    const isToday = currentMidnight.getTime() === today.getTime();
+	    let highlight = false;
+
+	    if (repeatType === "DAILY") {
+	      const diffDays = Math.floor((currentMidnight - today) / (1000 * 60 * 60 * 24));
+	      highlight = diffDays % interval === 0 && diffDays >= 0;
+	    }
+
+		if (repeatType === "WEEKLY") {
+		  if (weeklyOption === "interval") {
+		    const startDate = new Date();
+		    startDate.setHours(0, 0, 0, 0);
+
+		    // 기준일이 속한 주 일요일
+			const startWeekMonday = new Date(startDate);
+			const startDay = startDate.getDay();
+			const offsetToMonday = (startDay === 0) ? -6 : 1 - startDay;
+			startWeekMonday.setDate(startDate.getDate() + offsetToMonday);
+
+		    // 현재 날짜가 속한 주 일요일
+		    const currentWeekSunday = new Date(currentMidnight);
+		    currentWeekSunday.setDate(currentWeekSunday.getDate() - currentWeekSunday.getDay());
+
+			const currentWeekMonday = new Date(currentMidnight);
+			const currentDay = currentWeekMonday.getDay();
+			const currentOffset = (currentDay === 0) ? -6 : 1 - currentDay;
+			currentWeekMonday.setDate(currentWeekMonday.getDate() + currentOffset);
+
+			const diffWeeks = Math.floor((currentWeekMonday - startWeekMonday) / (1000 * 60 * 60 * 24 * 7));
+
+		    if (
+		      diffWeeks >= 0 &&
+		      diffWeeks % interval === 0 &&
+		      checkedDaysInterval.includes(dayOfWeek)
+		    ) {
+		      highlight = true;
+		    }
+		  }
+
+
+	      if (weeklyOption === "nth") {
+	        if (currentMidnight >= today && checkedDaysNth.includes(dayOfWeek)) {
+	          const weekIndex = getKoreanWeekIndex(currentDate);
+	          const isLast = isLastWeekOfMonth(currentDate);
+	          const isMatchedWeek =
+	            nthWeeks.includes(weekIndex.toString()) || (isLast && nthWeeks.includes("LAST"));
+
+	          if (isMatchedWeek) {
+	            highlight = true;
+	          }
+	        }
+	      }
+	    }
+
+	    const timeText = (!allDay && highlight) ? `<div class="timeLabel">${startTime}</div>` : "";
+
+	    calendar.innerHTML += `
+	      <div class="day ${highlight ? "highlight" : ""} ${isToday ? "today" : ""}">
+	        ${day}
+	        ${timeText}
+	      </div>
+	    `;
+	  }
+	}
+
+	function goToPrevMonth() {
+	    if (calendarMonth === 0) {
+	      calendarMonth = 11;
+	      calendarYear -= 1;
+	    } else {
+	      calendarMonth -= 1;
+	    }
+	    renderCalendar();
+	}
+
+	function goToNextMonth() {
+	    if (calendarMonth === 11) {
+	      calendarMonth = 0;
+	      calendarYear += 1;
+	    } else {
+	      calendarMonth += 1;
+	    }
+	    renderCalendar();
+	}
+
+	window.addEventListener("DOMContentLoaded", () => {
+	    const today = new Date();
+	    calendarYear = today.getFullYear();
+	    calendarMonth = today.getMonth();
+
+	    document.getElementById("prevMonthBtn").addEventListener("click", goToPrevMonth);
+	    document.getElementById("nextMonthBtn").addEventListener("click", goToNextMonth);
+
+	    document.getElementById("repeatType").addEventListener("change", onRepeatTypeChange);
+
+	    document.querySelector("input[name='repeat.interval']").addEventListener("input", () => {
+	      updateIntervalUnit();
+	      renderCalendar();
+	    });
+		
+		document.querySelector("input[name='repeat.repeatTime']").addEventListener("input", () => {
+		  renderCalendar();
+		});
+
+
+	    document.getElementById("allDay").addEventListener("change", () => {
+	      updateTimeVisibility();
+	      renderCalendar();
+	    });
+
+	    const inputs = [
+	      ...document.querySelectorAll("input[name='repeat.weekDaysInterval']"),
+	      ...document.querySelectorAll("input[name='repeat.weekDays']"),
+	      ...document.querySelectorAll("input[name='repeat.nthWeeks']"),
+	      ...document.querySelectorAll("input[name='weeklyOption']")
+	    ];
+	    inputs.forEach(input => input.addEventListener("change", () => {
+			if(input.name === 'weeklyOption') onWeeklyOptionChange();
+			else renderCalendar();
+		}));
+
+	    onRepeatTypeChange();
+	    renderCalendar();
+	});
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	const amountInput = document.getElementById('amount');
+	const amountError = document.getElementById('amountError');
+
+	function validateAmount() {
+	  const value = amountInput.value;
+	  if (!/^\d+$/.test(value) || parseInt(value) <= 0) {
+	    amountError.textContent = "1 이상의 숫자만 입력해주세요.";
+	    amountInput.setCustomValidity("1 이상의 숫자만 입력해주세요.");
+	  } else {
+	    amountError.textContent = "";
+	    amountInput.setCustomValidity("");
+	  }
+	}
+
+	// 제출 전 검사
+	document.getElementById('goalForm').addEventListener('submit', function (e) {
+	  validateAmount();
+	  if (!amountInput.checkValidity()) {
+	    e.preventDefault();
+	    amountInput.focus();
+	  }
+	});
+
+	// 실현 가능성 선택 시 제안 메시지 출력
+	document.getElementById('feasibilityLevel').addEventListener('change', function () {
+	  const level = this.value;
+	  const amount = parseInt(amountInput.value);
+	  const suggestionDiv = document.getElementById('suggestionMessage');
+
+	  if (!amount || amount <= 0 || isNaN(amount)) {
+	    suggestionDiv.textContent = '';
+	    return;
+	  }
+
+	  let suggestion = '';
+
+	  if (level === 'medium' || level === 'low') {
+	    if (amount >= 30) {
+	      const reduced = amount - (level === 'medium' ? 10 : 15);
+	      suggestion = `${reduced} 정도로 줄여서 꾸준히 해보는 건 어때요? 지속하는 게 더 중요하니까요!`;
+	    } else if (amount >= 10) {
+	      const reduced = amount - (level === 'medium' ? 5 : 8);
+	      suggestion = `${reduced} 정도로 시작해보면 부담이 덜할 거예요. 자신감 있게 가봅시다!`;
+	    } else if (amount >= 5) {
+	      const reduced = amount - (level === 'medium' ? 2 : 3);
+	      suggestion = `${reduced} 정도부터 시작해보면 습관 들이기에 좋을 것 같아요 😊`;
+	    } else {
+	      suggestion = `지금 목표도 아주 좋아요! 중요한 건 시작하는 용기와 꾸준함이에요 💖`;
+	    }
+	  } else {
+	    suggestion = `좋아요! 이 정도면 충분히 해낼 수 있을 거예요 💪`;
+	  }
+
+	  suggestionDiv.textContent = suggestion;
+	});
+  </script>
+</head>
+<body>
+	<form id="goalForm" th:action="@{/goal/save}" method="post">
+  <h2>습관 등록</h2>
+
+    <div>
+      <label>습관 이름</label>
+      <input type="text" name="title" required>
+    </div>
+
+		    <!-- 1. 구체적인 목표 -->
+	    <label for="what">1️⃣ 목표를 위해 무엇을 얼만큼 할 건가요?</label>  
+	    <div class="example">예: 단어 암기 30개 / 러닝 5km / 문제 풀이 3회</div>
+	    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+	      <input type="text" id="what" name="what" placeholder="예: 단어 암기" style="flex: 2;" required />
+	      <input type="number" id="amount" name="amount" placeholder="예: 30" style="flex: 1;" required min="1" oninput="validateAmount()" />
+	      <input type="text" id="unit" name="unit" placeholder="예: 개 / 분 / 회 등" style="flex: 1;" required />
+	    </div>
+	    <div id="amountError" class="example" style="color: red;"></div>
+
+	    <!-- 6. 목표가 부담되지 않나요? -->
+	    <label for="feasibility">2️⃣ 이 목표가 얼마나 실현 가능하다고 느껴지나요?</label>
+	    <select id="feasibilityLevel" name="feasibilityLevel" required>
+	      <option value="">-- 선택 --</option>
+	      <option value="high">충분히 가능해요 (상)</option>
+	      <option value="medium">조금 부담돼요 (중)</option>
+	      <option value="low">많이 어려워요 (하)</option>
+	    </select>
+	    <div id="suggestionMessage" class="example"></div>
+
+		<label>3️⃣ 반복 기간을 정해보세요.</label>
+		
+    <div>
+		<BR>
+      <label>반복 유형</label>
+      <select name="repeat.repeatType" id="repeatType">
+        <option value="DAILY">매일</option>
+        <option value="WEEKLY">매주</option>
+        <option value="WEEKLY_COUNT">주 N회</option>
+        <option value="MONTHLY_COUNT">월 N회</option>
+      </select>
+    </div>
+
+    <div id="weeklyOptionSelector" style="display: none;">
+      <label><input type="radio" name="weeklyOption" value="interval" checked> N주마다 반복</label>
+      <label><input type="radio" name="weeklyOption" value="nth"> N째주마다</label>
+    </div>
+
+    <div id="intervalSection" style="display: none;">
+      <label>반복 간격</label>
+      <input type="number" name="repeat.interval" min="1" value="1">
+      <span id="intervalUnit">일마다</span>
+    </div>
+
+    <div id="repeatFrequencySection" style="display: none;">
+      <label>반복 횟수</label>
+      <span id="frequencyUnitText">주</span>
+      <input type="number" name="repeat.frequencyCount" min="1" max="365" value="1">
+      <span>회</span>
+    </div>
+
+    <div id="nthWeekSection" style="display: none;">
+      <label>해당 주차</label><br>
+      <label><input type="checkbox" name="repeat.nthWeeks" value="1">1째주</label>
+      <label><input type="checkbox" name="repeat.nthWeeks" value="2">2째주</label>
+      <label><input type="checkbox" name="repeat.nthWeeks" value="3">3째주</label>
+      <label><input type="checkbox" name="repeat.nthWeeks" value="4">4째주</label>
+      <label><input type="checkbox" name="repeat.nthWeeks" value="LAST">마지막</label><br>
+    </div>
+
+    <div id="weekDaysSection" style="display: none;">
+
+      <!-- N주마다 반복용 요일 체크박스 (이름 분리) -->
+	  <div id="weekDaysIntervalSection">
+      <div><strong>N주마다 N요일</strong></div>
+      <label><input type="checkbox" onclick="selectWeekDays('weekdays', this.checked)">평일</label>
+      <label><input type="checkbox" onclick="selectWeekDays('weekends', this.checked)">주말</label><br>
+      <label><input type="checkbox" name="repeat.weekDaysInterval" value="MON" class="weekday-interval">월</label>
+      <label><input type="checkbox" name="repeat.weekDaysInterval" value="TUE" class="weekday-interval">화</label>
+      <label><input type="checkbox" name="repeat.weekDaysInterval" value="WED" class="weekday-interval">수</label>
+      <label><input type="checkbox" name="repeat.weekDaysInterval" value="THU" class="weekday-interval">목</label>
+      <label><input type="checkbox" name="repeat.weekDaysInterval" value="FRI" class="weekday-interval">금</label>
+      <label><input type="checkbox" name="repeat.weekDaysInterval" value="SAT" class="weekend-interval">토</label>
+      <label><input type="checkbox" name="repeat.weekDaysInterval" value="SUN" class="weekend-interval">일</label>
+	  </div>
+
+      <!-- N째주마다용 요일 체크박스 (기존 이름 유지) -->
+	  <div id="weekDaysNthSection">
+      <div><strong>N째주마다 N요일</strong></div>
+      <label><input type="checkbox" onclick="selectNthWeekDays('weekday-nth', this.checked)">평일</label>
+      <label><input type="checkbox" onclick="selectNthWeekDays('weekend-nth', this.checked)">주말</label><br>
+      <label><input type="checkbox" name="repeat.weekDays" value="MON" class="weekday-nth">월</label>
+      <label><input type="checkbox" name="repeat.weekDays" value="TUE" class="weekday-nth">화</label>
+      <label><input type="checkbox" name="repeat.weekDays" value="WED" class="weekday-nth">수</label>
+      <label><input type="checkbox" name="repeat.weekDays" value="THU" class="weekday-nth">목</label>
+      <label><input type="checkbox" name="repeat.weekDays" value="FRI" class="weekday-nth">금</label>
+      <label><input type="checkbox" name="repeat.weekDays" value="SAT" class="weekend-nth">토</label>
+      <label><input type="checkbox" name="repeat.weekDays" value="SUN" class="weekend-nth">일</label>
+    </div>  
+	</div>
+
+    <div id="timeOptionSection" style="display: none;">
+      <div>
+        <label>하루 종일</label>
+        <input type="checkbox" name="repeat.allDay" id="allDay" checked>
+      </div>
+      <div id="timeSection">
+        <label>시간</label>
+        <input type="time" name="repeat.repeatTime">
+      </div>
+    </div>
+    <button type="submit">등록</button>
+	  </form>
+  
+
+  <form th:action="@{/habit/add}" method="post">
+  
+
+	    <br>
+		<div class="right-section">
+  <div id="calendarHeaderContainer">
+    <button type="button" id="prevMonthBtn">&lt; </button>
+    <button type="button" id="nextMonthBtn"> &gt;</button><br><br>
+    <span id="calendarHeader"></span>
+  </div>
+
+    <div id="calendar" class="calendar"></div>
+	</div>
+
+  </form>
+</body>
+</html>

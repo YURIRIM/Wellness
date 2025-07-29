@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="challengeCommentMapper">
+
+<select id="chalDetailComment" resultType="ChallengeCommentResponse" parameterType="SearchComment">
+select *
+from(
+    select a1.*, rownum rnum
+    from(
+        select cc.COMMENT_NO
+              ,cc.USER_NO
+              ,cc.CHAL_NO
+              ,cc.RECOMMENT_TARGET
+              ,cc.REPLY
+              ,cc.CREATE_DATE
+              ,cc.STATUS
+              ,u.NICK
+              ,p.PICTURE
+              ,p.IS_OPEN
+              , CASE WHEN EXISTS (
+              	SELECT 1 FROM ATTACHMENT att
+				WHERE att.REF_TABLE = 'R'
+				AND att.REF_NO = cc.COMMENT_NO
+				) THEN 'Y' ELSE 'N' END AS HAS_ATTACHMENT
+        from CHALLENGE_COMMENT cc
+        left join USERS u on(u.USER_NO = cc.USER_NO)
+        left join PROFILE p on(cc.USER_NO = p.USER_NO)
+        where cc.CHAL_NO = #{chalNo}
+        and cc.RECOMMENT_TARGET IS NULL
+        order by cc.COMMENT_NO DESC
+    ) a1
+    where rownum &lt;= (#{currentPage}+1) * #{showLimit}
+)
+where rnum &gt; #{currentPage} * #{showLimit}
+</select>
+
+<select id="chalDetailRecomment" resultType="ChallengeCommentResponse" parameterType="SearchComment">
+select *
+from(
+    select a1.*, rownum rnum
+    from(
+        select cc.COMMENT_NO
+              ,cc.USER_NO
+              ,cc.CHAL_NO
+              ,cc.RECOMMENT_TARGET
+              ,cc.REPLY
+              ,cc.CREATE_DATE
+              ,cc.STATUS
+              ,u.NICK
+              ,p.PICTURE
+              ,p.IS_OPEN
+              , CASE WHEN EXISTS (
+              	SELECT 1 FROM ATTACHMENT att
+				WHERE att.REF_TABLE = 'R'
+				AND att.REF_NO = cc.COMMENT_NO
+				) THEN 'Y' ELSE 'N' END AS HAS_ATTACHMENT
+        from CHALLENGE_COMMENT cc
+        left join USERS u on(u.USER_NO = cc.USER_NO)
+        left join PROFILE p on(cc.USER_NO = p.USER_NO)
+        where cc.CHAL_NO = #{chalNo}
+        and cc.RECOMMENT_TARGET = #{recommentTarget}
+        order by cc.CREATE_DATE
+    ) a1
+    where rownum &lt;= (#{currentRecommentPage}+1) * #{showLimit}
+)
+where rnum &gt; #{currentRecommentPage} * #{showLimit}
+</select>
+	
+<insert id="insertComment" parameterType="ChallengeCommentRequest">
+	<selectKey keyProperty="commentNo" resultType="int"
+		order="BEFORE">
+		SELECT SEQ_CHALLENGE_COMMENT.nextval FROM dual
+	</selectKey>
+	insert into CHALLENGE_COMMENT(
+		COMMENT_NO
+		,USER_NO
+		,CHAL_NO
+		<if test="recommentTarget != 0">
+			,RECOMMENT_TARGET
+		</if>
+		,REPLY
+		,CREATE_DATE
+		,STATUS
+		)
+	values(
+		#{commentNo}
+		,#{userNo}
+		,#{chalNo}
+		<if test="recommentTarget != 0">
+			,#{recommentTarget}
+		</if>
+		,#{reply}
+		,SYSDATE
+		,'Y'
+		)
+</insert>
+
+<update id="updateComment" parameterType="ChallengeCommentRequest">
+	update CHALLENGE_COMMENT
+	set REPLY = #{reply}
+		,STATUS = 'M'
+	where COMMENT_NO = #{commentNo}
+</update>
+
+<update id="deleteComment" parameterType="int">
+	update CHALLENGE_COMMENT
+	set STATUS = 'N'
+	where COMMENT_NO = #{commentNo}
+</update>
+
+<select id="isCommentExist" parameterType="LoginUserAndChal" resultType="int">
+	select count(*)
+	from CHALLENGE_COMMENT
+	where COMMENT_NO = #{chalNo}
+	and USER_NO = #{userNo}
+</select>
+
+</mapper>

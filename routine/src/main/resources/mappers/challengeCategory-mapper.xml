@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="challengeCategoryMapper">
+
+<select id="selectCCList" resultType="ChallengeCategory">
+	select CATEGORY_NO,CATEGORY_NAME
+	from CHALLENGE_CATEGORY
+</select>
+
+<update id="updateEmbedding" parameterType="ChallengeCategory">
+	update CHALLENGE_CATEGORY
+	set EMBEDDING = #{embedding}
+	where CATEGORY_NO = #{categoryNo}
+</update>
+
+<select id="selectEmbeddings" resultType="ChallengeCategory">
+	select CATEGORY_NO, EMBEDDING
+	from CHALLENGE_CATEGORY
+	where MOD(CATEGORY_NO, 10) != 0
+</select>
+
+
+
+</mapper>

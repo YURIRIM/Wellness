@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>습관 체크 달력</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      padding: 2rem;
+      background-color: #f9f9f9;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .calendar {
+      max-width: 600px;
+      margin: auto;
+    }
+
+    .calendar-header, .calendar-row {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+    }
+
+    .calendar-header span {
+      font-weight: bold;
+      padding: 0.5rem 0;
+    }
+
+    .calendar-cell {
+      border: 1px solid #ddd;
+      padding: 1.2rem 0;
+      min-height: 60px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .calendar-cell.inactive {
+      background-color: #eee;
+      cursor: default;
+    }
+
+    .calendar-cell.active:hover {
+      background-color: #defade;
+    }
+
+    .calendar-cell.checked {
+      background-color: #8fd18f !important;
+      color: white;
+      font-weight: bold;
+    }
+  </style>
+  <script>
+    function toggleCheck(cell) {
+      if (!cell.classList.contains('active')) return;
+      cell.classList.toggle('checked');
+    }
+  </script>
+</head>
+
+<body>
+  <h2 th:text="${#dates.format(#dates.createNow(), 'yyyy년 MM월')} + ' 습관 달력'"></h2>
+
+  <div class="calendar">
+    <div class="calendar-header">
+      <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+    </div>
+
+    <div class="calendar-body">
+      <div th:each="week : ${weeks}">
+        <div class="calendar-row">
+          <div class="calendar-cell"
+               th:each="day : ${week}"
+               th:classappend="${day != null} ? 'active' : 'inactive'"
+               th:text="${day != null ? day.dayOfMonth : ''}"
+               th:onclick="${day != null} ? 'toggleCheck(this)' : ''">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

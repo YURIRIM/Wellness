@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>모임 목록</title>
+    <th:block th:replace="~{common/fragment :: library}"></th:block>
+</head>
+<body>
+	<th:block th:replace="~{common/fragment :: header}"></th:block>
+	    
+    <div class="container mt-4">
+        <h2>모임 목록</h2>
+        
+        <div class="mb-3">
+            <a th:href="@{/meeting/create}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> 새 모임 만들기
+            </a>
+            <a th:href="@{/meeting/my}" class="btn btn-secondary">
+                <i class="bi bi-person"></i> 내가 만든 모임
+            </a>
+            <a th:href="@{/meeting/joined}" class="btn btn-info">
+                <i class="bi bi-chat-dots"></i> 참여 중인 모임
+            </a>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 mb-3" th:each="meeting : ${meetingList}">
+                <div class="card h-100">
+                    <div class="card-header bg-light">
+                        <h5 class="card-title mb-1" th:text="${meeting.title}">모임 제목</h5>
+                        <small class="text-muted">
+                            <i class="bi bi-clock"></i> 
+                            <span th:text="${#temporals.format(meeting.meetingDate, 'MM-dd HH:mm')}">생성일</span>
+                        </small>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text" th:text="${meeting.description}">모임 소개</p>
+                        <div class="text-muted small">
+                            <div th:if="${meeting.location != null and !#strings.isEmpty(meeting.location)}">
+                                <i class="bi bi-geo-alt"></i> <span th:text="${meeting.location}">지역</span>
+                            </div>
+                            <div>
+                                <i class="bi bi-person"></i> 개설자: <span th:text="${meeting.userNo}">사용자</span>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a th:href="@{/meeting/detail/{meetingNo}(meetingNo=${meeting.meetingNo})}" 
+                               class="btn btn-outline-primary">
+                                <i class="bi bi-chat-square-text"></i> 모임 보기
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div th:if="${#lists.isEmpty(meetingList)}" class="text-center py-5">
+            <i class="bi bi-chat-dots display-4 text-muted"></i>
+            <h4 class="mt-3">아직 모임이 없습니다</h4>
+            <a th:href="@{/meeting/create}" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle"></i> 첫 모임 만들기
+            </a>
+        </div>
+    </div>
+</body>
+</html>
