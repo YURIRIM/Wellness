@@ -3,13 +3,16 @@ package com.kh.spring.videoCall.model.service;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.kh.spring.user.model.vo.User;
 import com.kh.spring.util.common.Regexp;
 import com.kh.spring.util.cryption.AESCryption;
@@ -106,27 +109,40 @@ public class DailyServiceImpl implements DailyService{
 	//방 참여자 수 받아오기
 	@Override
 	public Map<String, Integer> countParticipants() throws Exception {
-
-	    ParameterizedTypeReference<Map<String, Object>> typeRef = new ParameterizedTypeReference<>() {};
-
-	    // Presence API 호출
-	    Map<String, Object> response = dailyWebClient()
+	    //Presence API 호출
+	    String jsonResponse = dailyWebClient()
 	        .get()
 	        .uri("/presence")
 	        .retrieve()
-	        .bodyToMono(typeRef)
+	        .bodyToMono(String.class)
 	        .block();
 
 	    Map<String, Integer> result = new HashMap<>();
 
-	    if (response != null && response.containsKey("rooms")) {
-	        List<Map<String, Object>> rooms = (List<Map<String, Object>>) response.get("rooms");
-	        for (Map<String, Object> room : rooms) {
-	            String name = (String) room.get("name");
-	            List<?> participants = (List<?>) room.get("participants");
-	            int count = participants == null ? 0 : participants.size();
-	            result.put(name, count);
+	    if (jsonResponse == null) throw new Exception("Presence 요청 대 실 패!!");
+	    else if(jsonResponse.isEmpty()) return result;
+	    	
+
+	    //JSON 문자열 -> JsonObject
+	    JsonObject jobject = JsonParser.parseString(jsonResponse).getAsJsonObject();
+
+	    //"rooms" 키의 배열 파싱
+	    JsonArray roomsArray = jobject.getAsJsonArray("rooms");
+
+	    //각 방 객체별로 이름과 참가자 수 파싱
+	    for (JsonElement roomElement : roomsArray) {
+	        if (!roomElement.isJsonObject()) continue;
+
+	        JsonObject roomObj = roomElement.getAsJsonObject();
+
+	        String name = roomObj.has("name") ? roomObj.get("name").getAsString() : null;
+	        
+	        int count = 0;
+	        if (roomObj.has("participants") && roomObj.get("participants").isJsonArray()) {
+	            count = roomObj.getAsJsonArray("participants").size();
 	        }
+
+	        if (name != null) result.put(name, count);
 	    }
 
 	    return result;

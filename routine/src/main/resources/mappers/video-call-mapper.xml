@@ -73,7 +73,6 @@ order by CASE WHEN vc.STATUS = 'Y' THEN 0 ELSE 1 END,
 <update id="openRoom" parameterType="ConnectByUuid">
 update VIDEO_CALL vc
 set STATUS = 'Y'
-	,
 where vc.ROOM_UUID = #{uuid}
 and EXISTS(
 	select * FROM CHALLENGE c
@@ -117,7 +116,7 @@ where STATUS = 'Y'
 update VIDEO_CALL
 set STATUS = 'N'
 where ROOM_UUID in
-<foreach collection="UuidByteArray" item="item" open="(" separator="," close=")">
+<foreach collection="list" item="item" open="(" separator="," close=")">
 	#{item}
 </foreach>
 </update>
