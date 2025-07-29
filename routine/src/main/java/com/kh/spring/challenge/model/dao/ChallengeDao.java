@@ -5,7 +5,7 @@ import java.util.List;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.kh.spring.challenge.model.vo.ChallengeReqired;
+import com.kh.spring.challenge.model.vo.ChallengeRequired;
 import com.kh.spring.challenge.model.vo.ChallengeRequest;
 import com.kh.spring.challenge.model.vo.ChallengeResponse;
 import com.kh.spring.challenge.model.vo.LoginUserAndChal;
@@ -31,7 +31,7 @@ public class ChallengeDao {
 		return sqlSession.selectOne("challengeMapper.chalDetail", chalNo);
 	}
 	
-	public ChallengeReqired selectRequired(SqlSessionTemplate sqlSession, int chalNo) {
+	public ChallengeRequired selectRequired(SqlSessionTemplate sqlSession, int chalNo) {
 		return sqlSession.selectOne("challengeMapper.selectRequired",chalNo);
 	}
 

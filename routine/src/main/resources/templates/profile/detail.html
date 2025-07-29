@@ -3,56 +3,494 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title></title>
+    <title>프로필 페이지</title>
     <th:block th:replace="~{/common/fragment :: library}"></th:block>
   </head>
   <body>
-    <!--
-    페이지에 도달하면 바로 쿼리스트링에 포함된 파라미터(userNo)를 가지고
-    contextPath(전역 변수)+'/profile/detail' 로 post axios요청
-    응답 - 200 : ProfileResponse객체
-          500 : contextPath+'/attachment/defaultImg/server-error.webp 경로의 이미지 띄우기
-          404 : contextPath+'/attachment/defaultImg/not-found.webp 경로 이미지 띄우기
-    파라미터가 없으면 404와 동일하게 랜더링
-    
-    public class ProfileResponse {
-      private int userNo;
-      private byte[] picture;
-      private String pictureBase64; //프론트와 base64로 소통
-      private String bio;
-      private String watermarkType; //D:디폴트 F:개인 N:없음
-      private byte[] watermark;
-      private String watermarkBase64; //프론트와 base64로 소통
-      private String isOpen; //Y:공개, N:참여한 챌린지 비공개, A:익명
-      
-      //challenge_participation
-      private int chalParticiapteCount;
-      private int successCount;
-      private int failCount;
-      private Double successRatio;
-      private Double failRatio;
-    }
-    위는 ProfileResponse객체
+    <!-- 컨테이너 시작 -->
+    <div class="container-fluid">
+      <div class="row">
+        <!-- 양옆 여백 (각각 col-2) -->
+        <div class="col-2"></div>
 
-    --양식--
-    양 옆은 각각 col-3만큼 여백을 두기
-    중앙에는 프로필 카드 및 2열 참여 챌린지 영역
+        <!-- 중앙 콘텐츠 영역 -->
+        <div class="col-8">
+          <!-- 프로필 카드 -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="card shadow" id="profile-card">
+                <div class="card-body">
+                  <!-- 프로필 정보 첫 번째 줄 -->
+                  <div class="row align-items-center mb-4">
+                    <div class="col-auto">
+                      <!-- 프로필 사진 (원형) -->
+                      <img
+                        id="profile-picture"
+                        src=""
+                        alt="프로필 사진"
+                        class="rounded-circle"
+                        style="width: 100px; height: 100px; object-fit: cover"
+                      />
+                    </div>
+                    <div class="col">
+                      <h3 id="profile-nick" class="mb-2"></h3>
+                      <p id="profile-bio" class="text-muted mb-0"></p>
+                    </div>
+                  </div>
 
-    카드(1열)는 프로필 카드
-    'nick님이 생성한 챌린지' 라고 알리는 표시줄
-    
-    
-    
-    --프로필 카드 양식--
+                  <!-- 참여 현황 프로그레스 바 -->
+                  <div class="mb-3">
+                    <div class="progress" style="height: 25px">
+                      <div
+                        id="success-bar"
+                        class="progress-bar bg-primary"
+                        role="progressbar"
+                        style="width: 0%"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title=""
+                      ></div>
+                      <div
+                        id="ongoing-bar"
+                        class="progress-bar bg-success text-white"
+                        role="progressbar"
+                        style="width: 0%"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title=""
+                      ></div>
+                      <div
+                        id="fail-bar"
+                        class="progress-bar bg-danger"
+                        role="progressbar"
+                        style="width: 0%"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title=""
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
+          <!-- 생성한 챌린지 섹션 -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header bg-light">
+                  <h5 class="mb-0" id="created-challenges-title"></h5>
+                </div>
+                <div class="card-body">
+                  <div class="row" id="created-challenges-container">
+                    <!-- 생성한 챌린지 카드들이 여기에 동적으로 추가됩니다 -->
+                  </div>
+                  <div class="row mt-3" id="created-more-button-container">
+                    <div class="col-12 text-center">
+                      <button
+                        class="btn btn-outline-primary"
+                        id="created-more-btn"
+                        onclick="loadMoreCreatedChallenges()"
+                      >
+                        더 보기
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
+          <!-- 참여한 챌린지 섹션 -->
+          <div class="row mb-4">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-header bg-light">
+                  <h5 class="mb-0" id="participated-challenges-title"></h5>
+                </div>
+                <div class="card-body">
+                  <div class="row" id="participated-challenges-container">
+                    <!-- 참여한 챌린지 카드들이 여기에 동적으로 추가됩니다 -->
+                  </div>
+                  <div class="row mt-3" id="participated-more-button-container">
+                    <div class="col-12 text-center">
+                      <button
+                        class="btn btn-outline-primary"
+                        id="participated-more-btn"
+                        onclick="loadMoreParticipatedChallenges()"
+                      >
+                        더 보기
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
+        <!-- 양옆 여백 (각각 col-2) -->
+        <div class="col-2"></div>
+      </div>
+    </div>
 
-    -->
     <script th:inline="javascript">
-      const contextPath = /*[[${rootContextPath}]]*/ "/routine";
-      const loginUser =
-        /*[[${loginUser} != null ? ${loginUser} : null]]*/ "로그인한 회원";
+      const contextPath = /*[[${rootContextPath}]]*/ "/routine"; //context-root
+      const userNo = /*[[${userNo}]]*/ 0;
+
+      // 전역 변수
+      let profileData = null;
+      let createdCurrentPage = 0;
+      let participatedCurrentPage = 0;
+      let createdHasMore = true;
+      let participatedHasMore = true;
+
+      // 페이지 로드 시 초기화
+      $(document).ready(function () {
+        // 프로필 정보 로드
+        loadProfileData(userNo);
+
+        // 툴팁 초기화
+        var tooltipTriggerList = [].slice.call(
+          document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        );
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+      });
+
+      // 프로필 데이터 로드
+      async function loadProfileData(userNo) {
+        try {
+          const response = await axios.get(
+            `${contextPath}/profile/searchDetail`,
+            {
+              params: { userNo: userNo },
+            }
+          );
+
+          if (response.status === 200) {
+            profileData = response.data;
+            renderProfile(profileData);
+
+            // 챌린지 데이터 로드
+            loadCreatedChallenges(userNo, 0);
+            loadParticipatedChallenges(userNo, 0);
+          }
+        } catch (error) {
+          if (error.response?.status === 404) {
+            showErrorImage("not-found.webp", "profile-card");
+          } else if (error.response?.status === 500) {
+            showErrorImage("server-error.webp", "profile-card");
+          } else {
+            showErrorImage("server-error.webp", "profile-card");
+          }
+        }
+      }
+
+      // 프로필 렌더링[26][29][32][34]
+      function renderProfile(data) {
+        // 프로필 사진 설정
+        const profileImg = document.getElementById("profile-picture");
+        if (data.pictureBase64) {
+          profileImg.src = `data:image/webp;base64,${data.pictureBase64}`;
+        } else {
+          profileImg.src = `${contextPath}/attachment/defaultImg/challenge-writer-default.webp`;
+        }
+
+        // 닉네임과 자기소개
+        document.getElementById("profile-nick").textContent = data.nick || "";
+        document.getElementById("profile-bio").textContent = data.bio || "";
+
+        // 프로그레스 바 설정[7][16][19][41][44][47]
+        const successRatio = data.successRatio || 0;
+        const failRatio = data.failRatio || 0;
+        const ongoingRatio = Math.max(0, 100 - successRatio - failRatio);
+
+        // 성공 바
+        const successBar = document.getElementById("success-bar");
+        successBar.style.width = `${successRatio}%`;
+        successBar.setAttribute("title", `성공: ${data.successCount || 0}개`);
+        successBar.textContent = `${successRatio.toFixed(2)}%`;
+
+        // 진행중 바
+        const ongoingBar = document.getElementById("ongoing-bar");
+        ongoingBar.style.width = `${ongoingRatio}%`;
+        const ongoingCount =
+          (data.chalParticiapteCount || 0) -
+          (data.successCount || 0) -
+          (data.failCount || 0);
+        ongoingBar.setAttribute(
+          "title",
+          `진행중: ${Math.max(0, ongoingCount)}개`
+        );
+        ongoingBar.textContent =
+          ongoingRatio > 10 ? `${ongoingRatio.toFixed(2)}%` : "";
+
+        // 실패 바
+        const failBar = document.getElementById("fail-bar");
+        failBar.style.width = `${failRatio}%`;
+        failBar.setAttribute("title", `실패: ${data.failCount || 0}개`);
+        failBar.textContent = failRatio > 10 ? `${failRatio.toFixed(2)}%` : "";
+
+        // 챌린지 섹션 제목 설정
+        document.getElementById(
+          "created-challenges-title"
+        ).textContent = `${data.nick}님이 생성한 챌린지`;
+        document.getElementById(
+          "participated-challenges-title"
+        ).textContent = `${data.nick}님이 참여한 챌린지`;
+      }
+
+      // 생성한 챌린지 로드[22][25][28][31][33]
+      async function loadCreatedChallenges(userNo, currentPage) {
+        try {
+          const response = await axios.get(
+            `${contextPath}/profile/chalParticipate`,
+            {
+              params: {
+                userNo: userNo,
+                type: "P",
+                currentPage: currentPage,
+              },
+            }
+          );
+
+          if (response.status === 200 && response.data.length > 0) {
+            renderChallengeCards(response.data, "created-challenges-container");
+            createdCurrentPage = currentPage;
+          } else {
+            createdHasMore = false;
+            if (currentPage === 0) {
+              showErrorImage("not-found.webp", "created-challenges-container");
+            }
+            document.getElementById(
+              "created-more-button-container"
+            ).style.display = "none";
+          }
+        } catch (error) {
+          createdHasMore = false;
+          if (currentPage === 0) {
+            if (error.response?.status === 404) {
+              showErrorImage("not-found.webp", "created-challenges-container");
+            } else {
+              showErrorImage(
+                "server-error.webp",
+                "created-challenges-container"
+              );
+            }
+          }
+          document.getElementById(
+            "created-more-button-container"
+          ).style.display = "none";
+        }
+      }
+
+      // 참여한 챌린지 로드
+      async function loadParticipatedChallenges(userNo, currentPage) {
+        try {
+          const response = await axios.get(
+            `${contextPath}/profile/chalParticipate`,
+            {
+              params: {
+                userNo: userNo,
+                type: "O",
+                currentPage: currentPage,
+              },
+            }
+          );
+
+          if (response.status === 200 && response.data.length > 0) {
+            renderChallengeCards(
+              response.data,
+              "participated-challenges-container"
+            );
+            participatedCurrentPage = currentPage;
+          } else {
+            participatedHasMore = false;
+            if (currentPage === 0) {
+              showErrorImage(
+                "not-found.webp",
+                "participated-challenges-container"
+              );
+            }
+            document.getElementById(
+              "participated-more-button-container"
+            ).style.display = "none";
+          }
+        } catch (error) {
+          participatedHasMore = false;
+          if (currentPage === 0) {
+            if (error.response?.status === 404) {
+              showErrorImage(
+                "not-found.webp",
+                "participated-challenges-container"
+              );
+            } else {
+              showErrorImage(
+                "server-error.webp",
+                "participated-challenges-container"
+              );
+            }
+          }
+          document.getElementById(
+            "participated-more-button-container"
+          ).style.display = "none";
+        }
+      }
+
+      // 챌린지 카드 렌더링[2][5][18][21]
+      function renderChallengeCards(list, containerId) {
+        if (!Array.isArray(list) || list.length === 0) return;
+
+        const container = document.getElementById(containerId);
+
+        list.forEach((c) => {
+          const colDiv = document.createElement("div");
+          colDiv.className = "col-6 mb-3";
+
+          const card = document.createElement("div");
+          card.className = "card h-100 position-relative";
+          card.id = `card-${c.chalNo}`;
+          card.style.cursor = "pointer";
+
+          if (c.status === "N") {
+            card.classList.add("bg-secondary", "text-white");
+            card.title = "챌린지가 종료되었습니다.";
+          }
+
+          // 썸네일
+          const thumbnail = document.createElement("img");
+          thumbnail.className =
+            "card-img-top position-absolute end-0 top-0 m-2";
+          thumbnail.style.cssText =
+            "width: 4rem; height: 4rem; object-fit: cover;";
+          thumbnail.src = c.thumbnailBase64
+            ? `data:image/jpeg;base64,${c.thumbnailBase64}`
+            : `${contextPath}/attachment/defaultImg/challenge-default.webp`;
+
+          // 프로필 이미지
+          const profileImg = document.createElement("img");
+          profileImg.className = "rounded-circle me-2";
+          profileImg.style.cssText =
+            "width: 2rem; height: 2rem; object-fit: cover;";
+          profileImg.src = c.pictureBase64
+            ? `data:image/jpeg;base64,${c.pictureBase64}`
+            : `${contextPath}/attachment/defaultImg/challenge-writer-default.webp`;
+
+          // 카드 바디
+          const cardBody = document.createElement("div");
+          cardBody.className = "card-body d-flex flex-column";
+
+          // 카테고리
+          const category = document.createElement("small");
+          category.className = "text-muted";
+          category.textContent = c.categoryName || "";
+
+          // 제목
+          const title = document.createElement("h5");
+          title.className = "card-title";
+          title.textContent = c.title || "";
+
+          // 내용
+          const content = document.createElement("p");
+          content.className = "card-text flex-grow-1";
+          content.textContent = c.content || "";
+
+          // 날짜
+          const dateInfo = document.createElement("p");
+          dateInfo.className = "mb-1";
+          const endDate = c.endDate || "누군가 사과나무를 심는 그날까지";
+          dateInfo.textContent = `${c.startDate || ""} / ${endDate}`;
+
+          // 인증 주기
+          const verifyCycle = document.createElement("p");
+          verifyCycle.className = "mb-1";
+          verifyCycle.textContent = c.verifyCycleStr || "";
+
+          // 참여/성공률
+          const stats = document.createElement("p");
+          stats.className = "mb-1";
+          const successRatio = c.successRatio
+            ? c.successRatio.toFixed(2)
+            : "0.00";
+          stats.textContent = `참여자 ${
+            c.participateCount || 0
+          }명 / 성공률 ${successRatio}%`;
+
+          // 옵션
+          const options = document.createElement("p");
+          options.className = "mb-0 small";
+          const picReq =
+            { I: "직찍 필수", Y: "필수", O: "선택", N: "불가" }[
+              c.pictureRequired
+            ] || "불가";
+          const repReq =
+            { Y: "필수", O: "선택", N: "불가" }[c.replyRequired] || "불가";
+          options.textContent = `사진: ${picReq} / 댓글: ${repReq}`;
+
+          // 작성자
+          const writer = document.createElement("div");
+          writer.className = "d-flex align-items-center mt-2";
+          const writerName = document.createElement("small");
+          writerName.textContent = c.nick || "";
+          writer.appendChild(profileImg);
+          writer.appendChild(writerName);
+
+          // 카드 바디에 요소들 추가
+          cardBody.appendChild(category);
+          cardBody.appendChild(title);
+          cardBody.appendChild(content);
+          cardBody.appendChild(dateInfo);
+          cardBody.appendChild(verifyCycle);
+          cardBody.appendChild(stats);
+          cardBody.appendChild(options);
+          cardBody.appendChild(writer);
+
+          // 카드에 썸네일과 바디 추가
+          card.appendChild(thumbnail);
+          card.appendChild(cardBody);
+
+          // 클릭 이벤트
+          card.addEventListener("click", () => {
+            location.href = `${contextPath}/challenge/chalDetail?chalNo=${c.chalNo}`;
+          });
+
+          colDiv.appendChild(card);
+          container.appendChild(colDiv);
+        });
+      }
+
+      // 더 보기 버튼 클릭 - 생성한 챌린지
+      function loadMoreCreatedChallenges() {
+        if (!createdHasMore || !profileData) return;
+        loadCreatedChallenges(userNo, createdCurrentPage + 1);
+      }
+
+      // 더 보기 버튼 클릭 - 참여한 챌린지
+      function loadMoreParticipatedChallenges() {
+        if (!participatedHasMore || !profileData) return;
+        loadParticipatedChallenges(userNo, participatedCurrentPage + 1);
+      }
+
+      // 에러 이미지 표시
+      function showErrorImage(imageName, containerId) {
+        const container = document.getElementById(containerId);
+        if (container) {
+          const imgDiv = document.createElement("div");
+          imgDiv.className = "col-12 text-center";
+
+          const img = document.createElement("img");
+          img.src = `${contextPath}/attachment/defaultImg/${imageName}`;
+          img.className = "img-fluid";
+          img.alt = "오류 이미지";
+
+          imgDiv.appendChild(img);
+          container.innerHTML = "";
+          container.appendChild(imgDiv);
+        }
+      }
     </script>
   </body>
 </html>

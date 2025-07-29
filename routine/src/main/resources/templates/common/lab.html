@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title>연구중...</title>
+    <th:block th:replace="~{/common/fragment :: library}"></th:block>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-3"></div>
+        <div class="col-6">
+          <div>⭐💫🌟연구중...⭐💫🌟</div>
+          <br /><br /><br /><br /><br /><br /><br />
+          잼미니 임베딩 사용하기
+          <br />
+          <div class="input-group">
+            <textarea
+              class="form-control"
+              id="inputText"
+              name="inputText"
+              rows="5"
+            ></textarea>
+            <br />
+            <button
+              class="btn btn-outline-secondary"
+              id="submitBtn"
+              type="button"
+            >
+              제출
+            </button>
+          </div>
+
+          <br />결과 : <br />
+
+          <div
+            id="resultArea"
+            style="
+              white-space: pre-wrap;
+              border: 1px solid #ddd;
+              padding: 10px;
+              min-height: 100px;
+            "
+          ></div>
+          <hr />
+          <div>
+            카테고리 맞추기!!! 와짱대다나다~~~ <br />
+            <form id="categoryForm">
+              <textarea
+                class="form-control"
+                id="inputText2"
+                rows="5"
+                name="inputText"
+              ></textarea>
+              <button type="submit" class="btn btn-primary">개추 요청</button>
+            </form>
+            <div id="result" class="mt-2"></div>
+          </div>
+          <hr />
+          <div>
+            카테고리 임베딩 : 시간 좀 걸리니까 참을성을 갖추고 누르자 <br />
+            <button id="embeddingBtn" class="btn btn-primary">DORO!!!</button>
+            <div id="statusArea" class="mt-2"></div>
+          </div>
+          <hr />
+        </div>
+        <div class="col-3"></div>
+      </div>
+    </div>
+
+    <script th:inline="javascript">
+      const contextPath = /*[[${rootContextPath}]]*/ "/routine";
+
+      document
+        .getElementById("submitBtn")
+        .addEventListener("click", function () {
+          const inputText = document.getElementById("inputText").value.trim();
+
+          if (!inputText) {
+            alert("텍스트를 입력해주세요.");
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("inputText", inputText);
+          axios
+            .post(contextPath + "/lab/geminiEmbeddingTest", formData, {
+              headers: { "Content-Type": "text/plain" },
+            })
+            .then(function (response) {
+              // 응답 데이터를 결과 창에 표시 (JSON 또는 텍스트로 가정)
+              const resultArea = document.getElementById("resultArea");
+
+              // JSON이라면 예쁘게 출력
+              if (typeof response.data === "object") {
+                resultArea.textContent = JSON.stringify(response.data, null, 2);
+              } else {
+                resultArea.textContent = response.data;
+              }
+            })
+            .catch(function (error) {
+              console.log(error.response?.data || error.message);
+            });
+        });
+      document
+        .getElementById("embeddingBtn")
+        .addEventListener("click", function () {
+          axios
+            .post(
+              contextPath + "/category/embedding",
+              {},
+              {
+                headers: { "Content-Type": "application/json" },
+              }
+            )
+            .then(function (response) {
+              // 성공 시 status 코드 출력
+              document.getElementById("statusArea").textContent =
+                "Status: " + response.status;
+            })
+            .catch(function (error) {
+              if (error.response) {
+                // 서버 응답이 있는 경우 상태 코드 출력
+                document.getElementById("statusArea").textContent =
+                  "Error Status: " + error.response.status;
+              } else {
+                // 네트워크, 요청 실패 등의 일반 에러
+                document.getElementById("statusArea").textContent =
+                  "Error: " + error.message;
+              }
+            });
+        });
+
+      document
+        .getElementById("categoryForm")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          const inputText2 = document.getElementById("inputText2").value.trim();
+          const resultDiv = document.getElementById("result");
+          resultDiv.textContent = "로딩 중...";
+
+          const formData = new FormData();
+          formData.append("inputText", inputText2);
+
+          axios
+            .post(contextPath + "/lab/categoryRecommend", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            })
+            .then(function (response) {
+              const categories = response.data;
+
+              if (Array.isArray(categories) && categories.length > 0) {
+                resultDiv.textContent = `개추된 카테고리 번호: ${categories.join(
+                  ", "
+                )}`;
+              } else {
+                resultDiv.textContent = "추천된 카테고리가 없습니다.";
+              }
+            })
+            .catch(function (error) {
+              console.error(error);
+              resultDiv.textContent = "요청 중 오류가 발생했습니다.";
+            });
+        });
+    </script>
+  </body>
+</html>

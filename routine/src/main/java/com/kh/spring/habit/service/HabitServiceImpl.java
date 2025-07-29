@@ -73,7 +73,16 @@ public class HabitServiceImpl implements HabitService {
 
 	    @Override
 	    public void deleteHabit(int habitNo) {
-	    	dao.deleteHabit(sqlSession, habitNo);
+	    	
+	    	
+	        // 1. 보상 이력 삭제 (두 컬럼 다 확인)
+	    	dao.deleteStreakRewardsByHabitNo(sqlSession, habitNo);
+	        // 2. 체크 삭제
+	        dao.deleteHabitChecks(sqlSession, habitNo);
+	        // 3. 반복 삭제
+	        dao.deleteHabitRepeats(sqlSession, habitNo);
+	        // 4. 습관 삭제
+	        dao.deleteHabit(sqlSession, habitNo);
 	    }
 
 

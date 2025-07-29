@@ -1,6 +1,7 @@
 package com.kh.spring.challenge.model.service;
 
 import java.util.Base64;
+import java.util.List;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,9 +9,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.kh.spring.challenge.model.dao.ProfileDao;
+import com.kh.spring.challenge.model.vo.ChallengeResponse;
 import com.kh.spring.challenge.model.vo.ProfileRequest;
 import com.kh.spring.challenge.model.vo.ProfileResponse;
+import com.kh.spring.challenge.model.vo.SearchMyChallenge;
 import com.kh.spring.user.model.vo.User;
+import com.kh.spring.util.challenge.ChallengeFix;
 import com.kh.spring.util.challenge.ProfileValidator;
 import com.kh.spring.util.common.BinaryAndBase64;
 
@@ -162,6 +166,30 @@ public class ProfileServiceImpl implements ProfileService{
 		return ResponseEntity.ok(profile);
 	}
 	
-
+	//비동기 - 프로필 세부조회 챌린지 목록 불러오기
+	@Override
+	public ResponseEntity<List<ChallengeResponse>> chalParticipate(int userNo, int currentPage, String type) throws Exception {
+		
+		//프로필 열어봐도 되는 사람인지 확인
+		String isOpen = dao.profileIsOpen(sqlSession, userNo);
+		if(isOpen==null || !isOpen.equals("Y")) return ResponseEntity.status(404).build();
+		
+		SearchMyChallenge smc = SearchMyChallenge.builder()
+				.currentPage(currentPage)
+				.userNo(userNo)
+				.searchType(type) //type : P(참여), O(생성)
+				.build();
+		
+		List<ChallengeResponse> list = dao.chalParticipate(sqlSession, smc);
+		
+		if(list==null || list.isEmpty()) return ResponseEntity.status(404).build();
+		
+		//html태그 등 지우기
+		for(ChallengeResponse chal : list) {
+			chal.setContent(ChallengeFix.deleteContentTag(chal.getContent()));
+		}
+		
+		return ResponseEntity.ok(list);
+	}
 
 }

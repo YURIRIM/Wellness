@@ -17,7 +17,7 @@ import com.kh.spring.challenge.model.dao.ChallengeCommentDao;
 import com.kh.spring.challenge.model.dao.ChallengeDao;
 import com.kh.spring.challenge.model.vo.ChallengeCommentRequest;
 import com.kh.spring.challenge.model.vo.ChallengeCommentResponse;
-import com.kh.spring.challenge.model.vo.ChallengeReqired;
+import com.kh.spring.challenge.model.vo.ChallengeRequired;
 import com.kh.spring.challenge.model.vo.ConnectByUuid;
 import com.kh.spring.challenge.model.vo.LoginUserAndChal;
 import com.kh.spring.challenge.model.vo.SearchComment;
@@ -137,29 +137,18 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 		if(isParticipant==null || !isParticipant.equals("Y"))
 			throw new Exception("사기꾼이다!!");
 		
-		//해당 게시글에 사진 혹은 텍스트 여부 검증
-		ChallengeReqired cr = chalDao.selectRequired(sqlSession,ccr.getChalNo());
-		switch(cr.getPictureRequired()) {//사진 검증
-		case "I": case "Y":
-			if(ccr.getUuidStr()==null || ccr.getUuidStr()=="") throw new Exception("엄멈머!");
-		case "O":
-			break;
-		case "N":
-			if(ccr.getUuidStr()!=null || ccr.getUuidStr()!="") throw new Exception("엄멈머!");
-			break;
-		default: throw new Exception("500err");
-		}
-		switch(cr.getReplyRequired()) {//댓글 검증
-		case "Y":
-			if(ccr.getReply()==null||ccr.getReply().equals("")) throw new Exception("엄멈머!");
-		case "O":
-			if(!ChallengeCommentValidator.challengeComment(ccr)) throw new Exception("엄멈머!");
-			break;
-		case "N":
-			if(ccr.getReply()!=null || ccr.getReply()!="") throw new Exception("엄멈머!");
-			break;
-		default: throw new Exception("500err");
-		}
+		//내용이 없으면 빈 문자열 넣어서 오류 방지
+		if(ccr.getUuidStr()==null) ccr.setUuidStr("");
+		if(ccr.getReply()==null) ccr.setReply("");
+		
+		//허용된 게시글인지 확인
+		ChallengeRequired cr = chalDao.selectRequired(sqlSession,ccr.getChalNo());
+		if(cr.getPictureRequired()==null
+				|| (cr.getPictureRequired().equals("N") && !ccr.getUuidStr().equals("")))
+			throw new Exception("사진 못 넣잖아 너 뭐야");
+		if(cr.getReplyRequired()==null
+				|| (cr.getReplyRequired().equals("N") && !ccr.getReply().equals("")))
+			throw new Exception("댓글 못 쓰잖아 너 뭐야");
 		
 		//잘라 잘라
 		ccr.setReply(ccr.getReply().trim());
@@ -175,7 +164,7 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 		if(result==0) throw new Exception("DB insert 오류");
 		
 		//attachment 사진 uuid로 활성화
-		if(ccr.getUuidStr()!=null) {
+		if(!ccr.getUuidStr().equals("")) {
 			ConnectByUuid cbu = ConnectByUuid.builder()
 					.refNo(ccr.getCommentNo())
 					.uuid(UuidUtil.strToByteArr(ccr.getUuidStr()))
@@ -193,6 +182,11 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 		User loginUser = (User)session.getAttribute("loginUser");
 		int result=1;
 		
+		//오류 방지용 빈값 넣기
+		if(ccr.getUuidStr()==null) ccr.setUuidStr("");
+		if(ccr.getReply()==null) ccr.setReply("");
+		
+		
 		//해당 회원이 댓글 쌀 능력이 있는지 확인
 		LoginUserAndChal lac = LoginUserAndChal.builder()
 				.chalNo(ccr.getChalNo())
@@ -201,6 +195,15 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 		String isParticipant = partiDao.loginUserIsParticipant(sqlSession,lac);
 		if(isParticipant==null || !isParticipant.equals("Y"))
 			throw new Exception("사기꾼이다!!");
+		
+		//허용된 게시글인지 확인
+		ChallengeRequired cr = chalDao.selectRequired(sqlSession,ccr.getChalNo());
+		if(cr.getPictureRequired()==null
+				|| (cr.getPictureRequired().equals("N") && !ccr.getUuidStr().equals("")))
+			throw new Exception("사진 못 넣잖아 너 뭐야");
+		if(cr.getReplyRequired()==null
+				|| (cr.getReplyRequired().equals("N") && !ccr.getReply().equals("")))
+			throw new Exception("댓글 못 쓰잖아 너 뭐야");
 		
 		//유효성 검사
 		if(!ChallengeCommentValidator.challengeComment(ccr))
@@ -212,7 +215,7 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 		if(result==0) throw new Exception("DB insert 오류");
 		
 		//attachment 사진 uuid로 활성화
-		if(ccr.getUuidStr()!=null && !ccr.getUuidStr().equals("1")) {
+		if(!ccr.getUuidStr().equals("") && !ccr.getUuidStr().equals("1")) {
 			//사진이 없거나 변경되지 않으면(1) 곱게 가라
 			
 			//사진 변경됨 -> 기존 사진 비활성화, 새로운 사진 활성화

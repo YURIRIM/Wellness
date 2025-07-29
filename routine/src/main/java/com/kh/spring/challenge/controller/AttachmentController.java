@@ -74,7 +74,7 @@ public class AttachmentController {
 	}
 	
 	//비동기 - 각종 default이미지 요청
-	//ex) /defaulImg/{filename} 요청 시 resources/static/img/{filename} 반환
+	//ex) /attachment/defaultImg/{filename} 요청 시 resources/static/img/{filename} 반환
 	@ResponseBody
 	@GetMapping("/defaultImg/{filename:.+}")
 	public ResponseEntity<byte[]> defaultImg(@PathVariable String filename){

@@ -18,12 +18,12 @@ public class Dummy {
 	
 	public static List<ChallengeCategory> dummyCC(){
 		List<ChallengeCategory> list = new ArrayList<>();
-		list.add(new ChallengeCategory(100,"더미"));
-		list.add(new ChallengeCategory(101,"뭘봐요"));
-		list.add(new ChallengeCategory(102,"뭐요"));
-		list.add(new ChallengeCategory(110,"안아줘요"));
-		list.add(new ChallengeCategory(111,"배고파요"));
-		list.add(new ChallengeCategory(112,"집보내줘요"));
+		list.add(ChallengeCategory.builder().categoryNo(100).categoryName("애애앵").build());
+		list.add(ChallengeCategory.builder().categoryNo(101).categoryName("뭘봐요").build());
+		list.add(ChallengeCategory.builder().categoryNo(102).categoryName("저는기어다닐거에요").build());
+		list.add(ChallengeCategory.builder().categoryNo(110).categoryName("안아줘요").build());
+		list.add(ChallengeCategory.builder().categoryNo(111).categoryName("뱃속에고기가있어요").build());
+		list.add(ChallengeCategory.builder().categoryNo(112).categoryName("집보내줘요").build());
 		return list;
 	}
 }

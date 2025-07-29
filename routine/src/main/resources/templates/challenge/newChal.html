@@ -48,36 +48,54 @@
         </div>
 
         <!-- ========== 카테고리 ========== -->
-        <div class="row g-2 mb-3">
+        <div class="row g-2 mb-3 align-items-start">
           <div class="col-md-6">
-            <label for="new-cat-parent" class="form-label"
-              >대분류 <span class="text-danger">*</span></label
-            >
-            <select id="new-cat-parent" class="form-select" required>
-              <option value="" selected disabled>선택…</option>
-              <option
-                th:each="c : ${ChallengeCategory}"
-                th:if="${c.categoryNo % 10 == 0}"
-                th:value="${c.categoryNo}"
-                th:text="${c.categoryName}"
-              ></option>
-            </select>
-            <div class="invalid-feedback">대분류 선택</div>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label for="new-cat-parent" class="form-label"
+                  >대분류 <span class="text-danger">*</span></label
+                >
+                <select id="new-cat-parent" class="form-select" required>
+                  <option value="" selected disabled>선택…</option>
+                  <th:block th:each="c : ${ChallengeCategory}">
+                    <option
+                      th:if="${c.categoryNo % 10 == 0}"
+                      th:value="${c.categoryNo}"
+                      th:text="${c.categoryName}"
+                    ></option>
+                  </th:block>
+                </select>
+                <div class="invalid-feedback">대분류 선택</div>
+              </div>
+              <div class="col-md-6">
+                <label for="new-cat-child" class="form-label"
+                  >세부 분류 <span class="text-danger">*</span></label
+                >
+                <select
+                  id="new-cat-child"
+                  name="categoryNo"
+                  class="form-select"
+                  required
+                  disabled
+                >
+                  <option value="" selected disabled>먼저 대분류 선택</option>
+                </select>
+                <div class="invalid-feedback">세부 분류 선택</div>
+              </div>
+            </div>
+            <!-- 개추 버튼 -->
+            <div class="mt-2">
+              <button
+                type="button"
+                id="new-recommend-btn"
+                class="btn btn-outline-success"
+              >
+                카테고리 추천
+              </button>
+            </div>
           </div>
           <div class="col-md-6">
-            <label for="new-cat-child" class="form-label"
-              >세부 분류 <span class="text-danger">*</span></label
-            >
-            <select
-              id="new-cat-child"
-              name="categoryNo"
-              class="form-select"
-              required
-              disabled
-            >
-              <option value="" selected disabled>먼저 대분류 선택</option>
-            </select>
-            <div class="invalid-feedback">세부 분류 선택</div>
+            <ul id="new-recommend-result" class="list-group"></ul>
           </div>
         </div>
 
