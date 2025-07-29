@@ -15,5 +15,6 @@ public class SearchComment {
 	private int chalNo;
 	private int recommentTarget;
 	private int currentPage; //현재 페이지
+	private int currentRecommentPage; //현재 대댓글 페이지
 	private final int showLimit = Regexp.COMMENT_SHOW_LIMIT; //한 페이지에서 보여줄 댓글 수
 }

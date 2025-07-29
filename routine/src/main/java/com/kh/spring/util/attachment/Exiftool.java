@@ -3,7 +3,9 @@ package com.kh.spring.util.attachment;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import com.kh.spring.challenge.model.vo.Attachment;
@@ -17,7 +19,8 @@ import com.kh.spring.challenge.model.vo.Attachment;
 public class Exiftool {
 	
 	//exiftool 작동 하니?
-	public static final boolean EXIFTOOL = checkExiftool();
+//	public static final boolean EXIFTOOL = checkExiftool();
+	public static final boolean EXIFTOOL = false;//exiftool작동 안 하는 환경 확인
 	
 	public static boolean checkExiftool(){
 		try {
@@ -84,8 +87,6 @@ public class Exiftool {
 
 	//메타데이터 소각 
 	public static byte[] sanitizeMetadata(byte[] picture) throws Exception {
-		System.out.println("exiftool로 메타데이터 때치때치 중... 사진 길이 = "+picture.length);
-		
 		//임시 파일 생성 및 byte[] 저장
 		File tempInput = File.createTempFile("input_", ".webp");
 		try (FileOutputStream fos = new FileOutputStream(tempInput)) {
@@ -100,7 +101,9 @@ public class Exiftool {
 		int result = process.waitFor();
 		if (result != 0) {
 			tempInput.delete();
-			throw new Exception("exiftool 실행 오류");
+			InputStream is = process.getInputStream();
+			String output = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			throw new Exception("exiftool 실행 오류, "+output);
 		}
 
 		//소각된 파일을 다시 byte[]로 읽어 Attachment.file에 슛

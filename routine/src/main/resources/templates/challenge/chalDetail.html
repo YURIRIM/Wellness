@@ -4,39 +4,107 @@
     <meta charset="UTF-8" />
     <title>챌린지</title>
     <th:block th:replace="~{/common/fragment :: library}"></th:block>
-    <script
-      th:src="@{/webjars/summernote/0.9.1/dist/summernote-bs5.min.js}"
-    ></script>
-    <script th:src="@{/js/common/summernote-ko-KR.js}"></script>
-    <link
-      th:href="@{/webjars/summernote/0.9.1/dist/summernote-bs5.min.css}"
-      rel="stylesheet"
-    />
     <link rel="stylesheet" th:href="@{/css/challenge/chalDetail.css}" />
   </head>
   <body>
     <th:block th:replace="~{/common/fragment :: header}"></th:block>
+    <div id="main-container" class="container-fluid">
+      <div id="main-row" class="row justify-content-center">
+        <!--여백-->
+        <div id="main-blank" class="col-1"></div>
+        <!-- 좌측 영역 (col- 로 여백 조정) -->
+        <div id="main-left" class="col-5">
+          <th:block
+            th:replace="~{/challenge/chalDetail-left :: chalDetail-left}"
+          ></th:block>
+          <div id="main-sidebar-left" class="sidebar-bottom"></div>
+        </div>
+        <!-- 우측 영역 -->
+        <div id="main-right" class="col-5">
+          <div id="main-right-top">
+            <th:block
+              th:replace="~{/challenge/chalDetail-right-top :: chalDetail-right-top}"
+            ></th:block>
+          </div>
+          <div id="main-right-bottom">
+            <th:block
+              th:replace="~{/challenge/chalDetail-right-bottom :: chalDetail-right-bottom}"
+            ></th:block>
+          </div>
+          <div id="main-sidebar-right" class="sidebar-bottom"></div>
+          <button
+            id="main-scroll-top-btn"
+            class="btn btn-secondary"
+            style="position: fixed; bottom: 32px; right: 48px; z-index: 999"
+          >
+            ▲ 맨 위로
+          </button>
+        </div>
 
-    <!--
-    챌린지 상세보기
-    크게 좌/우로 구분된 두 영역 - 챌린지, 댓글 리스트
+        <!--여백-->
+        <div id="main-blank" class="col-1"></div>
+      </div>
+    </div>
 
-    챌린지 객체
+    <!-- 중복(도용방지) 안내 모달 -->
+    <div
+      class="modal fade"
+      id="duplicationModal"
+      tabindex="-1"
+      aria-labelledby="duplicationModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="new-duplicationModalLabel">알림</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="닫기"
+            ></button>
+          </div>
+          <div class="modal-body text-center">
+            직접 촬영한 사진만 올려주세요
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-primary"
+              data-bs-dismiss="modal"
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-
-    댓글 객체
-
-    
-    -->
-
-    <!-- thymeleaf 스크립트 변수 선언-->
+    <!-- thymeleaf 스크립트 변수 등 선언-->
     <script th:inline="javascript">
       const catAll = /*[[${ChallengeCategory}]]*/ ["안아줘요", "싫은데요"];
       const contextPath = /*[[${rootContextPath}]]*/ "/routine";
-
-      let loginUserNo = /*[[${loginUser.userNo}]]*/ 0;
-      let loginUserName =
-        /*[[${loginUser.name}]]*/ "사랑은언제나눈물이되어가슴에남아";
+      const loginUser = /*[[${loginUser} != null ? ${loginUser} : null]]*/ [];
+      const myProfile = /*[[${myProfile}]]*/ ["프로필 영역"];
+      const chalDetail = /*[[${chalDetail}]]*/ ["chalDetail영역"];
+      const chalNo = /*[[${chalDetail.chalNo}]]*/ -1;
+      const participateCount = /*[[${chalDetail.participateCount}]]*/ 0;
+      const successCount = /*[[${chalDetail.successCount}]]*/ 0;
+      const failCount = /*[[${chalDetail.failCount}]]*/ 0;
+      const successRatio = /*[[${chalDetail.successRatio}]]*/ 0.0;
+      const failRatio = /*[[${chalDetail.failRatio}]]*/ 0.0;
+      const progressRatio = 100 - successRatio - failRatio;
+      const leftWriterUserNo = /*[[${chalDetail.userNo}]]*/ 0;
+      const leftWriterIsOpen = /*[[${chalDetail.isOpen}]]*/ "Y";
+      const pictureRequired = /*[[${chalDetail.pictureRequired}]]*/ "N";
+      const replyRequired = /*[[${chalDetail.replyRequired}]]*/ "N";
+      const loginUserIsParticipation =
+        /*[[${chalDetail.loginUserIsParticipation}]]*/ "N";
+      let uploadedUuid = null;
+      const chalDetailComment = /*[[${chalDetailComment}]]*/ [
+        "댓글 로딩 실패.",
+      ];
     </script>
     <!-- 스크립트 파일-->
     <script th:src="@{/js/challenge/chalDetail.js}"></script>

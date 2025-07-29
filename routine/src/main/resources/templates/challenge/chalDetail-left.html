@@ -1,0 +1,197 @@
+<th:block th:fragment="chalDetail-left">
+  <!-- 좌측 챌린지 상세보기 -->
+  <div id="left-chal-detail" class="card mb-4">
+    <div class="card-body">
+      <!-- 뒤로 가기 / 수정·종료·삭제 버튼 -->
+      <div
+        class="d-flex justify-content-between align-items-center mb-3"
+        id="left-action-bar"
+      >
+        <button
+          id="left-back-btn"
+          class="btn btn-outline-secondary"
+          onclick="history.back();"
+        >
+          <i class="bi bi-arrow-left"></i> 뒤로 가기
+        </button>
+        <div th:if="${loginUser != null}">
+          <span
+            th:if="${loginUser.userNo == chalDetail.userNo and chalDetail.status == 'Y'}"
+          >
+            <a
+              th:href="@{/challenge/updateChal(chalNo=${chalDetail.chalNo})}"
+              class="btn btn-primary"
+            >
+              <i class="bi bi-pencil-square"></i> 수정하기
+            </a>
+            <button id="left-close-btn" class="btn btn-warning">
+              <i class="bi bi-stop-circle"></i> 종료하기
+            </button>
+            <button id="left-delete-btn" class="btn btn-danger">
+              <i class="bi bi-trash"></i> 삭제하기
+            </button>
+          </span>
+        </div>
+      </div>
+      <!-- 제목 / 상태 / 카테고리 -->
+      <h3 id="left-title" class="card-title">
+        <span th:text="${chalDetail.title}">챌린지 제목</span>
+        <small th:if="${chalDetail.status == 'N'}" class="text-danger"
+          >(종료됨)</small
+        >
+      </h3>
+      <p id="left-category" class="text-muted">
+        <span th:text="${chalDetail.categoryMajorName}">대분류</span>
+        <span
+          th:if="${chalDetail.categoryMajorName != null and chalDetail.categoryMajorName != ''}"
+          >&nbsp;→&nbsp;</span
+        >
+        <span th:text="${chalDetail.categoryName}">소분류</span>
+      </p>
+
+      <!-- 썸네일 -->
+      <div class="mb-3 text-center">
+        <img
+          id="left-thumbnail"
+          class="img-fluid rounded"
+          th:if="${chalDetail.thumbnailBase64 != null and chalDetail.thumbnailBase64 != ''}"
+          th:src="'data:image/webp;base64,' + ${chalDetail.thumbnailBase64}"
+          alt="썸네일"
+        />
+        <img
+          id="left-thumbnail"
+          class="img-fluid rounded d-none"
+          th:if="${chalDetail.thumbnailBase64 == null or chalDetail.thumbnailBase64 == ''}"
+          src=""
+          alt="썸네일"
+        />
+      </div>
+
+      <!-- 내용 -->
+      <div id="left-content" class="mb-4" th:utext="${chalDetail.content}">
+        챌린지 내용
+      </div>
+      <!-- 날짜 정보 -->
+      <ul id="left-dates" class="list-group mb-4">
+        <li class="list-group-item">
+          작성일:
+          <span
+            th:text="${#temporals.format(chalDetail.createDate, 'yyyy.MM.dd HH:mm')}"
+          >
+            2025.07.18 12:00
+          </span>
+        </li>
+        <li class="list-group-item">
+          시작일:
+          <span
+            th:text="${#temporals.format(chalDetail.startDate, 'yyyy.MM.dd')}"
+          >
+            2025.07.01
+          </span>
+        </li>
+        <li class="list-group-item">
+          종료일:
+          <span
+            th:if="${chalDetail.endDate != null}"
+            th:text="${#temporals.format(chalDetail.endDate, 'yyyy.MM.dd')}"
+          >
+            2025.07.31
+          </span>
+          <span th:if="${chalDetail.endDate == null}"
+            >누군가 사과나무를 심는 그날까지</span
+          >
+        </li>
+      </ul>
+      <!-- 인증 설정 정보 -->
+      <ul id="left-verify-info" class="list-group mb-4">
+        <li class="list-group-item">
+          인증 주기:
+          <span th:text="${chalDetail.verifyCycleStr}">자유</span>
+        </li>
+        <li class="list-group-item">
+          인증 사진:
+          <span th:switch="${chalDetail.pictureRequired}">
+            <span th:case="'I'">직접 촬영 필수</span>
+            <span th:case="'Y'">필수</span>
+            <span th:case="'O'">선택</span>
+            <span th:case="'N'">불가</span>
+          </span>
+        </li>
+        <li class="list-group-item">
+          인증 텍스트:
+          <span th:switch="${chalDetail.replyRequired}">
+            <span th:case="'Y'">필수</span>
+            <span th:case="'O'">선택</span>
+            <span th:case="'N'">불가</span>
+          </span>
+        </li>
+      </ul>
+      <!-- 참여 통계 도넛 차트 -->
+      <div id="left-participation-chart-container" class="text-center mb-4">
+        <canvas id="left-participation-chart" width="200" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- 챌린지 생성자 -->
+    <div id="left-writer-area" class="mt-4">
+      <div
+        th:if="${chalDetail.isOpen == 'A'}"
+        class="alert alert-secondary text-center py-3 mb-0"
+        id="left-writer-anonymous"
+      >
+        <i class="bi bi-incognito"></i>
+        익명의 ROUTINE유저가 생성했어요
+      </div>
+
+      <div
+        th:if="${chalDetail.isOpen == 'Y' or chalDetail.isOpen == 'N'}"
+        id="left-writer-profile"
+        class="card p-3 shadow-sm"
+        style="max-width: 340px; margin: 0 auto"
+      >
+        <div class="d-flex align-items-center" id="left-writer-profilerow">
+          <div class="me-3">
+            <!-- 프로필 이미지가 있을 때 (base64) -->
+            <img
+              th:if="${chalDetail.pictureBase64 != null and chalDetail.pictureBase64 != ''}"
+              th:src="'data:image/webp;base64,' + ${chalDetail.pictureBase64}"
+              alt="프로필 이미지"
+              class="rounded-circle border"
+              style="width: 48px; height: 48px; object-fit: cover"
+              id="left-writer-picture"
+            />
+
+            <!-- 프로필 이미지가 없을 때 (기본 이미지) -->
+            <img
+              th:unless="${chalDetail.pictureBase64 != null and chalDetail.pictureBase64 != ''}"
+              th:src="@{/attachment/defaultImg/profile-default.webp}"
+              alt="프로필 이미지"
+              class="rounded-circle border"
+              style="width: 48px; height: 48px; object-fit: cover"
+              id="left-writer-picture"
+            />
+          </div>
+          <div>
+            <div
+              class="fw-semibold"
+              id="left-writer-nick"
+              th:text="${chalDetail.nick}"
+            >
+              닉네임
+            </div>
+            <div
+              class="text-secondary small"
+              id="left-writer-bio"
+              th:text="${chalDetail.bio}"
+            >
+              자기소개 최대 100자
+            </div>
+          </div>
+        </div>
+        <div th:if="${chalDetail.isOpen == 'N'}" class="mt-2 small text-muted">
+          <i class="bi bi-lock-fill"></i> 프로필을 비공개 중이에요
+        </div>
+      </div>
+    </div>
+  </div>
+</th:block>

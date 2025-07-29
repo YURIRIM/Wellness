@@ -4,10 +4,9 @@
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="attachmentMapper">
-	<insert id="insertChalAttachment" parameterType="Attachment">
+	<insert id="insertAtChal" parameterType="Attachment">
 		INSERT INTO ATTACHMENT(
-			ATTACHMENT_NO
-			,REF_NO
+			UUID
 			,REF_TABLE
 			,FILE_CONTENT
 			,FILE_SIZE
@@ -15,14 +14,77 @@
 			,STATUS
 			)
 		VALUES (
-			SEQ_ATTACHMENT.NEXTVAL
-			,#{refNo}
+			#{uuid}
 			,'C'
 			,#{fileContent}
 			,#{fileSize}
 			,#{fileName}
-			,'Y'
+			,'N'
 			)
 	</insert>
+	
+	<update id="connectAtbyUuid" parameterType="ConnectByUuid">
+		update ATTACHMENT
+		set STATUS = 'Y'
+			,REF_NO = #{refNo}
+		where UUID = #{uuid}
+	</update>
+	
+	<select id="selectAtChal" parameterType="map" resultType="Attachment">
+		select
+			UUID
+			,REF_TABLE
+			,FILE_CONTENT
+			,FILE_SIZE
+			,FILE_NAME
+			,STATUS
+		from ATTACHMENT
+		where UUID = #{uuid}
+		and REF_TABLE = 'C'
+	</select>
+	
+	<select id="selectAtComment" parameterType="list" resultType="Attachment">
+	select UUID
+	     , REF_NO
+	     , REF_TABLE
+	     , FILE_CONTENT
+	     , FILE_SIZE
+	     , FILE_NAME
+	     , STATUS
+	from ATTACHMENT
+	where REF_NO IN
+	<foreach collection="list" item="commentNo" open="(" separator="," close=")">
+		#{commentNo}
+	</foreach>
+	and REF_TABLE = 'R'
+	and STATUS = 'Y'
+	</select>
+
+	
+	<insert id="insertAtComment" parameterType="Attachment">
+		INSERT INTO ATTACHMENT(
+			UUID
+			,REF_TABLE
+			,FILE_CONTENT
+			,FILE_SIZE
+			,FILE_NAME
+			,STATUS
+			)
+		VALUES (
+			#{uuid}
+			,'R'
+			,#{fileContent}
+			,#{fileSize}
+			,#{fileName}
+			,'N'
+			)
+	</insert>
+	
+	<update id="disconnectCommentAndAt" parameterType="int">
+		update ATTACHMENT
+		set STATUS = 'N'
+		where REF_TABLE = 'R'
+		and REF_NO = #{commentNo}
+	</update>
 
 </mapper>

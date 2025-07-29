@@ -1,0 +1,62 @@
+#main-container {
+  padding: 0;
+  margin: 0 auto;
+  max-width: 1400px;
+  background: #fff;
+}
+
+#main-row {
+  min-height: 100vh;
+}
+
+#main-left {
+  background: #f5f7fa;
+  border-right: 1px solid #e6e7e9;
+  min-height: 100vh;
+  padding: 24px 16px;
+}
+
+#main-sidebar-left,
+#main-sidebar-right {
+  margin-top: 32px;
+}
+
+#main-right {
+  background: #fff;
+  min-height: 100vh;
+  padding: 24px 32px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+#main-right-top {
+  height: 30%;
+  min-height: 180px; /* 원하면 최소값 */
+  max-height: 40vh; /* 너무 커질 경우 제한(선택사항) */
+  overflow: auto; /* 내용 많으면 자체 스크롤 */
+  /* 아래쪽 여백 주고 싶으면 margin-bottom: 12px; */
+}
+
+#main-right-bottom {
+  flex: 1; /* 아래 영역이 나머지 영역 크기 채움 */
+  min-height: 0; /* flexbox overflow 버그 예방 */
+  overflow-y: auto; /* 하단 카드 무한스크롤용 스크롤바 제공 */
+  padding-bottom: 48px; /* 버튼, 여백 고려 */
+  position: relative;
+}
+
+/* 동적으로 추가될 카드 레이아웃은 아래 처럼 스타일링 추천(예시) */
+#main-right-card-list > .main-right-card {
+  margin-bottom: 16px;
+}
+
+/* 맨 위로 가기 버튼 개별 스타일 */
+#main-scroll-top-btn {
+  display: none;
+}
+
+/* ----------------------왼쪽--------------------- */
+#left-writer-area .cursor-pointer {
+  cursor: pointer;
+}

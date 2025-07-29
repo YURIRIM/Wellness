@@ -1,6 +1,5 @@
 package com.kh.spring.util.challenge;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
 
 import com.kh.spring.challenge.model.vo.SearchChallenge;
@@ -44,19 +43,18 @@ public class SearchChallengeValidator {
 		if(sc.getCurrentPage()<0) return false;
 		
 		LocalDate sd1 = sc.getStartDate1();
-		LocalDate sd2 = sc.getStartDate1();
+		LocalDate sd2 = sc.getStartDate2();
 		LocalDate ed1 = sc.getEndDate1();
-		LocalDate ed2 = sc.getEndDate1();
-		
+		LocalDate ed2 = sc.getEndDate2();
 		
 		if (sd1!=null && sd2!=null && sd1.compareTo(sd2) > 0) {
 			//시작일1이 시작일2 보다 느리면 자리 바꾸기
-		    sc.setStartDate1(sd1);
-		    sc.setStartDate2(sd2);
+		    sc.setStartDate1(sd2);
+		    sc.setStartDate2(sd1);
 		}
 		if (ed1!=null && ed2!=null && ed1.compareTo(ed2) > 0) {
-			sc.setEndDate1(ed1);
-			sc.setEndDate2(ed2);
+			sc.setEndDate1(ed2);
+			sc.setEndDate2(ed1);
 		}
 		
 		//categoryNo생략
@@ -68,7 +66,7 @@ public class SearchChallengeValidator {
 	//챌린지 유효성 검사
 	public static boolean searchMyChallenge(SearchMyChallenge smc){
 		if(smc.getSearchType()==null
-				|| !smc.getSearchType().matches(Regexp.SMC_SEARCH_TYPE)
+				|| !smc.getSearchType().matches(Regexp.SEARCH_MY_CHAL)
 				)return false;
 		if(smc.getCurrentPage()<0) return false;
 		

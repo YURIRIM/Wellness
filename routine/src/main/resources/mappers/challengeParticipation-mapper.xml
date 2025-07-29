@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="challengeParticipationMapper">
+	<select id="loginUserIsParticipant" parameterType="loginUserAndChal" resultType="string" >
+		select cp.STATUS
+		from CHALLENGE_PARTICIPATION cp
+		left join CHALLENGE c on(cp.CHAL_NO = c.CHAL_NO)
+		where cp.CHAL_NO = #{chalNo}
+		and cp.USER_NO = #{userNo}
+		<if test='status != null and status != "notOnlyY"'>
+			and c.status = 'Y'
+		</if>
+	</select>
+	
+	<select id="chalIsOpen" parameterType="int" resultType="string">
+		select STATUS
+		from CHALLENGE
+		where CHAL_NO = #{chalNo}
+	</select>
+	
+	<insert id="insertParticipant" parameterType="LoginUserAndChal">
+		insert into CHALLENGE_PARTICIPATION(CHAL_NO,USER_NO,STATUS)
+		values(#{chalNo},#{userNo},'Y')
+	</insert>
+	
+	<update id="updateParticipant" parameterType="LoginUserAndChal">
+		update CHALLENGE_PARTICIPATION
+		set STATUS = #{status}
+		where CHAL_NO = #{chalNo}
+		and USER_NO = #{userNo}
+	</update>
+	
+	
+	
+</mapper>

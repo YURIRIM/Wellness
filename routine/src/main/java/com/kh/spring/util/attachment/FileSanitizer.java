@@ -22,7 +22,7 @@ public class FileSanitizer {
 		if (originalFilename == null || originalFilename.trim().isEmpty()) {
 			return false;
 		}
-
+		
 		// 파일명 보안 처리
 		String sanitizedFilename = sanitizeFileName(originalFilename);
 

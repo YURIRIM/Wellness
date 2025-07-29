@@ -21,19 +21,20 @@ public class ChallengeResponse {
     
     private LocalDateTime createDate;
     private int verifyCycle;
+    private String verifyCycleStr;
     private LocalDate startDate;
     private LocalDate endDate;
     private String status; //Y:활성화 N:종료됨 D:삭제됨
-    private String pictureRequired; //I:필수(도용 불가) Y:필수 O:선택 N:불가
+    private String pictureRequired; //I:직접 촬영한 사진 필수 Y:필수 O:선택 N:불가
     private String replyRequired; //Y:필수 O:선택 N:불가
     
     private String categoryName; //challenge_category
+    private String categoryMajorName;
 
     private String nick; //member
-    private String role; //member
     
-    private byte[] profilePicture; //profile
-    private String profilePictureBase64;
+    private byte[] picture; //profile
+    private String pictureBase64;
     
     private int participateCount; //challenge_participation
     private Double successRatio; //challenge_participation, 백분율
@@ -42,8 +43,16 @@ public class ChallengeResponse {
     //-----세부 조회용 요소-----
     private int userNo;
     private int categoryNo;
+    
     private int successCount; //challenge_participation
-    private int failCount; //challenge_participation
+    private int failCount;
+    
+    private String bio; //profile
+    private String isOpen; //Y:공개, N:참여한 챌린지 비공개, A:익명
+    
+    //이 챌린지에 현재 접속한 사람이 참여중임?
+    private String loginUserIsParticipation;
+    	// Y:참여중, S:성공, F:실패, N:미참여, U:로그인 안함
     
     /*
      * verifyCycle 인증 주기

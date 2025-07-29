@@ -3,6 +3,7 @@ package com.kh.spring.challenge.model.vo;
 import java.time.LocalDate;
 
 import com.kh.spring.common.annotation.NoHtmlEscape;
+import com.kh.spring.common.annotation.NoXssSanitizer;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,17 +22,16 @@ public class ChallengeRequest {
     private String title;
     
     @NoHtmlEscape//html이스케이프 금지
+    @NoXssSanitizer//xss소독 금지
     private String content;
     
     private byte[] thumbnail;
     private String thumbnailBase64; //프론트와 base64로 썸네일 파일 통신
-    
-    //"yyyy-MM-dd HH:mm:ss" 포맷이여야 Timestamp자동 맵핑
     private int verifyCycle;
     private LocalDate startDate;
     private LocalDate endDate;
     private String status; //Y:활성화 N:종료됨 D:삭제됨
-    private String pictureRequired; //I:필수(도용 불가) Y:필수 O:선택 N:불가
+    private String pictureRequired; //I:직접 촬영한 사진 필수 Y:필수 O:선택 N:불가
     private String replyRequired; //Y:필수 O:선택 N:불가
     /*
      * verifyCycle 인증 주기
