@@ -43,6 +43,14 @@ public class HabitController {
 	}
 	
 	
+	@PostMapping("/goal")
+	public String goal(HttpSession session, Model model) {
+		
+		
+		return "habit/goal";
+	}
+	
+	
 	// 등록 폼 보여주기
 	@GetMapping("/add")
 	public String showHabitAddForm() {
