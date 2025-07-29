@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "Https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="openForumMapper">
+  
+  <resultMap type="OpenForum" id="openForumResultMap"> 
+  	<id column="POST_ID" property="postId"/>
+	<result column="USER_NO" property="userNo"/>
+	<result column="USER_ID" property="userId"/>
+  	<result column="TITLE" property="title"></result>
+  	<result column="CONTENT" property="content"></result>
+  	<result column="CREATED_AT" property="createDate"></result>
+  	<result column="VIEWS" property="views"></result>
+  	
+  	<!-- 첨부파일 담을 여러개를 담을 수 있는 Collection -->
+  <collection property="atList" ofType="OpenForumAttachment" javaType="java.util.ArrayList" >
+  	<result column="FILE_ID" property="fileId" ></result>
+  	<result column="POST_ID" property="postId"></result>	
+  	<result column="FILE_PATH" property="filePath"></result>		
+  	<result column="FILE_TYPE" property="fileType"></result>	
+  	<result column="FILE_SIZE" property="fileSize"></result>	
+  	<result column="UPLOAD_DATE" property="uploadDate"></result>	
+  	<result column="ORIGIN_NAME" property="originName"></result>	
+  	<result column="CHANGE_NAME" property="changeName"></result>	
+  	<result column="FILE_LEVEL" property="fileLevel"></result>	
+  	<result column="STATUS" property="status"></result>	
+  </collection>
+  </resultMap>
+  
+  <resultMap type="User" id="usersResultMap">
+    <result column="USER_NO" property="userNo" />
+    <result column="USER_ID" property="userId"/>
+    <result column="NAME" property="name"/>
+    <result column="NICK" property="nick"/>
+    <result column="PASSWORD" property="password"/>
+    <result column="EMAIL" property="email"/>
+    <result column="ROLE" property="role"/>
+    <result column="CREATED_AT" property="createdAt"/>
+    <result column="STATUS" property="status" />
+  </resultMap>
+    
+  <select id="listCount" resultType="_int">
+  	SELECT COUNT(*)
+  	FROM OPEN_FORUM
+  </select>
+  
+  
+  <insert id="postWrite" parameterType="OpenForum">
+    INSERT INTO OPEN_FORUM ( POST_ID,  
+    						 USER_NO,
+    						 TITLE,
+    						 CONTENT,
+    						 CREATED_AT,
+    						 VIEWS
+    						)  
+   	VALUES (#{postId},
+	 		#{userNo},
+	 		#{title},
+	 		#{content},
+	 		SYSDATE,
+	 		0 
+	 		)
+  </insert>
+  
+  <insert id="insertAttachment" parameterType="OpenForumAttachment">
+  	INSERT INTO ATTACHMENT_OPEN (FILE_ID,
+  								POST_ID,
+  								FILE_PATH,
+  								FILE_TYPE,
+  								FILE_SIZE,
+  								UPLOAD_DATE,
+  								ORIGIN_NAME,
+  								CHANGE_NAME,
+  								FILE_LEVEL,
+  								STATUS
+  								)
+  							VALUES(SEQ_FILE_ID.NEXTVAL
+							   ,#{postId}
+							   ,#{filePath}
+							   ,#{fileType}
+							   ,#{fileSize}
+							   ,SYSDATE
+							   ,#{originName}
+							   ,#{changeName}
+							   ,#{fileLevel}
+							   ,#{status})							
+  </insert>
+  
+  <!--게시물번호 추출 -->
+  <select id="selectPostId" resultType="_int">
+  SELECT SEQ_POSTID.NEXTVAL
+  FROM DUAL
+  </select>
+  
+ 
+  <select id="selectPostList" resultMap="openForumResultMap">
+  SELECT FORUM.POST_ID, U.USER_ID, FORUM.TITLE, FORUM.CONTENT, FORUM.CREATED_AT, FORUM.VIEWS
+  FROM OPEN_FORUM FORUM
+  JOIN USERS U ON FORUM.USER_NO=U.USER_NO
+  ORDER BY FORUM.CREATED_AT DESC 
+  </select> 
+  
+  <select id="postDetail" resultMap="openForumResultMap">
+   SELECT FORUM.POST_ID, 
+        U.USER_ID, 
+        FORUM.TITLE, 
+        FORUM.CONTENT, 
+        FORUM.CREATED_AT, 
+        FORUM.VIEWS,
+        A.FILE_PATH,
+        A.CHANGE_NAME,
+        A.ORIGIN_NAME,
+        A.FILE_SIZE
+  FROM OPEN_FORUM FORUM
+  JOIN USERS U ON FORUM.USER_NO=U.USER_NO
+  LEFT JOIN ATTACHMENT_OPEN A ON FORUM.POST_ID=A.POST_ID
+  WHERE FORUM.POST_ID=#{postId}
+  </select>
+  
+  <update id="increaseCount" parameterType="_int">
+		UPDATE OPEN_FORUM
+		SET VIEWS = VIEWS + 1
+		WHERE POST_ID = #{postId}
+  </update>
+  
+    <resultMap type="Comments" id="commentsResultMap">
+  	<result column="COMMENT_ID" property="commentId" ></result>
+  	<result column="POST_ID" property="postId"></result>
+  	<result column="USER_NO" property="userNo"></result>
+  	<result column="USER_ID" property="userId"/>
+  	<result column="CONTENT" property="content"></result>
+  	<result column="LIKE_COUNT" property="likeCount"></result>
+  	<result column="CREATED_AT" property="createDate"></result>
+  	<result column="STATUS" property="status"></result>
+  	</resultMap>
+  	
+  	<insert id="writeComments" parameterType="Comments">
+  		INSERT INTO COMMENTS (COMMENT_ID,
+  							  POST_ID,
+  							  USER_NO,
+  							  CONTENT,
+  							  LIKE_COUNT,
+  							  CREATED_AT,
+  							  STATUS
+  							  )
+  		VALUES (SEQ_COMMENT_ID.NEXTVAL,
+  				#{postId},
+  				10,
+  				#{content},
+  				0,
+  				SYSDATE,
+  				'Y'
+  				)	
+  	</insert>
+  	
+  	<select id="commentList" resultMap="commentsResultMap">
+	  	SELECT 
+	  	U.USER_ID,
+	  	C.COMMENT_ID,
+	  	C.CONTENT,
+	  	C.CREATED_AT
+		FROM COMMENTS C
+		JOIN USERS U ON C.USER_NO = U.USER_NO
+		WHERE C.POST_ID = #{postId}
+	  	AND C.STATUS = 'Y'
+  	</select>
+  
+ 
+  
+  		
+	 
+  </mapper>
