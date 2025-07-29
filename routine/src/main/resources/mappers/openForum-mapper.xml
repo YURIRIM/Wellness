@@ -15,7 +15,7 @@
   	<result column="VIEWS" property="views"></result>
   	
   	<!-- 첨부파일 담을 여러개를 담을 수 있는 Collection -->
-  <collection property="atList" ofType="OpenForumAttachment">
+  <collection property="atList" ofType="OpenForumAttachment" javaType="java.util.ArrayList" >
   	<result column="FILE_ID" property="fileId" ></result>
   	<result column="POST_ID" property="postId"></result>	
   	<result column="FILE_PATH" property="filePath"></result>		
@@ -40,7 +40,7 @@
     <result column="CREATED_AT" property="createdAt"/>
     <result column="STATUS" property="status" />
   </resultMap>
-  
+    
   <select id="listCount" resultType="_int">
   	SELECT COUNT(*)
   	FROM OPEN_FORUM
@@ -55,7 +55,7 @@
     						 CREATED_AT,
     						 VIEWS
     						)  
-   	VALUES (SEQ_POSTID.NEXTVAL,
+   	VALUES (#{postId},
 	 		#{userNo},
 	 		#{title},
 	 		#{content},
@@ -91,7 +91,7 @@
   <!--게시물번호 추출 -->
   <select id="selectPostId" resultType="_int">
   SELECT SEQ_POSTID.NEXTVAL
-  FROM DUAL;
+  FROM DUAL
   </select>
   
  
@@ -103,10 +103,20 @@
   </select> 
   
   <select id="postDetail" resultMap="openForumResultMap">
-  SELECT FORUM.POST_ID, U.USER_ID, FORUM.TITLE, FORUM.CONTENT, FORUM.CREATED_AT, FORUM.VIEWS
+   SELECT FORUM.POST_ID, 
+        U.USER_ID, 
+        FORUM.TITLE, 
+        FORUM.CONTENT, 
+        FORUM.CREATED_AT, 
+        FORUM.VIEWS,
+        A.FILE_PATH,
+        A.CHANGE_NAME,
+        A.ORIGIN_NAME,
+        A.FILE_SIZE
   FROM OPEN_FORUM FORUM
   JOIN USERS U ON FORUM.USER_NO=U.USER_NO
-  WHERE POST_ID=#{postId}
+  LEFT JOIN ATTACHMENT_OPEN A ON FORUM.POST_ID=A.POST_ID
+  WHERE FORUM.POST_ID=#{postId}
   </select>
   
   <update id="increaseCount" parameterType="_int">
@@ -115,6 +125,49 @@
 		WHERE POST_ID = #{postId}
   </update>
   
+    <resultMap type="Comments" id="commentsResultMap">
+  	<result column="COMMENT_ID" property="commentId" ></result>
+  	<result column="POST_ID" property="postId"></result>
+  	<result column="USER_NO" property="userNo"></result>
+  	<result column="USER_ID" property="userId"/>
+  	<result column="CONTENT" property="content"></result>
+  	<result column="LIKE_COUNT" property="likeCount"></result>
+  	<result column="CREATED_AT" property="createDate"></result>
+  	<result column="STATUS" property="status"></result>
+  	</resultMap>
+  	
+  	<insert id="writeComments" parameterType="Comments">
+  		INSERT INTO COMMENTS (COMMENT_ID,
+  							  POST_ID,
+  							  USER_NO,
+  							  CONTENT,
+  							  LIKE_COUNT,
+  							  CREATED_AT,
+  							  STATUS
+  							  )
+  		VALUES (SEQ_COMMENT_ID.NEXTVAL,
+  				#{postId},
+  				10,
+  				#{content},
+  				0,
+  				SYSDATE,
+  				'Y'
+  				)	
+  	</insert>
+  	
+  	<select id="commentList" resultMap="commentsResultMap">
+	  	SELECT 
+	  	U.USER_ID,
+	  	C.COMMENT_ID,
+	  	C.CONTENT,
+	  	C.CREATED_AT
+		FROM COMMENTS C
+		JOIN USERS U ON C.USER_NO = U.USER_NO
+		WHERE C.POST_ID = #{postId}
+	  	AND C.STATUS = 'Y'
+  	</select>
+  
+ 
   
   		
 	 

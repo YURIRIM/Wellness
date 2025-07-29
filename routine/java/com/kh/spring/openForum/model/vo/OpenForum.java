@@ -1,6 +1,9 @@
 package com.kh.spring.openForum.model.vo;
 
 import java.sql.Date;
+import java.util.ArrayList;
+
+import com.kh.spring.challenge.model.vo.Attachment;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,6 +26,7 @@ public class OpenForum {
 	private String changeName;
 
 	//추후 추가? 첨부파일을 담아올 ArrayList 추가해야함
+	private ArrayList<Attachment> atList;
 }	
 	
 

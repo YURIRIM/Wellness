@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kh.spring.comments.model.vo.Comments;
 import com.kh.spring.common.model.vo.PageInfo;
 import com.kh.spring.openForum.model.dao.OpenForumDao;
 import com.kh.spring.openForum.model.vo.OpenForum;
@@ -49,6 +50,7 @@ public class OpenForumServiceImpl implements OpenForumService {
 		
 		//1. 게시물번호 (postId) 추출
 		int postId = dao.selectPostId(sqlSession);
+		System.out.println(postId);
 		
 		//2. 게시글 번호가 잘 추출 된 후 게시물 번호에 직접 추가
 		if(postId>0) {
@@ -71,5 +73,16 @@ public class OpenForumServiceImpl implements OpenForumService {
 			}
 		} return result1 * result2;
 	
+	}
+
+	@Override
+	public int writeComments(Comments c) {
+		return dao.writeComments(sqlSession,c);
+	}
+
+	@Override
+	public ArrayList<Comments> commentList(int postId) {
+		
+		return dao.commentList(sqlSession,postId);
 	}
 }

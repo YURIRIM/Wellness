@@ -23,6 +23,6 @@ public class OpenForumAttachment {
 	private int fileLevel; //FILE_LEVEL	NUMBER
 	private String status; //  STATUS	VARCHAR2(1 BYTE)
 	
-	//fileName 은 지우기? DB 에서도 지우기
+
 	
 }

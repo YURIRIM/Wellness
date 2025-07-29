@@ -6,6 +6,7 @@ import org.apache.ibatis.session.RowBounds;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.kh.spring.comments.model.vo.Comments;
 import com.kh.spring.common.model.vo.PageInfo;
 import com.kh.spring.openForum.model.vo.OpenForum;
 import com.kh.spring.openForum.model.vo.OpenForumAttachment;
@@ -54,9 +55,16 @@ public class OpenForumDao {
 
 	public int selectPostId(SqlSessionTemplate sqlSession) {
 		return sqlSession.selectOne("openForumMapper.selectPostId");
+	}
+
+	public int writeComments(SqlSessionTemplate sqlSession, Comments c) {
+		return sqlSession.insert("openForumMapper.writeComments",c);
+	}
+
+	public ArrayList<Comments> commentList(SqlSessionTemplate sqlSession, int postId) {
+		
+		return (ArrayList)sqlSession.selectList("openForumMapper.commentList",postId);
 	}  
-	
-	
 	
 	//sqlSession 객체 객체 받아와서 mapper 에 접근해서 필요한 sql 구문 받아오기
 }

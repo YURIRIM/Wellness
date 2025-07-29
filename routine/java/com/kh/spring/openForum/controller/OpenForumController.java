@@ -4,6 +4,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,8 +14,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.kh.spring.comments.model.vo.Comments;
 import com.kh.spring.common.model.vo.PageInfo;
 import com.kh.spring.common.template.Pagination;
 import com.kh.spring.openForum.model.service.OpenForumService;
@@ -64,8 +67,8 @@ public class OpenForumController {
 	//2. 게시물 작성 메소드 
 	//작성 후 목록으로 돌아가기 
 	@PostMapping("/write")
-	public String opemForumWrite(OpenForum forum, 
-								 ArrayList<MultipartFile> uploadFiles, 
+	public String openForumWrite(OpenForum forum, 
+								 List<MultipartFile> uploadFiles, 
 								 HttpSession session) {
 		ArrayList<OpenForumAttachment> atList = new ArrayList<>();//첨부파일 정보들 등록할 리스트
 		
@@ -77,7 +80,7 @@ public class OpenForumController {
 		OpenForumAttachment forumAt = new OpenForumAttachment();
 		forumAt.setChangeName(changeName);
 		forumAt.setOriginName(originName);
-		forumAt.setFilePath("/resources/uploadFiles/");
+		forumAt.setFilePath("/uploadFiles/");
 		
 		if(count==1) {
 			forumAt.setFileLevel(count++);
@@ -120,7 +123,6 @@ public class OpenForumController {
 	public String postDetail(int postId, Model model) {
 		//postId(글번호) 이용해서 조회수 증가 및 게시글 조회 
 		int result = service.increaseCount(postId);
-		System.out.println(postId);
 		
 		
 		if(result>0) {
@@ -151,16 +153,33 @@ public class OpenForumController {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 		return changeName;
 	}
 	
 	
+	//댓글(Comments) 작성
+	@ResponseBody
+	@PostMapping("/write-comments")
+	public int writeComments(Comments c) {
+		int result = service.writeComments(c);
+		return result;
+	}
+	
+	//댓글 리스트 조회 (CommentList)
+	@ResponseBody //데이터 자체 리턴
+	@GetMapping(value="/comments-list", produces ="application/json;charset=UTF-8")
+	public ArrayList<Comments> commentList(int postId){
+		ArrayList<Comments> cList = service.commentList(postId);
+		
+		return cList;
+	}
 	
 	
 	//4. 게시물 삭제
 	//5. 게시물 수정 페이지로 이동
 	//6. 게시물 수정 
+	
+	
 	
 	
 	
