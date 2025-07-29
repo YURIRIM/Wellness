@@ -8,12 +8,15 @@
 <body>
     <div class="container mt-5">
         
+        <!-- 에러 메시지 -->
         <div th:if="${error}" class="alert alert-danger" role="alert">
             <strong>오류!</strong> <span th:text="${error}"></span>
         </div>
         
+        <!-- 정상 결과 -->
         <div th:if="${error == null}">
             
+            <!-- 위치 정보 -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="card">
@@ -28,6 +31,7 @@
                 </div>
             </div>
             
+            <!-- 날씨 정보 -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="card">
@@ -72,6 +76,7 @@
                 </div>
             </div>
             
+            <!-- 추천 운동 -->
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="card">
@@ -100,6 +105,9 @@
                 <div class="col-12 text-center">
                     <a href="/routine/recommend" class="btn btn-primary btn-lg">
                         다시 추천받기
+                    </a>
+                    <a href="/routine/test" class="btn btn-secondary btn-lg ms-2">
+                        테스트 해보기
                     </a>
                 </div>
             </div>

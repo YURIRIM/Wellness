@@ -1,149 +1,77 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
 <mapper namespace="meetingMapper">
 
-    <resultMap id="meetingWithLocationResultMap" type="Meeting">
-        <id property="meetingNo" column="meeting_no"/>
-        <result property="userNo" column="user_no"/>
-        <result property="title" column="title"/>
-        <result property="description" column="description"/>
-        <result property="locationNo" column="location_no"/>
-        <result property="meetingDate" column="meeting_date"/>
-        
-        <association property="locationObject" javaType="com.kh.spring.recommend.model.vo.Location">
-            <id property="locationNo" column="loc_no"/>
-            <result property="locationName" column="loc_name"/>
-            <result property="address" column="loc_address"/>
-            <result property="latitude" column="loc_latitude"/>
-            <result property="longitude" column="loc_longitude"/>
-            <result property="nx" column="loc_nx"/>
-            <result property="ny" column="loc_ny"/>
-        </association>
-    </resultMap>
-
+    <!-- 모임 등록 -->
     <insert id="insertMeeting" parameterType="Meeting">
         <selectKey keyProperty="meetingNo" resultType="int" order="BEFORE">
             SELECT SEQ_MEETING_NO.NEXTVAL FROM DUAL
         </selectKey>
         INSERT INTO meetings (
-            meeting_no, user_no, title, description, location_no, meeting_date ) VALUES (
-            #{meetingNo}, #{userNo}, #{title}, #{description}, #{locationNo}, #{meetingDate} )
+            meeting_no, user_no, title, description, location, meeting_date
+        ) VALUES (
+            #{meetingNo}, #{userNo}, #{title}, #{description}, #{location}, #{meetingDate}
+        )
     </insert>
 
+    <!-- 모임 수정 -->
     <update id="updateMeeting" parameterType="Meeting">
         UPDATE meetings
         SET title = #{title},
             description = #{description},
-            location_no = #{locationNo}, meeting_date = #{meetingDate}
+            location = #{location},
+            meeting_date = #{meetingDate}
         WHERE meeting_no = #{meetingNo}
     </update>
 
+    <!-- 모임 삭제 -->
     <delete id="deleteMeeting" parameterType="int">
         DELETE FROM meetings WHERE meeting_no = #{meetingNo}
     </delete>
 
-    <select id="selectMeetingByNo" parameterType="int" resultMap="meetingWithLocationResultMap">
-        SELECT 
-            m.meeting_no,
-            m.user_no,
-            m.title,
-            m.description,
-            m.location_no,
-            m.meeting_date,
-            l.location_no as loc_no,
-            l.location_name as loc_name,
-            l.address as loc_address,
-            l.latitude as loc_latitude,
-            l.longitude as loc_longitude,
-            l.nx as loc_nx,
-            l.ny as loc_ny
-        FROM MEETINGS m
-        LEFT JOIN LOCATION l ON m.location_no = l.location_no
-        WHERE m.meeting_no = #{meetingNo}
+    <!-- 모임 조회 (번호로) -->
+    <select id="selectMeetingByNo" parameterType="int" resultType="Meeting">
+        SELECT * FROM meetings WHERE meeting_no = #{meetingNo}
     </select>
 
-    <select id="selectMeetingsByUser" parameterType="int" resultMap="meetingWithLocationResultMap">
-        SELECT 
-            m.meeting_no,
-            m.user_no,
-            m.title,
-            m.description,
-            m.location_no,
-            m.meeting_date,
-            l.location_no as loc_no,
-            l.location_name as loc_name,
-            l.address as loc_address,
-            l.latitude as loc_latitude,
-            l.longitude as loc_longitude,
-            l.nx as loc_nx,
-            l.ny as loc_ny
-        FROM MEETINGS m
-        LEFT JOIN LOCATION l ON m.location_no = l.location_no
-        WHERE m.user_no = #{userNo} 
-        ORDER BY m.meeting_date DESC
+    <!-- 사용자별 모임 조회 -->
+    <select id="selectMeetingsByUser" parameterType="int" resultType="Meeting">
+        SELECT * FROM meetings WHERE user_no = #{userNo} ORDER BY meeting_date DESC
     </select>
 
-    <select id="selectAllMeetings" resultMap="meetingWithLocationResultMap">
-        SELECT 
-            m.meeting_no,
-            m.user_no,
-            m.title,
-            m.description,
-            m.location_no,
-            m.meeting_date,
-            l.location_no as loc_no,
-            l.location_name as loc_name,
-            l.address as loc_address,
-            l.latitude as loc_latitude,
-            l.longitude as loc_longitude,
-            l.nx as loc_nx,
-            l.ny as loc_ny
-        FROM MEETINGS m
-        LEFT JOIN LOCATION l ON m.location_no = l.location_no
-        ORDER BY m.meeting_date DESC
+    <!-- 모든 모임 조회 -->
+    <select id="selectAllMeetings" resultType="Meeting">
+        SELECT * FROM meetings ORDER BY meeting_date DESC
     </select>
 
+    <!-- 모임 참가 -->
     <insert id="insertMeetingPart" parameterType="MeetingPart">
         INSERT INTO meeting_part (meeting_no, user_no)
         VALUES (#{meetingNo}, #{userNo})
     </insert>
 
+    <!-- 모임 탈퇴 -->
     <delete id="deleteMeetingPart" parameterType="map">
         DELETE FROM meeting_part
         WHERE meeting_no = #{meetingNo} AND user_no = #{userNo}
     </delete>
 
+    <!-- 모임별 참가자 조회 -->
     <select id="selectMeetingPartsByMeetingNo" parameterType="int" resultType="MeetingPart">
         SELECT * FROM meeting_part WHERE meeting_no = #{meetingNo} ORDER BY joined_at
     </select>
 
-    <select id="selectJoinedMeetingsByUserNo" parameterType="int" resultMap="meetingWithLocationResultMap">
-        SELECT 
-            m.meeting_no,
-            m.user_no,
-            m.title,
-            m.description,
-            m.location_no,
-            m.meeting_date,
-            l.location_no as loc_no,
-            l.location_name as loc_name,
-            l.address as loc_address,
-            l.latitude as loc_latitude,
-            l.longitude as loc_longitude,
-            l.nx as loc_nx,
-            l.ny as loc_ny
-        FROM MEETING_PART mp
-        JOIN MEETINGS m ON mp.MEETING_NO = m.MEETING_NO
-        LEFT JOIN LOCATION l ON m.location_no = l.location_no
-        WHERE mp.USER_NO = #{userNo}
-        ORDER BY m.meeting_date DESC
+    <!-- 사용자별 참가 모임 조회 -->
+    <select id="selectMeetingPartsByUserNo" parameterType="int" resultType="MeetingPart">
+        SELECT * FROM meeting_part WHERE user_no = #{userNo} ORDER BY joined_at DESC
     </select>
 
+    <!-- 모임 참가자 수 조회 -->
     <select id="selectMeetingPartCount" parameterType="int" resultType="int">
         SELECT COUNT(*) FROM meeting_part WHERE meeting_no = #{meetingNo}
     </select>
 
+    <!-- 특정 참가자 조회 -->
     <select id="selectMeetingPart" parameterType="map" resultType="MeetingPart">
         SELECT * FROM meeting_part
         WHERE meeting_no = #{meetingNo} AND user_no = #{userNo}

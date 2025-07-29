@@ -36,15 +36,12 @@
                     <div class="card-body">
                         <p class="card-text" th:text="${meeting.description}">모임 소개</p>
                         <div class="text-muted small">
-                            <div th:if="${meeting.locationObject != null and meeting.locationObject.address != null and !#strings.isEmpty(meeting.locationObject.address)}">
-                                <i class="bi bi-geo-alt"></i> <span th:text="${meeting.locationObject.address}">모임 장소 주소</span>
-                            </div>
-                            <div th:unless="${meeting.locationObject != null and meeting.locationObject.address != null and !#strings.isEmpty(meeting.locationObject.address)}">
-                                <i class="bi bi-geo-alt"></i> <span class="text-danger">장소 미정 또는 주소 없음</span>
+                            <div th:if="${meeting.location != null and !#strings.isEmpty(meeting.location)}">
+                                <i class="bi bi-geo-alt"></i> <span th:text="${meeting.location}">지역</span>
                             </div>
                             <div>
                                 <i class="bi bi-person"></i> 개설자: <span th:text="${meeting.userNo}">사용자</span>
-                                </div>
+                            </div>
                         </div>
                         <div class="mt-3">
                             <a th:href="@{/meeting/detail/{meetingNo}(meetingNo=${meeting.meetingNo})}" 

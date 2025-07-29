@@ -21,7 +21,7 @@ import com.kh.spring.challenge.model.vo.ChallengeRequired;
 import com.kh.spring.challenge.model.vo.ConnectByUuid;
 import com.kh.spring.challenge.model.vo.LoginUserAndChal;
 import com.kh.spring.challenge.model.vo.SearchComment;
-import com.kh.spring.user.model.vo.User;    
+import com.kh.spring.user.model.vo.User;
 import com.kh.spring.util.challenge.ChallengeCommentValidator;
 import com.kh.spring.util.common.UuidUtil;
 
@@ -33,7 +33,8 @@ public class ChallengeCommentServiceImpl implements ChallengeCommentService{
 	private SqlSessionTemplate sqlSession;
 	@Autowired
 	private ChallengeCommentDao dao;
-
+	@Autowired
+	private ChallengeDao chalDao;
 	@Autowired
 	private AttachmentDao atDao;
 	@Autowired

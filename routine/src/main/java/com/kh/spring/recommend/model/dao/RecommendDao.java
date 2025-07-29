@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Map; // Map 사용을 위해 추가
 
 @Repository
 public class RecommendDao {
@@ -17,14 +16,17 @@ public class RecommendDao {
     @Autowired
     private SqlSessionTemplate sqlSession;
     
+    // 위치 정보 저장
     public int insertLocation(Location location) {
         return sqlSession.insert("recommendMapper.insertLocation", location);
     }
     
+    // 날씨 정보 저장
     public int insertWeather(Weather weather) {
         return sqlSession.insert("recommendMapper.insertWeather", weather);
     }
     
+    // 추천 정보 저장
     public int insertRecommend(Recommend recommend) {
         return sqlSession.insert("recommendMapper.insertRecommend", recommend);
     }
@@ -33,19 +35,14 @@ public class RecommendDao {
         return sqlSession.selectList("recommendMapper.selectRecommendsByWeatherNo", weatherNo);
     }
     
-    public Weather selectWeatherByNo(int weatherNo) { 
+    public Weather selectWeatherByNo(int weatherNo) {
         return sqlSession.selectOne("recommendMapper.selectWeatherByNo", weatherNo);
     }
-
-    public List<Location> selectAllWeatherLocations() {
-        return sqlSession.selectList("recommendMapper.selectAllWeatherLocations");
-    }
-
-    public Location selectLocationByCoords(Map<String, Double> coords) {
-        return sqlSession.selectOne("recommendMapper.selectLocationByCoords", coords);
-    }
-
-    public Weather selectWeatherByLocationNo(int locationNo) {
-        return sqlSession.selectOne("recommendMapper.selectWeatherByLocationNo", locationNo);
-    }
+    
+    
+    
+    
+    
+    
+    
 }

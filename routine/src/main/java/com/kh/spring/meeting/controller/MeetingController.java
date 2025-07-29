@@ -3,10 +3,7 @@ package com.kh.spring.meeting.controller;
 import com.kh.spring.meeting.model.service.MeetingService;
 import com.kh.spring.meeting.model.vo.Meeting;
 import com.kh.spring.meeting.model.vo.MeetingPart;
-import com.kh.spring.user.model.vo.User;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,10 +18,7 @@ public class MeetingController {
     
     @Autowired
     private MeetingService meetingService;
-
-    @Value("${api.kakao.js.key}") 
-    private String kakaoJsApiKey;
-
+    
     // 모임 목록 페이지
     @GetMapping("/list")
     public String meetingList(Model model) {
@@ -35,26 +29,24 @@ public class MeetingController {
     
     // 모임 생성 페이지
     @GetMapping("/create")
-    public String createMeetingForm(Model model) { 
-        model.addAttribute("kakaoJsApiKey", kakaoJsApiKey); 
+    public String createMeetingForm() {
         return "meeting/createMeeting";
     }
     
-    // 모임 생성 (생성 후 채팅방 이동)
+ // 모임 생성 (생성 후 채팅방 이동)
     @PostMapping("/create")
     public String createMeeting(@ModelAttribute Meeting meeting, 
                                HttpSession session, 
                                RedirectAttributes redirectAttributes) {
         
-        User loginUser = (User) session.getAttribute("loginUser");
+        Integer userNo = (Integer) session.getAttribute("userNo");
         
-        if (loginUser == null) { 
+        // 로그인 상태 확인
+        if (userNo == null) {
             redirectAttributes.addFlashAttribute("errorMsg", "로그인이 필요합니다.");
             return "redirect:/user/login";
         }
         
-        int userNo = loginUser.getUserNo(); 
-
         meeting.setUserNo(userNo);
         
         try {
@@ -68,9 +60,9 @@ public class MeetingController {
                 return "redirect:/meeting/create";
             }
         } catch (Exception e) {
-            System.err.println("모임 생성 오류: " + e.getMessage());
-            System.err.println("사용자 번호: " + userNo);
-            e.printStackTrace(); 
+            // 로그 출력으로 디버깅
+            System.out.println("모임 생성 오류: " + e.getMessage());
+            System.out.println("사용자 번호: " + userNo);
             
             redirectAttributes.addFlashAttribute("errorMsg", "모임 생성 중 오류가 발생했습니다. 로그인 상태를 확인해주세요.");
             return "redirect:/meeting/create";
@@ -83,24 +75,14 @@ public class MeetingController {
                                Model model, 
                                HttpSession session) {
         
-        model.addAttribute("kakaoJsApiKey", kakaoJsApiKey);
-
         Meeting meeting = meetingService.selectMeetingByNo(meetingNo);
         List<MeetingPart> participants = meetingService.selectMeetingPartsByMeetingNo(meetingNo);
         int participantCount = meetingService.selectMeetingPartCount(meetingNo);
         
-        User loginUser = (User) session.getAttribute("loginUser");
-        
-        int currentUserNo = 0; 
-        boolean isLoggedIn = (loginUser != null); 
-        
-        if (isLoggedIn) {
-            currentUserNo = loginUser.getUserNo(); 
-        }
-        
+        Integer userNo = (Integer) session.getAttribute("userNo");
         boolean isParticipant = false;
-        if (isLoggedIn) { 
-            isParticipant = meetingService.isUserParticipant(meetingNo, currentUserNo);
+        if (userNo != null) {
+            isParticipant = meetingService.isUserParticipant(meetingNo, userNo);
         }
         
         model.addAttribute("meeting", meeting);
@@ -115,27 +97,12 @@ public class MeetingController {
     @GetMapping("/edit/{meetingNo}")
     public String editMeetingForm(@PathVariable("meetingNo") int meetingNo, 
                                  Model model, 
-                                 HttpSession session,
-                                 RedirectAttributes redirectAttributes) {
+                                 HttpSession session) {
         
-        model.addAttribute("kakaoJsApiKey", kakaoJsApiKey);
-
         Meeting meeting = meetingService.selectMeetingByNo(meetingNo);
         
-        User loginUser = (User) session.getAttribute("loginUser");
-        int currentUserNo = 0; 
-        boolean isLoggedIn = (loginUser != null);
-        if (isLoggedIn) {
-            currentUserNo = loginUser.getUserNo();
-        }
-
-        if (!isLoggedIn) { 
-            redirectAttributes.addFlashAttribute("errorMsg", "로그인이 필요합니다.");
-            return "redirect:/user/login"; 
-        }
-        
-        if (meeting == null || meeting.getUserNo() != currentUserNo) {
-            redirectAttributes.addFlashAttribute("errorMsg", "모임을 수정할 권한이 없습니다. 본인이 생성한 모임인지 확인해주세요.");
+        Integer userNo = (Integer) session.getAttribute("userNo");
+        if (userNo == null || meeting.getUserNo() != userNo) {
             return "redirect:/meeting/detail/" + meetingNo;
         }
         
@@ -149,21 +116,10 @@ public class MeetingController {
                              HttpSession session,
                              RedirectAttributes redirectAttributes) {
         
-        User loginUser = (User) session.getAttribute("loginUser");
-        int currentUserNo = 0;
-        boolean isLoggedIn = (loginUser != null);
-        if (isLoggedIn) {
-            currentUserNo = loginUser.getUserNo();
-        }
-        
+        Integer userNo = (Integer) session.getAttribute("userNo");
         Meeting originalMeeting = meetingService.selectMeetingByNo(meeting.getMeetingNo());
         
-        if (!isLoggedIn) {
-            redirectAttributes.addFlashAttribute("errorMsg", "로그인이 필요합니다.");
-            return "redirect:/user/login";
-        }
-        
-        if (originalMeeting == null || originalMeeting.getUserNo() != currentUserNo) {
+        if (userNo == null || originalMeeting.getUserNo() != userNo) {
             redirectAttributes.addFlashAttribute("errorMsg", "수정 권한이 없습니다.");
             return "redirect:/meeting/detail/" + meeting.getMeetingNo();
         }
@@ -185,21 +141,10 @@ public class MeetingController {
                                HttpSession session,
                                RedirectAttributes redirectAttributes) {
         
-        User loginUser = (User) session.getAttribute("loginUser");
-        int currentUserNo = 0;
-        boolean isLoggedIn = (loginUser != null);
-        if (isLoggedIn) {
-            currentUserNo = loginUser.getUserNo();
-        }
-        
+        Integer userNo = (Integer) session.getAttribute("userNo");
         Meeting meeting = meetingService.selectMeetingByNo(meetingNo);
         
-        if (!isLoggedIn) {
-            redirectAttributes.addFlashAttribute("errorMsg", "로그인이 필요합니다.");
-            return "redirect:/user/login";
-        }
-        
-        if (meeting == null || meeting.getUserNo() != currentUserNo) {
+        if (userNo == null || meeting.getUserNo() != userNo) {
             redirectAttributes.addFlashAttribute("errorMsg", "삭제 권한이 없습니다.");
             return "redirect:/meeting/detail/" + meetingNo;
         }
@@ -221,66 +166,47 @@ public class MeetingController {
     public String leaveMeeting(@PathVariable("meetingNo") int meetingNo, 
                               HttpSession session) {
         
-        User loginUser = (User) session.getAttribute("loginUser");
-        int currentUserNo = 0;
-        boolean isLoggedIn = (loginUser != null);
-        if (isLoggedIn) {
-            currentUserNo = loginUser.getUserNo();
-        }
-
-        if (!isLoggedIn) { 
-            return "fail"; 
+        Integer userNo = (Integer) session.getAttribute("userNo");
+        if (userNo == null) {
+            return "fail";
         }
         
         Meeting meeting = meetingService.selectMeetingByNo(meetingNo);
-        if (meeting != null && meeting.getUserNo() == currentUserNo) {
-            return "owner"; 
+        if (meeting.getUserNo() == userNo) {
+            return "owner";
         }
         
-        int result = meetingService.leaveMeeting(meetingNo, currentUserNo);
+        int result = meetingService.leaveMeeting(meetingNo, userNo);
         return result > 0 ? "success" : "fail";
     }
     
     // 내가 생성한 모임 목록
     @GetMapping("/my")
-    public String myMeetings(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
+    public String myMeetings(Model model, HttpSession session) {
         
-        User loginUser = (User) session.getAttribute("loginUser");
-        int currentUserNo = 0;
-        boolean isLoggedIn = (loginUser != null);
-        if (isLoggedIn) {
-            currentUserNo = loginUser.getUserNo();
-        }
-
-        if (!isLoggedIn) {
-            redirectAttributes.addFlashAttribute("errorMsg", "로그인이 필요합니다.");
+        Integer userNo = (Integer) session.getAttribute("userNo");
+        if (userNo == null) {
             return "redirect:/user/login";
         }
-
-        List<Meeting> myMeetings = meetingService.selectMeetingsByUser(currentUserNo);
+        
+        List<Meeting> myMeetings = meetingService.selectMeetingsByUser(userNo);
         model.addAttribute("myMeetings", myMeetings);
-
+        
         return "meeting/myMeetings";
     }
-
+    
     // 내가 참가한 모임 목록
     @GetMapping("/joined")
-    public String joinedMeetings(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
-
-        User loginUser = (User) session.getAttribute("loginUser");
-        int currentUserNo = 0;
-        boolean isLoggedIn = (loginUser != null);
-        if (isLoggedIn) {
-            currentUserNo = loginUser.getUserNo();
-        }
-
-        if (!isLoggedIn) {
-            redirectAttributes.addFlashAttribute("errorMsg", "로그인이 필요합니다.");
+    public String joinedMeetings(Model model, HttpSession session) {
+        
+        Integer userNo = (Integer) session.getAttribute("userNo");
+        if (userNo == null) {
             return "redirect:/user/login";
         }
-        List<Meeting> joinedMeetings = meetingService.selectMeetingPartsByUserNo(currentUserNo); 
+        
+        List<MeetingPart> joinedMeetings = meetingService.selectMeetingPartsByUserNo(userNo);
         model.addAttribute("joinedMeetings", joinedMeetings);
-
+        
         return "meeting/joinedMeetings";
     }
 }
