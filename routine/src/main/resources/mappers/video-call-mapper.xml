@@ -6,14 +6,14 @@
 <mapper namespace="videoCallMapper">
 <insert id="insertRoom" parameterType="VideoCallRequest">
 insert into VIDEO_CALL
-	(ROOM_UUID, CHAL_NO, ROOM_NAME, CREATE_TIMESTAMP, IS_RESTRICT, STATUS)
+	(ROOM_UUID, CHAL_NO, ROOM_NAME, CREATE_DATE, IS_RESTRICT, STATUS)
 values(
 	#{roomUuid}
 	,#{chalNo}
 	,#{roomName}
-	,#{createTimestamp}
-	,#{idRestrict}
-	,'Y'
+	,SYSDATE
+	,#{isRestrict}
+	,'N'
 	)
 </insert>
 
@@ -36,8 +36,8 @@ select vc.ROOM_UUID
 	,c.CONTENT
 from VIDEO_CALL vc
 left join CHALLENGE c on(c.CHAL_NO = vc.CHAL_NO)
-where vc.USER_NO = #{userNo}
-and c.status != 'Y'
+where c.USER_NO = #{userNo}
+and c.status = 'Y'
 order by CASE WHEN vc.STATUS = 'Y' THEN 0 ELSE 1 END,
 	CASE WHEN vc.STATUS = 'N' THEN 0 ELSE 1 END,
 	vc.CREATE_DATE DESC
@@ -58,11 +58,12 @@ left join CHALLENGE c on(c.CHAL_NO = vc.CHAL_NO)
 left join USERS u on(u.USER_NO = c.USER_NO)
 left join CHALLENGE_PARTICIPATION cp on(cp.CHAL_NO = c.CHAL_NO)
 where cp.USER_NO = #{userNo}
+and c.USER_NO != #{userNo}
 and vc.STATUS != 'D'
 and (
-  (vc.IS_RESTRICT = 'Y' AND cp.STATUS = 'Y')
-  OR (vc.IS_RESTRICT = 'N' AND cp.CHAL_NO IS NOT NULL)
-  OR (vc.IS_RESTRICT = 'S' AND cp.STATUS IN ('Y', 'S'))
+	(vc.IS_RESTRICT = 'Y' AND cp.STATUS = 'Y')
+	OR (vc.IS_RESTRICT = 'N' AND cp.CHAL_NO IS NOT NULL)
+	OR (vc.IS_RESTRICT = 'S' AND cp.STATUS IN ('Y', 'S'))
 )
 order by CASE WHEN vc.STATUS = 'Y' THEN 0 ELSE 1 END,
 	CASE WHEN vc.STATUS = 'N' THEN 0 ELSE 1 END,
@@ -72,6 +73,7 @@ order by CASE WHEN vc.STATUS = 'Y' THEN 0 ELSE 1 END,
 <update id="openRoom" parameterType="ConnectByUuid">
 update VIDEO_CALL vc
 set STATUS = 'Y'
+	,
 where vc.ROOM_UUID = #{uuid}
 and EXISTS(
 	select * FROM CHALLENGE c
@@ -85,8 +87,8 @@ select count(*)
 from CHALLENGE_PARTICIPATION cp
 left join CHALLENGE c on(c.CHAL_NO = cp.CHAL_NO)
 left join VIDEO_CALL vc on(vc.CHAL_NO = c.CHAL_NO)
-where c.USER_NO = #{refNo}
-and cp.ROOM_UUID = #{uuid}
+where cp.USER_NO = #{refNo}
+and vc.ROOM_UUID = #{uuid}
 and (
 	vc.IS_RESTRICT = 'N'
 	or (vc.IS_RESTRICT = 'Y' and cp.STATUS = 'Y')
@@ -94,5 +96,30 @@ and (
 )
 </select>
 
+<delete id="deleteRoom" parameterType="ConnectByUuid">
+delete from VIDEO_CALL vc
+where vc.ROOM_UUID = #{uuid}
+and EXISTS(
+	select *
+	from CHALLENGE c
+	where c.CHAL_NO = vc.CHAL_NO
+	and c.USER_NO = #{refNo}
+)
+</delete>
+
+<select id="openedRoom" resultType="RoomStatus">
+select ROOM_UUID, STATUS
+from VIDEO_CALL
+where STATUS = 'Y'
+</select>
+
+<update id="closeNoManRooms" parameterType="list">
+update VIDEO_CALL
+set STATUS = 'N'
+where ROOM_UUID in
+<foreach collection="UuidByteArray" item="item" open="(" separator="," close=")">
+	#{item}
+</foreach>
+</update>
 
 </mapper>

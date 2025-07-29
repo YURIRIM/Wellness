@@ -1,5 +1,7 @@
 package com.kh.spring.videoCall.model.service;
 
+import java.util.Map;
+
 import com.kh.spring.user.model.vo.User;
 
 import reactor.core.publisher.Mono;
@@ -11,5 +13,9 @@ public interface DailyService {
 	int activateDailCo(String keyStr) throws Exception;
 
 	String createRoom(String uuidStr) throws Exception;
+
+	boolean deleteRoom(String roomUuidStr) throws Exception;
+
+	Map<String, Integer> countParticipants() throws Exception;
 
 }

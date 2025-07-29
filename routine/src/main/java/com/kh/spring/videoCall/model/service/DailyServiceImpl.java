@@ -2,6 +2,8 @@ package com.kh.spring.videoCall.model.service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -17,21 +19,18 @@ import reactor.core.publisher.Mono;
 @Service
 public class DailyServiceImpl implements DailyService{
 	
-	private static String apiUrl = "https://api.daily.co/v1/";
-	public static String apiKey = null;
-	
 	//웹클라 자동생성
-	public static WebClient dailyWebClient() throws Exception{
-		if(apiKey==null) throw new Exception("apiKey가 없어요!");
-		return WebClient.builder().baseUrl(apiUrl).defaultHeader("Authorization", "Bearer " + apiKey).build();
+	public WebClient dailyWebClient() throws Exception{
+		if(Regexp.dailycoApiKey==null) throw new Exception("apiKey가 없어요!");
+		return WebClient.builder().baseUrl(Regexp.DAILYCO_URL).defaultHeader("Authorization", "Bearer " + Regexp.dailycoApiKey).build();
 	}
 	
 	//apiKey활성화
 	@Override
 	public int activateDailCo(String keyStr) throws Exception {
 		//열쇠를 받아 복호화해 되돌려주는 채신 택티껄 로-직(아님)
-		apiKey = AESCryption.decryptionFile("src/main/resources/config/daily-co-key.enc", keyStr);
-		if(apiKey==null) return 0;
+		Regexp.dailycoApiKey = AESCryption.decryptionFile("src/main/resources/config/daily-co-key.enc", keyStr);
+		if(Regexp.dailycoApiKey==null) return 0;
 		return 1;
 	}
     
@@ -51,7 +50,7 @@ public class DailyServiceImpl implements DailyService{
 				"enable_screenshare", true,
 				"exp", System.currentTimeMillis()/1000 + 86400
 			)
-    		);
+		);
     	
     	return dailyWebClient().post()
     			.uri("/meeting-tokens")
@@ -69,7 +68,7 @@ public class DailyServiceImpl implements DailyService{
 		long epochSecond = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
 		int expireTimestamp = (int)(epochSecond + Regexp.EXPIRETIME);
 
-    		//요청 몸매 만들기
+		//요청 몸매 만들기
         Map<String, Object> requestBody = Map.of(
             "name", uuidStr,
             "privacy", "private",
@@ -82,7 +81,6 @@ public class DailyServiceImpl implements DailyService{
             )
         );
         
-        
         String url = dailyWebClient().post()
             .uri("/rooms")
             .bodyValue(requestBody)
@@ -93,6 +91,45 @@ public class DailyServiceImpl implements DailyService{
         return url;
     }
 
-    
+	//방 삭제
+	@Override
+	public boolean deleteRoom(String roomUuidStr) throws Exception {
+        dailyWebClient()
+            .delete()
+            .uri("/rooms/{roomName}", roomUuidStr)
+            .retrieve()
+            .toBodilessEntity()
+            .block();
+        return true;
+	}
+	
+	//방 참여자 수 받아오기
+	@Override
+	public Map<String, Integer> countParticipants() throws Exception {
+
+	    ParameterizedTypeReference<Map<String, Object>> typeRef = new ParameterizedTypeReference<>() {};
+
+	    // Presence API 호출
+	    Map<String, Object> response = dailyWebClient()
+	        .get()
+	        .uri("/presence")
+	        .retrieve()
+	        .bodyToMono(typeRef)
+	        .block();
+
+	    Map<String, Integer> result = new HashMap<>();
+
+	    if (response != null && response.containsKey("rooms")) {
+	        List<Map<String, Object>> rooms = (List<Map<String, Object>>) response.get("rooms");
+	        for (Map<String, Object> room : rooms) {
+	            String name = (String) room.get("name");
+	            List<?> participants = (List<?>) room.get("participants");
+	            int count = participants == null ? 0 : participants.size();
+	            result.put(name, count);
+	        }
+	    }
+
+	    return result;
+	}
 
 }

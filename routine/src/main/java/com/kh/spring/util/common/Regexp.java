@@ -55,7 +55,15 @@ public class Regexp {
 	public static final int REDUCE_DIMENSION = 128;
 	
 	//VideoCall
-	public static final String VC_ROOM_NAME = "^[\\p{L}\\p{N}._\\-]{1,100}$";
+	public static final String DAILYCO_URL = "https://api.daily.co/v1/";
+	public static final String CREATED_URL = "https://onggi.daily.co/";
+	public static final String VC_ROOM_NAME = "^[\\p{L}\\p{N}\\p{M}\\p{S}\\p{P}\\p{Zs}]{1,100}$";
 	public static final String VC_RESTRICT = "^[YNS]$";
 	public static final int EXPIRETIME = 3600; //daily.co의 exp, 단위 : 초
+	public static String dailycoApiKey = null;
+	
+	//캐싱
+	public static final String CACHE_NAME = "participantsCache";
+	
+	
 }

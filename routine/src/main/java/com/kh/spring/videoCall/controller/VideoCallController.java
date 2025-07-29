@@ -7,8 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.kh.spring.util.common.UuidStrAndByte;
 import com.kh.spring.videoCall.model.service.VideoCallService;
 import com.kh.spring.videoCall.model.vo.Challenge;
 import com.kh.spring.videoCall.model.vo.VideoCallRequest;
@@ -17,7 +19,7 @@ import com.kh.spring.videoCall.model.vo.VideoCallResponse;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
-@RequestMapping("/videoCall")
+@RequestMapping("/video-call")
 public class VideoCallController {
 	@Autowired
 	private VideoCallService service;
@@ -25,12 +27,12 @@ public class VideoCallController {
 	//화상회의 메인 화면으로
 	@GetMapping("/main")
 	public String goVcMain() {
-		return "main";
+		return "video-call/main";
 	}
 	
 	//비동기 - 화상회의 생성하기
 	@PostMapping("/createRoom")
-	public ResponseEntity<String> createRoom(HttpSession session, VideoCallRequest vcr){
+	public ResponseEntity<String> createRoom(HttpSession session, @RequestBody VideoCallRequest vcr){
 		try {
 			return service.createRoom(session,vcr);
 		} catch (Exception e) {
@@ -66,6 +68,39 @@ public class VideoCallController {
 	public ResponseEntity<List<VideoCallResponse>> invitedRoom(HttpSession session){
 		try {
 			return service.invitedRoom(session);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(500).build();
+		}
+	}
+	
+	//비동기 - 방 열기
+	@PostMapping("/openRoom")
+	public ResponseEntity<String> invitedRoom(HttpSession session, @RequestBody UuidStrAndByte uuid){
+		try {
+			return service.openRoom(session, uuid.getUuidStr());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(500).build();
+		}
+	}
+	
+	//비동기 - 열린 방 참여하기
+	@PostMapping("/participateRoom")
+	public ResponseEntity<String> participateRoom(HttpSession session, @RequestBody UuidStrAndByte uuid){
+		try {
+			return service.participateRoom(session, uuid.getUuidStr());
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(500).build();
+		}
+	}
+	
+	//비동기 - 방 삭제하기
+	@PostMapping("/deleteRoom")
+	public ResponseEntity<Void> deleteRoom(HttpSession session, @RequestBody UuidStrAndByte uuid){
+		try {
+			return service.deleteRoom(session, uuid.getUuidStr());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(500).build();

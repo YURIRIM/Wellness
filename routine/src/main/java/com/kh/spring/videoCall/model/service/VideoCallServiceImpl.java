@@ -26,7 +26,6 @@ import jakarta.servlet.http.HttpSession;
 
 @Service
 public class VideoCallServiceImpl implements VideoCallService{
-
 	@Autowired
 	private SqlSessionTemplate sqlSession;
 	@Autowired
@@ -35,6 +34,8 @@ public class VideoCallServiceImpl implements VideoCallService{
 	private ChallengeDao chalDao;
 	@Autowired
 	private DailyService dailyService;
+	@Autowired
+	private CachingParticipants cachingParticipants;
 	
 	//비동기 - 새로운 방 생성
 	@Override
@@ -76,8 +77,11 @@ public class VideoCallServiceImpl implements VideoCallService{
 		if (result == null || result.isEmpty())
 			return ResponseEntity.notFound().build();	
 		
-		//소독
+		//소독 및 uuid->uuidStr
 		vcResponseSanitizer(result);
+		
+		//참여자 수 돚거해서 반영
+		updateParticipants(result);
 		
 		return ResponseEntity.ok(result);
 	}
@@ -93,8 +97,11 @@ public class VideoCallServiceImpl implements VideoCallService{
 		if (result == null || result.isEmpty())
 			return ResponseEntity.notFound().build();	
 		
-		//소독
+		//소독 및 uuid->uuidStr
 		vcResponseSanitizer(result);
+		
+		//참여자 수 돚거해서 반영
+		updateParticipants(result);
 		
 		return ResponseEntity.ok(result);
 	}
@@ -131,11 +138,11 @@ public class VideoCallServiceImpl implements VideoCallService{
 		int openRoom = dao.openRoom(sqlSession, uuidAndUserNo);
 		if(!(openRoom>0)) return ResponseEntity.badRequest().build();
 		
-		//Daily.co에서 방 만들기
+		//Daily.co 토큰 생성
 		String ownerToken = dailyService.createMeetingToken(roomUuidStr, loginUser, "O").block();
 		if(ownerToken==null) return ResponseEntity.status(500).build();
 		
-		//Daily.co에서 방 열기
+		//Daily.co 방 생성
 		String createdRoom = dailyService.createRoom(roomUuidStr);
 		if(createdRoom==null) return ResponseEntity.status(500).build();
 		
@@ -159,23 +166,37 @@ public class VideoCallServiceImpl implements VideoCallService{
 		int isParticipant = dao.isParticipant(sqlSession, uuidAndUserNo);
 		if(!(isParticipant>0)) return ResponseEntity.badRequest().build();
 		
-		//----------------------------------------------------
-		//Daily.co에서 방 만들기
+		//Daily.co 토큰 생성
 		String ownerToken = dailyService.createMeetingToken(roomUuidStr, loginUser, "P").block();
 		if(ownerToken==null) return ResponseEntity.status(500).build();
 		
-		//Daily.co에서 방 열기
-		String createdRoom = dailyService.createRoom(roomUuidStr);
-		if(createdRoom==null) return ResponseEntity.status(500).build();
-		
 		//방 접근 url생성
-		String accessUrl = createdRoom + "?t=" + ownerToken;
+		String accessUrl = Regexp.CREATED_URL +roomUuidStr+ "?t=" + ownerToken;
 		
 		return ResponseEntity.ok(accessUrl);
 	}
-	
-	
-	
+
+	//비동기 - 방 삭제
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public ResponseEntity<Void> deleteRoom(HttpSession session, String roomUuidStr) throws Exception {
+		User loginUser = (User)session.getAttribute("loginUser");
+		byte[] roomUuid = UuidUtil.strToByteArr(roomUuidStr);
+		ConnectByUuid uuidAndUserNo = ConnectByUuid.builder()
+				.uuid(roomUuid)
+				.refNo(loginUser.getUserNo())
+				.build();
+		
+		//해당 방의 주인임을 확인하고 삭제
+		int result = dao.deleteRoom(sqlSession, uuidAndUserNo);
+		if(!(result>0)) return ResponseEntity.badRequest().build();
+		
+		//Daily.co에 방이 삭제되었다고 통보하기
+		boolean delete = dailyService.deleteRoom(roomUuidStr);
+		if(!delete) return ResponseEntity.status(500).build();
+		
+		return ResponseEntity.ok().build();
+	}
 	
 	
 	//챌린지 조회 소독
@@ -213,6 +234,30 @@ public class VideoCallServiceImpl implements VideoCallService{
 			if (chal.getContent().length() > Regexp.CONTENT_SHOW_LIMIT) {
 				chal.setContent(chal.getContent().substring(0, Regexp.CONTENT_SHOW_LIMIT) + "⋯");
 			}
+			
+			//uuid->uuidStr
+			chal.setRoomUuidStr(UuidUtil.byteArrToStr(chal.getRoomUuid()));
+			chal.setRoomUuid(null);
 		}
+	}
+	
+	//참여자 수 반영하기
+	@Override
+	public void updateParticipants(List<VideoCallResponse> vcrList) throws Exception{
+		
+		//캐시에서 데이터 돚거
+		Map<String, Integer> participants = cachingParticipants.get();
+		if(participants==null||participants.isEmpty()) return;
+		
+		//반영하기
+		for (VideoCallResponse vcr : vcrList) {
+		    Integer count = participants.get(vcr.getRoomUuidStr());
+		    if (count != null) {
+		        vcr.setParticipants(count);
+		    } else {
+		        vcr.setParticipants(0);
+		    }
+		}
+		
 	}
 }

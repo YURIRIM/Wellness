@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import com.kh.spring.challenge.model.vo.ConnectByUuid;
 import com.kh.spring.videoCall.model.vo.Challenge;
+import com.kh.spring.videoCall.model.vo.RoomStatus;
+import com.kh.spring.videoCall.model.vo.UuidByteArray;
 import com.kh.spring.videoCall.model.vo.VideoCallRequest;
 import com.kh.spring.videoCall.model.vo.VideoCallResponse;
 
@@ -35,6 +37,18 @@ public class VideoCallDao {
 
 	public int isParticipant(SqlSessionTemplate sqlSession, ConnectByUuid uuidAndUserNo) {
 		return sqlSession.selectOne("videoCallMapper.isParticipant",uuidAndUserNo);
+	}
+
+	public int deleteRoom(SqlSessionTemplate sqlSession, ConnectByUuid uuidAndUserNo) {
+		return sqlSession.delete("videoCallMapper.deleteRoom", uuidAndUserNo);
+	}
+
+	public List<RoomStatus> openedRoom(SqlSessionTemplate sqlSession) {
+		return sqlSession.selectList("videoCallMapper.openedRoom");
+	}
+
+	public int closeNoManRooms(SqlSessionTemplate sqlSession, List<UuidByteArray> noMansRoom) {
+		return sqlSession.update("videoCallMapper.closeNoManRooms", noMansRoom);
 	}
 
 }
