@@ -75,7 +75,7 @@ public class RecommendServiceImpl implements RecommendService {
             
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "KakaoAK " + kakaoApiKey);
-            HttpEntity<String> entity = new HttpEntity<>(headers); 
+            HttpEntity<String> entity = new org.springframework.http.HttpEntity<>(headers); 
 
             ResponseEntity<Map> kakaoResponse = restTemplate.exchange(
                 URI.create(kakaoCoord2AddressUrl),
@@ -148,18 +148,16 @@ public class RecommendServiceImpl implements RecommendService {
                 .queryParam("nx", location.getNx())
                 .queryParam("ny", location.getNy())
                 .toUriString();
-            System.out.println("기상청 API URL: " + weatherApiUrlFull); // 디버깅용 로그
 
             ResponseEntity<Map> weatherApiResponse = restTemplate.getForEntity(URI.create(weatherApiUrlFull), Map.class);
             Map weatherResponseBody = weatherApiResponse.getBody();
-            System.out.println("기상청 API 응답 본문: " + weatherResponseBody); // 디버깅용 로그
 
             if (weatherResponseBody != null && weatherResponseBody.containsKey("response")) {
                 Map responseMap = (Map) weatherResponseBody.get("response");
                 if(responseMap.containsKey("header") && ((Map)responseMap.get("header")).containsKey("resultCode")){
                     String resultCode = (String) ((Map)responseMap.get("header")).get("resultCode");
                     String resultMsg = (String) ((Map)responseMap.get("header")).get("resultMsg");
-                    if (!"00".equals(resultCode)) { // resultCode가 00이 아니면 오류
+                    if (!"00".equals(resultCode)) { 
                          throw new RuntimeException("기상청 API 오류: " + resultCode + " - " + resultMsg);
                     }
                 }
@@ -222,21 +220,19 @@ public class RecommendServiceImpl implements RecommendService {
                 .queryParam("returnType", "json")
                 .queryParam("numOfRows", 1)
                 .queryParam("pageNo", 1)
-                .queryParam("dataTime", now.format(DateTimeFormatter.ofPattern("yyyyMMddHH"))) 
                 .queryParam("stationName", airStationName)
+                .queryParam("dataTime", now.format(DateTimeFormatter.ofPattern("yyyyMMddHH"))) 
                 .toUriString();
-            System.out.println("에어코리아 API URL: " + airApiUrlFull); // 디버깅용 로그
 
             ResponseEntity<Map> airApiResponse = restTemplate.getForEntity(URI.create(airApiUrlFull), Map.class);
             Map airResponseBody = airApiResponse.getBody();
-            System.out.println("에어코리아 API 응답 본문: " + airResponseBody); // 디버깅용 로그
 
             if (airResponseBody != null && airResponseBody.containsKey("response")) {
                 Map responseMap = (Map) airResponseBody.get("response");
                 if(responseMap.containsKey("header") && ((Map)responseMap.get("header")).containsKey("resultCode")){
                     String resultCode = (String) ((Map)responseMap.get("header")).get("resultCode");
                     String resultMsg = (String) ((Map)responseMap.get("header")).get("resultMsg");
-                    if (!"00".equals(resultCode)) { // resultCode가 00이 아니면 오류
+                    if (!"00".equals(resultCode)) { 
                          throw new RuntimeException("에어코리아 API 오류: " + resultCode + " - " + resultMsg);
                     }
                 }
@@ -415,4 +411,5 @@ public class RecommendServiceImpl implements RecommendService {
             default: return "알 수 없음";
         }
     }
+    //아아
 }
