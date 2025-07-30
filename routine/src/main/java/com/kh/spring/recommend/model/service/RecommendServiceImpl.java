@@ -411,5 +411,4 @@ public class RecommendServiceImpl implements RecommendService {
             default: return "알 수 없음";
         }
     }
-    //아아
 }
