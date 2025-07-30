@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.kh.spring.user.model.vo.User;
@@ -96,14 +95,20 @@ public class DailyServiceImpl implements DailyService{
 
 	//방 삭제
 	@Override
-	public boolean deleteRoom(String roomUuidStr) throws Exception {
-        dailyWebClient()
-            .delete()
-            .uri("/rooms/{roomName}", roomUuidStr)
-            .retrieve()
-            .toBodilessEntity()
-            .block();
-        return true;
+	public boolean deleteRoom(String roomUuidStr) {
+		try {
+			dailyWebClient()
+				.delete()
+				.uri("/rooms/{roomName}", roomUuidStr)
+				.retrieve()
+				.toBodilessEntity()
+				.block();
+			
+			return true;
+		} catch (Exception e) {
+			System.out.println("방도 못 지우는 허접이라고 생각하는중...");
+			return false;
+		}
 	}
 	
 	//방 참여자 수 받아오기
@@ -121,28 +126,14 @@ public class DailyServiceImpl implements DailyService{
 
 	    if (jsonResponse == null) throw new Exception("Presence 요청 대 실 패!!");
 	    else if(jsonResponse.isEmpty()) return result;
-	    	
-
-	    //JSON 문자열 -> JsonObject
+	    
 	    JsonObject jobject = JsonParser.parseString(jsonResponse).getAsJsonObject();
 
-	    //"rooms" 키의 배열 파싱
-	    JsonArray roomsArray = jobject.getAsJsonArray("rooms");
-
-	    //각 방 객체별로 이름과 참가자 수 파싱
-	    for (JsonElement roomElement : roomsArray) {
-	        if (!roomElement.isJsonObject()) continue;
-
-	        JsonObject roomObj = roomElement.getAsJsonObject();
-
-	        String name = roomObj.has("name") ? roomObj.get("name").getAsString() : null;
-	        
-	        int count = 0;
-	        if (roomObj.has("participants") && roomObj.get("participants").isJsonArray()) {
-	            count = roomObj.getAsJsonArray("participants").size();
-	        }
-
-	        if (name != null) result.put(name, count);
+	    // 최상위 key-value를 반복
+	    for (String roomUuid : jobject.keySet()) {
+	        JsonArray participantsArray = jobject.getAsJsonArray(roomUuid);
+	        int count = (participantsArray == null) ? 0 : participantsArray.size();
+	        result.put(roomUuid, count);
 	    }
 
 	    return result;

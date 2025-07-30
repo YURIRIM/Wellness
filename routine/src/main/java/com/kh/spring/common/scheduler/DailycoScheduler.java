@@ -38,28 +38,29 @@ public class DailycoScheduler {
 			//돚거하기
 			Map<String, Integer> result = dailyService.countParticipants();
 			
-			System.out.println("돚거 중... 결과 : "+result.size());
 			//캐시 업데이트
 			cachService.update(result);
 			
-//			//활성화 되어 있다고 주장하는 방 이리와
-//			List<RoomStatus> openedRoomList = vcDao.openedRoom(sqlSession);
-//			
-//			//Daily.co 목록에 없는데 활성화가 되어 있다?? 너 잘 걸렸다 심심했는데
-//			List<byte[]> noMansRoom = new ArrayList<>();
-//			for(RoomStatus rs : openedRoomList) {
-//				String uuidStr = UuidUtil.byteArrToStr(rs.getRoomUuid());
-//	            if (!result.containsKey(uuidStr)) {
-//	            	//닫아야 할 리스트에 추가
-//	            	noMansRoom.add(rs.getRoomUuid());
-//	            }
-//			}
-//			
-//			System.out.println("활성화 안 되었는데 활성화되었다고 구라치다 걸린 놈들 수 : "+noMansRoom.size());
-//			//유령방 닫기
-//			if(!noMansRoom.isEmpty()) {
-//				vcDao.closeNoManRooms(sqlSession, noMansRoom);
-//			}
+			//활성화 되어 있다고 주장하는 방 이리와
+			List<RoomStatus> openedRoomList = vcDao.openedRoom(sqlSession);
+			
+			//DB와 Daily.co 응답 데이터를 비교하기
+			List<byte[]> noMansRoom = new ArrayList<>();
+			for(RoomStatus rs : openedRoomList) {
+				String uuidStr = UuidUtil.byteArrToStr(rs.getRoomUuid());
+	            if (!result.containsKey(uuidStr)) {
+	            	//Daily.co 목록에 없는데 DB에서 활성화가 되어 있다?? 너 잘 걸렸다 심심했는데
+	            	noMansRoom.add(rs.getRoomUuid());
+	            	
+	            	//닫아줘요
+	            	dailyService.deleteRoom(uuidStr);
+	            }
+			}
+			
+			//유령방 닫기
+			if(!noMansRoom.isEmpty()) {
+				vcDao.closeNoManRooms(sqlSession, noMansRoom);
+			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();

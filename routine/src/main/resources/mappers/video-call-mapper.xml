@@ -4,6 +4,20 @@
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="videoCallMapper">
+
+<select id="canCreateRoom" parameterType="LoginUserAndChal" resultType="int">
+select count(*)
+from CHALLENGE
+where USER_NO = #{userNo}
+and CHAL_NO = #{chalNo}
+and NOT EXISTS(
+	select *
+	from VIDEO_CALL
+	where CHAL_NO = CHALLENGE.CHAL_NO
+)
+</select>
+
+
 <insert id="insertRoom" parameterType="VideoCallRequest">
 insert into VIDEO_CALL
 	(ROOM_UUID, CHAL_NO, ROOM_NAME, CREATE_DATE, IS_RESTRICT, STATUS)
@@ -21,7 +35,12 @@ values(
 select CHAL_NO, TITLE, CONTENT
 from CHALLENGE
 where USER_NO = #{userNo}
-and STATUS = 'Y'	
+and STATUS = 'Y'
+and NOT EXISTS(
+	select *
+	from VIDEO_CALL vc
+	where vc.CHAL_NO = CHALLENGE.CHAL_NO
+)
 order by CREATE_DATE DESC
 </select>
 
@@ -74,6 +93,7 @@ order by CASE WHEN vc.STATUS = 'Y' THEN 0 ELSE 1 END,
 update VIDEO_CALL vc
 set STATUS = 'Y'
 where vc.ROOM_UUID = #{uuid}
+and STATUS = 'N'
 and EXISTS(
 	select * FROM CHALLENGE c
 	where c.CHAL_NO = vc.CHAL_NO
@@ -120,5 +140,13 @@ where ROOM_UUID in
 	#{item}
 </foreach>
 </update>
+
+<select id="isOwner" parameterType="ConnectByUuid" resultType="int">
+select count(*)
+from VIDEO_CALL vc
+left join CHALLENGE c on(c.CHAL_NO = vc.CHAL_NO)
+where vc.ROOM_UUID = #{uuid}
+and c.USER_NO = #{refNo}
+</select>
 
 </mapper>
