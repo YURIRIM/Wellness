@@ -96,7 +96,7 @@ public class MeetingServiceImpl implements MeetingService {
 
     @Override
     public List<Meeting> selectMeetingPartsByUserNo(int userNo) {
-        return meetingDao.selectJoinedMeetingsByUserNo(sqlSession, userNo); // 새로운 DAO 메서드 호출
+        return meetingDao.selectJoinedMeetingsByUserNo(sqlSession, userNo); 
     }
 
     @Override

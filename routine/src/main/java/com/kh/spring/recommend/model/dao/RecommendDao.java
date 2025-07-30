@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Map; // Map 사용을 위해 추가
+import java.util.Map; 
 
 @Repository
 public class RecommendDao {

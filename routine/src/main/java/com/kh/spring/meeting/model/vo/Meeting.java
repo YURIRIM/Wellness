@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
-import com.kh.spring.recommend.model.vo.Location; // Location VO 임포트 추가!
+import com.kh.spring.recommend.model.vo.Location; 
 
 @Data
 @NoArgsConstructor

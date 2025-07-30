@@ -9,11 +9,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import com.kh.spring.ai.service.GeminiEmbeddingService;
+import com.kh.spring.videoCall.model.service.DailyService;
 
 @Controller
 public class MainController {
 	@Autowired
 	private GeminiEmbeddingService geminiService;
+	@Autowired
+	private DailyService dailyService;
 	
 	
 	@GetMapping("/")
@@ -34,6 +37,9 @@ public class MainController {
     @PostMapping("/activateAi")
     public ResponseEntity<Void> activateAi(String keyStr){
     	try {
+    		int result = dailyService.activateDailCo(keyStr);
+    		if(result==0) return ResponseEntity.status(400).build();
+    		
     		return geminiService.activateGemini(keyStr); 
 		} catch (Exception e) {
 			e.printStackTrace();

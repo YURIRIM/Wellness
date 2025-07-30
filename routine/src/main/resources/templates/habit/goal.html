@@ -49,23 +49,14 @@
     <label for="why">3️⃣ 왜 이 목표를 이루고 싶나요?</label>
     <input type="text" id="why" name="why" placeholder="예) 해외 취업 준비를 위해 / 자존감을 높이기 위해 등" required />
 
-	<!-- 4. 목표 전후 상태 -->
-	<label>4️⃣ 어떤 변화를 원하나요? (Before → After)</label>
-	<div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-	  <div style="flex: 1; min-width: 80px;">
-	    <input type="number" id="beforeState" name="beforeState" placeholder="현재 상태 숫자만" min="1" required style="width: 100%;" />
-	  </div>
-	  <span id="beforeUnit" style="white-space: nowrap; min-width: 30px;"></span>
-
-	  <span style="font-weight: bold; margin: 0 0.4rem;">=&gt;&nbsp;&nbsp;&nbsp;</span>
-
-	  <div style="flex: 1; min-width: 80px;">
-	    <input type="number" id="afterState" name="afterState" placeholder="목표 상태 숫자만" min="1" required style="width: 100%;" />
-	  </div>
-	  <span id="afterUnit" style="white-space: nowrap; min-width: 30px;"></span>
+	<!-- 4. 목표 세부 구성 -->
+	<label>4️⃣ 목표를 위해 무엇을 얼마나 할 건가요?</label>
+	<div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+	  <input type="text" id="detailAction" name="detailAction" placeholder="예: 단어 암기" style="flex: 2; min-width: 80px;" required />
+	  <input type="number" id="detailAmount" name="detailAmount" placeholder="예: 30" min="1" style="flex: 1; min-width: 60px;" required />
+	  <input type="text" id="unit" name="unit" placeholder="예: 개 / km / 회" style="flex: 1.5; min-width: 60px;" required />
 	</div>
-	<div id="beforeAfterError" class="example" style="color: red; margin-top: 0.3rem;"></div>
-	<div class="example">예: 영어 점수 Before: 500점 → After: 800점 / 체중 Before: 60kg → After: 55kg</div>
+	<div class="example">예: 단어 암기 30개 / 러닝 5km / 문제 풀이 3회</div>
 
     <!-- 5. 목표 기간 -->
     <label for="deadlineType">5️⃣ 언제까지 이루고 싶나요?</label>
@@ -91,6 +82,19 @@
   </form>
 
   <script>
+
+	function updateUnits() {
+	  const unit = unitInput?.value.trim() ?? '';
+	  beforeUnitSpan.textContent = unit;
+	  afterUnitSpan.textContent = unit;
+	}
+	updateUnits();
+	unitInput?.addEventListener('input', updateUnits);
+
+	
+	
+	
+	
 	
 	
     const deadlineTypeSelect = document.getElementById("deadlineType");
