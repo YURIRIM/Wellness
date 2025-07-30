@@ -306,6 +306,7 @@ document.addEventListener("DOMContentLoaded", function () {
             $("#right-activateAi-msg")
               .text("안아줬어요")
               .css({ color: "green" });
+            $("#right-keyInput").val("");
           } else {
             $("#right-activateAi-msg").text("");
           }

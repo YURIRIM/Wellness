@@ -3,13 +3,15 @@ package com.kh.spring.videoCall.model.service;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.kh.spring.user.model.vo.User;
 import com.kh.spring.util.common.Regexp;
 import com.kh.spring.util.cryption.AESCryption;
@@ -93,40 +95,45 @@ public class DailyServiceImpl implements DailyService{
 
 	//방 삭제
 	@Override
-	public boolean deleteRoom(String roomUuidStr) throws Exception {
-        dailyWebClient()
-            .delete()
-            .uri("/rooms/{roomName}", roomUuidStr)
-            .retrieve()
-            .toBodilessEntity()
-            .block();
-        return true;
+	public boolean deleteRoom(String roomUuidStr) {
+		try {
+			dailyWebClient()
+				.delete()
+				.uri("/rooms/{roomName}", roomUuidStr)
+				.retrieve()
+				.toBodilessEntity()
+				.block();
+			
+			return true;
+		} catch (Exception e) {
+			System.out.println("방도 못 지우는 허접이라고 생각하는중...");
+			return false;
+		}
 	}
 	
 	//방 참여자 수 받아오기
 	@Override
 	public Map<String, Integer> countParticipants() throws Exception {
-
-	    ParameterizedTypeReference<Map<String, Object>> typeRef = new ParameterizedTypeReference<>() {};
-
-	    // Presence API 호출
-	    Map<String, Object> response = dailyWebClient()
+	    //Presence API 호출
+	    String jsonResponse = dailyWebClient()
 	        .get()
 	        .uri("/presence")
 	        .retrieve()
-	        .bodyToMono(typeRef)
+	        .bodyToMono(String.class)
 	        .block();
 
 	    Map<String, Integer> result = new HashMap<>();
 
-	    if (response != null && response.containsKey("rooms")) {
-	        List<Map<String, Object>> rooms = (List<Map<String, Object>>) response.get("rooms");
-	        for (Map<String, Object> room : rooms) {
-	            String name = (String) room.get("name");
-	            List<?> participants = (List<?>) room.get("participants");
-	            int count = participants == null ? 0 : participants.size();
-	            result.put(name, count);
-	        }
+	    if (jsonResponse == null) throw new Exception("Presence 요청 대 실 패!!");
+	    else if(jsonResponse.isEmpty()) return result;
+	    
+	    JsonObject jobject = JsonParser.parseString(jsonResponse).getAsJsonObject();
+
+	    // 최상위 key-value를 반복
+	    for (String roomUuid : jobject.keySet()) {
+	        JsonArray participantsArray = jobject.getAsJsonArray(roomUuid);
+	        int count = (participantsArray == null) ? 0 : participantsArray.size();
+	        result.put(roomUuid, count);
 	    }
 
 	    return result;

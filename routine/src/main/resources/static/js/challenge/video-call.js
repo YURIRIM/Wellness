@@ -349,6 +349,10 @@ function deleteRoom(roomUuidStr) {
         // 생성한 방 목록 새로고침
         document.getElementById("left-top-container").innerHTML = "";
         leftTopScript();
+
+        // 생성 가능한 방 목록도 새로고쳐
+        document.getElementById("left-bottom-container").innerHTML = "";
+        leftBottomScript();
       }
     })
     .catch(function (error) {
