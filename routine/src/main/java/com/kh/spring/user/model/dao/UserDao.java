@@ -20,6 +20,7 @@ public class UserDao {
     // 회원 탈퇴 메소드
     int deleteUser(User user);
 
+
     // 아이디 중복확인
     int checkUserId(@Param("userId") String userId);*/
 	

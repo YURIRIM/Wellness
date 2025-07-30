@@ -16,6 +16,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
 	private SqlSessionTemplate sqlSession;
 
+    
     @Override
     public User loginUser(User u) {
         return userDao.loginUser(sqlSession,u);
