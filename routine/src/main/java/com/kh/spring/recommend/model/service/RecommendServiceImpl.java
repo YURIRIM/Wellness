@@ -15,41 +15,41 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap; 
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map; 
+import java.util.Map;
 
-import org.springframework.http.HttpHeaders; 
-import org.springframework.http.ResponseEntity; 
-import org.springframework.http.HttpMethod; 
-import org.springframework.http.HttpEntity; 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpEntity;
 
 @Service
 public class RecommendServiceImpl implements RecommendService {
-    
+
     @Autowired
     private RestTemplate restTemplate;
-    
+
     @Autowired
     private RecommendDao recommendDao;
-    
+
     @Value("${api.weather.key}")
     private String weatherApiKey;
-    
+
     @Value("${api.weather.url}")
     private String weatherApiUrl;
-    
+
     @Value("${api.air.key}")
     private String airApiKey;
-    
+
     @Value("${api.air.url}")
     private String airApiUrl;
-    
-    @Value("${api.kakao.key}") 
-    private String kakaoApiKey; 
+
+    @Value("${api.kakao.key}")
+    private String kakaoApiKey;
 
     @Value("${api.kakao.url}")
-    private String kakaoApiUrl; 
+    private String kakaoApiUrl;
 
     @Override
     public Location getLocationByCoords(double latitude, double longitude) {
@@ -67,19 +67,20 @@ public class RecommendServiceImpl implements RecommendService {
         newLocation.setLongitude(longitude);
 
         try {
+            // Kakao API URL building: allow UriComponentsBuilder to handle encoding automatically
             String kakaoCoord2AddressUrl = UriComponentsBuilder.fromUriString(kakaoApiUrl)
                     .path("/geo/coord2address.json")
-                    .queryParam("x", longitude)
-                    .queryParam("y", latitude)
+                    .queryParam("x", longitude) // NO ', false'
+                    .queryParam("y", latitude)  // NO ', false'
                     .toUriString();
-            
+
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "KakaoAK " + kakaoApiKey);
-            HttpEntity<String> entity = new HttpEntity<>(headers); 
+            HttpEntity<String> entity = new HttpEntity<>(headers);
 
             ResponseEntity<Map> kakaoResponse = restTemplate.exchange(
                 URI.create(kakaoCoord2AddressUrl),
-                HttpMethod.GET, 
+                HttpMethod.GET,
                 entity,
                 Map.class
             );
@@ -93,7 +94,7 @@ public class RecommendServiceImpl implements RecommendService {
                     if (addressInfo != null) {
                         newLocation.setAddress((String) addressInfo.get("address_name"));
                         newLocation.setLocationName((String) addressInfo.get("region_1depth_name"));
-                    } else { 
+                    } else {
                         Map roadAddressInfo = (Map) document.get("road_address");
                         if (roadAddressInfo != null) {
                            newLocation.setAddress((String) roadAddressInfo.get("address_name"));
@@ -102,7 +103,7 @@ public class RecommendServiceImpl implements RecommendService {
                     }
                 }
             }
-            
+
             Map<String, Integer> xy = convertLatLngToXY(latitude, longitude);
             newLocation.setNx(xy.get("nx"));
             newLocation.setNy(xy.get("ny"));
@@ -112,34 +113,35 @@ public class RecommendServiceImpl implements RecommendService {
             e.printStackTrace();
             newLocation.setLocationName("위치 알 수 없음");
             newLocation.setAddress("위치 정보 없음");
-            newLocation.setNx(60); 
-            newLocation.setNy(127); 
+            newLocation.setNx(60);
+            newLocation.setNy(127);
         }
-        
+
         recommendDao.insertLocation(newLocation);
-        
+
         return newLocation;
     }
-    
+
     @Override
     public Weather getWeatherInfo(Location location) {
         Weather existingWeather = recommendDao.selectWeatherByLocationNo(location.getLocationNo());
 
         if (existingWeather != null) {
-            return existingWeather; 
+            return existingWeather;
         }
 
         Weather newWeather = new Weather();
         newWeather.setLocationNo(location.getLocationNo());
-        
+
         try {
             LocalDateTime now = LocalDateTime.now();
             String baseDate = getBaseDate(now);
             String baseTime = getBaseTime(now);
 
+            // Weather API URL building: allow UriComponentsBuilder to handle encoding automatically
             String weatherApiUrlFull = UriComponentsBuilder.fromUriString(weatherApiUrl)
                 .path("/getVilageFcst")
-                .queryParam("serviceKey", weatherApiKey)
+                .queryParam("serviceKey", weatherApiKey) // NO ', false'
                 .queryParam("pageNo", 1)
                 .queryParam("numOfRows", 100)
                 .queryParam("dataType", "JSON")
@@ -148,11 +150,11 @@ public class RecommendServiceImpl implements RecommendService {
                 .queryParam("nx", location.getNx())
                 .queryParam("ny", location.getNy())
                 .toUriString();
-            System.out.println("기상청 API URL: " + weatherApiUrlFull); // 디버깅용 로그
+            System.out.println("기상청 API URL: " + weatherApiUrlFull); // Debug log
 
             ResponseEntity<Map> weatherApiResponse = restTemplate.getForEntity(URI.create(weatherApiUrlFull), Map.class);
             Map weatherResponseBody = weatherApiResponse.getBody();
-            System.out.println("기상청 API 응답 본문: " + weatherResponseBody); // 디버깅용 로그
+            System.out.println("기상청 API 응답 본문: " + weatherResponseBody); // Debug log
 
             if (weatherResponseBody != null && weatherResponseBody.containsKey("response")) {
                 Map responseMap = (Map) weatherResponseBody.get("response");
@@ -174,30 +176,30 @@ public class RecommendServiceImpl implements RecommendService {
                     Integer rainProb = null;
                     String weatherCond = "알 수 없음";
 
-                    if (item != null) { 
+                    if (item != null) {
                         for (Map<String, String> itemData : item) {
                             String category = itemData.get("category");
-                            String fcstValue = itemData.get("fcstValue"); 
+                            String fcstValue = itemData.get("fcstValue");
 
                             switch (category) {
-                                case "TMP": 
+                                case "TMP":
                                     temp = (int) Double.parseDouble(fcstValue);
                                     break;
-                                case "REH": 
+                                case "REH":
                                     humid = (int) Double.parseDouble(fcstValue);
                                     break;
-                                case "POP": 
+                                case "POP":
                                     rainProb = (int) Double.parseDouble(fcstValue);
                                     break;
-                                case "PTY": 
+                                case "PTY":
                                     if (fcstValue.equals("1") || fcstValue.equals("2") || fcstValue.equals("4")) {
                                         weatherCond = "비";
                                     } else if (fcstValue.equals("3")) {
                                         weatherCond = "눈";
                                     }
                                     break;
-                                case "SKY": 
-                                    if (weatherCond.equals("알 수 없음")) { 
+                                case "SKY":
+                                    if (weatherCond.equals("알 수 없음")) {
                                         if (fcstValue.equals("1")) weatherCond = "맑음";
                                         else if (fcstValue.equals("3")) weatherCond = "구름많음";
                                         else if (fcstValue.equals("4")) weatherCond = "흐림";
@@ -213,26 +215,29 @@ public class RecommendServiceImpl implements RecommendService {
                 }
             }
 
-            // 에어코리아 미세먼지 API 호출
-            String airStationName = "종로"; 
+            // Air Korea API URL building: allow UriComponentsBuilder to handle encoding automatically
+            String airStationName = "종로";
 
             String airApiUrlFull = UriComponentsBuilder.fromUriString(airApiUrl)
-                .path("/getMsrstnAcctoRltmMesureDnsty") 
-                .queryParam("serviceKey", airApiKey)
+                .path("/getMsrstnAcctoRltmMesureDnsty")
+                .queryParam("serviceKey", airApiKey) // NO ', false'
                 .queryParam("returnType", "json")
                 .queryParam("numOfRows", 1)
                 .queryParam("pageNo", 1)
-                .queryParam("dataTime", now.format(DateTimeFormatter.ofPattern("yyyyMMddHH"))) 
+                .queryParam("dataTime", now.format(DateTimeFormatter.ofPattern("yyyyMMddHH")))
                 .queryParam("stationName", airStationName)
                 .toUriString();
-            System.out.println("에어코리아 API URL: " + airApiUrlFull); // 디버깅용 로그
+            System.out.println("에어코리아 API URL: " + airApiUrlFull); // Debug log
 
             ResponseEntity<Map> airApiResponse = restTemplate.getForEntity(URI.create(airApiUrlFull), Map.class);
             Map airResponseBody = airApiResponse.getBody();
-            System.out.println("에어코리아 API 응답 본문: " + airResponseBody); // 디버깅용 로그
+            System.out.println("에어코리아 API 응답 본문: " + airResponseBody); // Debug log
 
             if (airResponseBody != null && airResponseBody.containsKey("response")) {
-                Map responseMap = (Map) airResponseBody.get("response");
+                // 이 부분을 수정해야 합니다!
+                // Map responseMap = (Map) responseBody.get("response"); // <-- 이렇게 되어 있을 겁니다.
+                Map responseMap = (Map) airResponseBody.get("response"); // <-- 이렇게 airResponseBody 로 변경!
+
                 if(responseMap.containsKey("header") && ((Map)responseMap.get("header")).containsKey("resultCode")){
                     String resultCode = (String) ((Map)responseMap.get("header")).get("resultCode");
                     String resultMsg = (String) ((Map)responseMap.get("header")).get("resultMsg");
@@ -257,27 +262,27 @@ public class RecommendServiceImpl implements RecommendService {
         } catch (Exception e) {
             System.err.println("날씨/미세먼지 API 호출 오류: " + e.getMessage());
             e.printStackTrace();
-            newWeather.setTemperature(null); 
-            newWeather.setHumidity(null); 
+            newWeather.setTemperature(null);
+            newWeather.setHumidity(null);
             newWeather.setRainProbability(null);
             newWeather.setWeatherCondition("정보 없음");
             newWeather.setPm10(null);
             newWeather.setAirGrade("정보 없음");
         }
-        
+
         recommendDao.insertWeather(newWeather);
-        
+
         return newWeather;
     }
-    
+
     @Override
     public List<Recommend> getRecommendations(Weather weather) {
         List<Recommend> recommendations = new ArrayList<>();
-        
+
         if (weather != null && weather.getTemperature() != null && weather.getPm10() != null && weather.getRainProbability() != null) {
             if (weather.getTemperature() >= 5 && weather.getTemperature() <= 30) {
-                if (weather.getPm10() <= 80) {  
-                    if (weather.getRainProbability() <= 50) {  
+                if (weather.getPm10() <= 80) {
+                    if (weather.getRainProbability() <= 50) {
                         addRecommendation(recommendations, weather.getWeatherNo(), "조깅", "OUTDOOR");
                         addRecommendation(recommendations, weather.getWeatherNo(), "축구", "OUTDOOR");
                         addRecommendation(recommendations, weather.getWeatherNo(), "농구", "OUTDOOR");
@@ -285,17 +290,17 @@ public class RecommendServiceImpl implements RecommendService {
                     }
                 }
             }
-            
+
             addRecommendation(recommendations, weather.getWeatherNo(), "헬스장", "INDOOR");
             addRecommendation(recommendations, weather.getWeatherNo(), "복싱", "INDOOR");
-            
+
             if (weather.getTemperature() != null && weather.getTemperature() > 28) {
                 addRecommendation(recommendations, weather.getWeatherNo(), "수영", "INDOOR");
                 addRecommendation(recommendations, weather.getWeatherNo(), "실내 헬스장", "INDOOR");
             } else if (weather.getTemperature() <= 28 && weather.getTemperature() >= 5) {
                 addRecommendation(recommendations, weather.getWeatherNo(), "수영", "INDOOR");
             }
-            
+
             if (weather.getTemperature() != null && weather.getTemperature() < 5) {
                 addRecommendation(recommendations, weather.getWeatherNo(), "홈트레이닝", "INDOOR");
                 addRecommendation(recommendations, weather.getWeatherNo(), "탁구", "INDOOR");
@@ -304,49 +309,49 @@ public class RecommendServiceImpl implements RecommendService {
             addRecommendation(recommendations, weather != null ? weather.getWeatherNo() : 0, "걷기 (정보 부족)", "OUTDOOR");
             addRecommendation(recommendations, weather != null ? weather.getWeatherNo() : 0, "집에서 운동하기", "INDOOR");
         }
-        
+
         return recommendations;
     }
-    
+
     private void addRecommendation(List<Recommend> list, int weatherNo, String exerciseType, String locationType) {
         Recommend recommend = new Recommend();
         recommend.setWeatherNo(weatherNo);
         recommend.setExerciseType(exerciseType);
         recommend.setLocationType(locationType);
-        
+
         recommendDao.insertRecommend(recommend);
         list.add(recommend);
     }
 
     @Override
     public List<Location> getAllWeatherLocations() {
-        return recommendDao.selectAllWeatherLocations(); 
+        return recommendDao.selectAllWeatherLocations();
     }
 
     @Override
     public Location getWeatherAndRecommendationsByCoords(double latitude, double longitude) {
-        Location location = getLocationByCoords(latitude, longitude); 
+        Location location = getLocationByCoords(latitude, longitude);
 
-        Weather weather = getWeatherInfo(location); 
+        Weather weather = getWeatherInfo(location);
 
-        List<Recommend> recommendations = recommendDao.selectRecommendsByWeatherNo(weather.getWeatherNo()); 
+        List<Recommend> recommendations = recommendDao.selectRecommendsByWeatherNo(weather.getWeatherNo());
         if (recommendations == null || recommendations.isEmpty()) {
-            recommendations = getRecommendations(weather); 
+            recommendations = getRecommendations(weather);
         }
-        
-        location.setWeatherObject(weather); 
+
+        location.setWeatherObject(weather);
         weather.setRecommendList(recommendations);
 
         return location;
     }
 
     private Map<String, Integer> convertLatLngToXY(double lat, double lng) {
-        double RE = 6371.00877; 
-        double GRID = 5.0; 
-        double SLAT1 = 30.0; 
-        double SLAT2 = 60.0; 
-        double OLON = 126.0; 
-        double OLAT = 38.0; 
+        double RE = 6371.00877;
+        double GRID = 5.0;
+        double SLAT1 = 30.0;
+        double SLAT2 = 60.0;
+        double OLON = 126.0;
+        double OLAT = 38.0;
 
         double DEGRAD = Math.PI / 180.0;
         double RADDEG = 180.0 / Math.PI;
@@ -378,8 +383,8 @@ public class RecommendServiceImpl implements RecommendService {
         return result;
     }
 
-    private static final int BaseX = 60; 
-    private static final int BaseY = 127; 
+    private static final int BaseX = 60;
+    private static final int BaseY = 127;
 
     private String getBaseDate(LocalDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -389,9 +394,9 @@ public class RecommendServiceImpl implements RecommendService {
         int hour = dateTime.getHour();
         int minute = dateTime.getMinute();
 
-        if (minute < 45) { 
+        if (minute < 45) {
             hour -= 1;
-            if (hour < 0) hour = 23; 
+            if (hour < 0) hour = 23;
         }
 
         if (hour >= 23) return "2300";
@@ -402,7 +407,7 @@ public class RecommendServiceImpl implements RecommendService {
         if (hour >= 8) return "0800";
         if (hour >= 5) return "0500";
         if (hour >= 2) return "0200";
-        return "2300"; 
+        return "2300";
     }
 
     private String convertAirGradeToText(String gradeCode) {
