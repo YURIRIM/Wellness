@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.kh.spring.util.common.Regexp;
 import com.kh.spring.util.common.UuidStrAndByte;
 import com.kh.spring.videoCall.model.service.VideoCallService;
 import com.kh.spring.videoCall.model.vo.Challenge;
@@ -27,6 +28,10 @@ public class VideoCallController {
 	//화상회의 메인 화면으로
 	@GetMapping("/main")
 	public String goVcMain() {
+		
+		//apiKey없는데 어뜪케???
+		if(Regexp.dailycoApiKey==null) return "common/errorPage";
+		
 		return "video-call/main";
 	}
 	

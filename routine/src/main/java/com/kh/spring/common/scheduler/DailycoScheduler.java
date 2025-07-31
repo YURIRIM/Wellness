@@ -15,7 +15,6 @@ import com.kh.spring.videoCall.model.dao.VideoCallDao;
 import com.kh.spring.videoCall.model.service.CachingParticipants;
 import com.kh.spring.videoCall.model.service.DailyService;
 import com.kh.spring.videoCall.model.vo.RoomStatus;
-import com.kh.spring.videoCall.model.vo.UuidByteArray;
 
 @Component
 public class DailycoScheduler {
@@ -45,18 +44,23 @@ public class DailycoScheduler {
 			//활성화 되어 있다고 주장하는 방 이리와
 			List<RoomStatus> openedRoomList = vcDao.openedRoom(sqlSession);
 			
-			//사람이 없는데 활성화가 되어 있다?? 너 잘 걸렸다 심심했는데
-			List<UuidByteArray> noMansRoom = new ArrayList<>();
+			//DB와 Daily.co 응답 데이터를 비교하기
+			List<byte[]> noMansRoom = new ArrayList<>();
 			for(RoomStatus rs : openedRoomList) {
 				String uuidStr = UuidUtil.byteArrToStr(rs.getRoomUuid());
 	            if (!result.containsKey(uuidStr)) {
-	            	noMansRoom.add(new UuidByteArray(rs.getRoomUuid()));
+	            	//Daily.co 목록에 없는데 DB에서 활성화가 되어 있다?? 너 잘 걸렸다 심심했는데
+	            	noMansRoom.add(rs.getRoomUuid());
+	            	
+	            	//닫아줘요
+	            	dailyService.deleteRoom(uuidStr);
 	            }
 			}
 			
 			//유령방 닫기
-			if(!noMansRoom.isEmpty())
+			if(!noMansRoom.isEmpty()) {
 				vcDao.closeNoManRooms(sqlSession, noMansRoom);
+			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();

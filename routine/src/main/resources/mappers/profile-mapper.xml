@@ -139,6 +139,7 @@ from (
 		<choose>
 			<when test='searchType == "P"'>
 				and cp.USER_NO = #{userNo}
+				and c.USER_NO != #{userNo}
 			</when>
 			<otherwise>
 				and c.USER_NO = #{userNo}

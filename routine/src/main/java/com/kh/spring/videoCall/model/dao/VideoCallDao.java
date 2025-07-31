@@ -6,9 +6,9 @@ import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.kh.spring.challenge.model.vo.ConnectByUuid;
+import com.kh.spring.challenge.model.vo.LoginUserAndChal;
 import com.kh.spring.videoCall.model.vo.Challenge;
 import com.kh.spring.videoCall.model.vo.RoomStatus;
-import com.kh.spring.videoCall.model.vo.UuidByteArray;
 import com.kh.spring.videoCall.model.vo.VideoCallRequest;
 import com.kh.spring.videoCall.model.vo.VideoCallResponse;
 
@@ -47,8 +47,16 @@ public class VideoCallDao {
 		return sqlSession.selectList("videoCallMapper.openedRoom");
 	}
 
-	public int closeNoManRooms(SqlSessionTemplate sqlSession, List<UuidByteArray> noMansRoom) {
+	public int closeNoManRooms(SqlSessionTemplate sqlSession, List<byte[]> noMansRoom) {
 		return sqlSession.update("videoCallMapper.closeNoManRooms", noMansRoom);
+	}
+
+	public int canCreateRoom(SqlSessionTemplate sqlSession, LoginUserAndChal lac) {
+		return sqlSession.selectOne("videoCallMapper.canCreateRoom", lac);
+	}
+
+	public int isOwner(SqlSessionTemplate sqlSession, ConnectByUuid uuidAndUserNo) {
+		return sqlSession.selectOne("videoCallMapper.isOwner", uuidAndUserNo);
 	}
 
 }
