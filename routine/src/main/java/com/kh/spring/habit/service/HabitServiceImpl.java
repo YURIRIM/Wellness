@@ -89,10 +89,17 @@ public class HabitServiceImpl implements HabitService {
 	    
 	    //목표 추가
 		@Override
-		public int saveGoal(Goal goal) {
+		public int insertGoal(Goal goal) {
 			
+//			dao.insertGoal(goal);
 			
 			return 0;
+		}
+
+		@Override
+		public Goal selectGoal(int goalNo) {
+			// TODO Auto-generated method stub
+			return null;
 		}
 
 

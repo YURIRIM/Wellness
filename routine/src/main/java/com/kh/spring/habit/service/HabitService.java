@@ -22,7 +22,7 @@ public interface HabitService {
     void deleteHabit(int habitNo);
 
 
-	int saveGoal(Goal goal);
-
+    int insertGoal(Goal goal);
+    Goal selectGoal(int goalNo);
 
 }

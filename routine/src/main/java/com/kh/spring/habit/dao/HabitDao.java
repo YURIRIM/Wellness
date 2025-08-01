@@ -8,6 +8,7 @@ import java.util.Map;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.kh.spring.habit.model.vo.Goal;
 import com.kh.spring.habit.model.vo.Habit;
 import com.kh.spring.habit.model.vo.HabitCheck;
 import com.kh.spring.habit.model.vo.HabitRepeat;
@@ -62,6 +63,11 @@ public class HabitDao {
     public int deleteHabit(SqlSessionTemplate session, int habitNo) {
         return session.delete("habitMapper.deleteHabit", habitNo);
     }
+
+	public void insertGoal(Goal goal) {
+		// TODO Auto-generated method stub
+		
+	}
 
 	
 
