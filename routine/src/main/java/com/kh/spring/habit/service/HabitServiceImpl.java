@@ -91,16 +91,14 @@ public class HabitServiceImpl implements HabitService {
 		@Override
 		public int insertGoal(Goal goal) {
 			
-//			dao.insertGoal(goal);
-			
-			return 0;
+			return dao.insertGoal(sqlSession,goal);
 		}
 
-		@Override
-		public Goal selectGoal(int goalNo) {
-			// TODO Auto-generated method stub
-			return null;
-		}
+//		@Override
+//		public Goal selectGoal(int goalNo) {
+//			// TODO Auto-generated method stub
+//			return dao.selectGoal(sqlSession,goalNo);
+//		}
 
 
 }

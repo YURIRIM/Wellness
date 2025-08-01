@@ -23,6 +23,6 @@ public interface HabitService {
 
 
     int insertGoal(Goal goal);
-    Goal selectGoal(int goalNo);
+//    Goal selectGoal(int goalNo);
 
 }

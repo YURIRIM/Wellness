@@ -88,7 +88,7 @@
 </head>
 <body>
 
-  <form id="goalForm" th:action="@{/goal/save}" method="post" novalidate>
+  <form id="goalForm" th:action="@{/habit/goal}" method="post" novalidate>
     <h2>🎯 목표 등록</h2>
 
     <!-- 1. 목표 카테고리 -->
@@ -105,13 +105,13 @@
     </select>
 
     <!-- 2. 전체적인 목표 -->
-    <label for="roughGoal">2️⃣ 당신의 목표는 무엇인가요?</label>
-    <input type="text" id="roughGoal" name="roughGoal" placeholder="예) 토익 800점 달성 / 체중 55kg 만들기 / 하루 30분 운동" required />
+    <label for="content">2️⃣ 당신의 목표는 무엇인가요?</label>
+    <input type="text" id="content" name="content" placeholder="예) 토익 800점 달성 / 체중 55kg 만들기 / 하루 30분 운동" required />
     <div class="example">예: 토익 800점 달성 / 체중 55kg 만들기 / 하루 30분 운동 </div>
 
     <!-- 3. 목표 이유 -->
-    <label for="why">3️⃣ 왜 이 목표를 이루고 싶나요?</label>
-    <input type="text" id="why" name="why" placeholder="예) 유학을 준비 중이라 / 건강한 몸을 만들고 싶어서 등" required />
+    <label for="whyGoal">3️⃣ 왜 이 목표를 이루고 싶나요?</label>
+    <input type="text" id="whyGoal" name="whyGoal" placeholder="예) 유학을 준비 중이라 / 건강한 몸을 만들고 싶어서 등" required />
     <div class="example">예: 유학을 위해 토익 점수가 필요해서 / 더 건강하고 활기찬 삶을 살기 위해 </div>
 
     <!-- 4. 구체적인 변화 -->
@@ -166,7 +166,7 @@
       <input type="text" id="customDateInput" name="deadlineDate" placeholder="YYYYMMDD 입력" inputmode="numeric" pattern="\d*" maxlength="8" />
     </div>
 
-    <div id="calculatedDeadline" style="margin-top: 0.5rem; font-size: 0.9rem; color: #333;"></div>
+    <div id="endDate" style="margin-top: 0.5rem; font-size: 0.9rem; color: #333;"></div>
     <div id="deadlineError" class="error"></div>
 
     <button type="submit">목표 등록하기</button>
@@ -185,7 +185,7 @@
     const customDateInput = document.getElementById('customDateInput');
     const deadlineValueInput = document.getElementById('deadlineValue');
     const deadlineUnitSelect = document.getElementById('deadlineUnit');
-    const calculatedDeadline = document.getElementById('calculatedDeadline');
+    const endDate = document.getElementById('endDate');
     const deadlineError = document.getElementById('deadlineError');
     const beforeInput = document.getElementById('beforeState');
     const afterInput = document.getElementById('afterState');
@@ -202,7 +202,7 @@
 
           // 특정 날짜 초기화
           customDateInput.value = '';
-          calculatedDeadline.textContent = '';
+          endDate.textContent = '';
           deadlineError.textContent = '';
         } else if (radio.value === 'absolute' && radio.checked) {
           relativeInputs.style.display = 'none';
@@ -211,7 +211,7 @@
           // 숫자+단위 초기화
           deadlineValueInput.value = '';
           deadlineUnitSelect.value = '';
-          calculatedDeadline.textContent = '';
+          endDate.textContent = '';
           deadlineError.textContent = '';
         }
       });
@@ -237,7 +237,7 @@
     // 예상 마감일 계산 함수
     function updateDeadlineDate() {
       deadlineError.textContent = '';
-      calculatedDeadline.textContent = '';
+      endDate.textContent = '';
 
       const value = parseInt(deadlineValueInput.value);
       const unit = deadlineUnitSelect.value;
@@ -276,7 +276,7 @@
       }
 
       const formattedDate = deadline.toISOString().slice(0, 10);
-      calculatedDeadline.textContent = `👉 예상 마감일: ${formattedDate}`;
+      endDate.textContent = `👉 예상 마감일: ${formattedDate}`;
     }
 
     // 특정 날짜 입력 유효성 검사 및 예상 마감일 표시
@@ -290,7 +290,7 @@
 
       const raw = e.target.value.trim();
       if (raw.length !== 8) {
-        calculatedDeadline.textContent = '';
+        endDate.textContent = '';
         return;
       }
 
@@ -303,20 +303,20 @@
       if (isNaN(parsedDate.getTime()) || formatted !== parsedDate.toISOString().slice(0, 10)) {
         alert('❌ 올바른 날짜 형식이 아닙니다.');
         e.target.value = '';
-        calculatedDeadline.textContent = '';
+        endDate.textContent = '';
         return;
       }
       const todayZero = new Date(new Date().setHours(0, 0, 0, 0));
       if (parsedDate < todayZero) {
         alert('❌ 과거 날짜는 선택할 수 없습니다.');
         e.target.value = '';
-        calculatedDeadline.textContent = '';
+        endDate.textContent = '';
         return;
       }
       if (parsedDate > maxDate) {
         alert('❌ 목표 마감일은 최대 20년 이내여야 합니다.');
         e.target.value = '';
-        calculatedDeadline.textContent = '';
+        endDate.textContent = '';
         return;
       }
 
@@ -325,7 +325,7 @@
       deadlineUnitSelect.value = '';
       deadlineError.textContent = '';
 
-      calculatedDeadline.textContent = `👉 예상 마감일: ${formatted}`;
+      endDate.textContent = `👉 예상 마감일: ${formatted}`;
     });
 
     // beforeState, afterState 값 유효성 검사

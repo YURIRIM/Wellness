@@ -64,10 +64,15 @@ public class HabitDao {
         return session.delete("habitMapper.deleteHabit", habitNo);
     }
 
-	public void insertGoal(Goal goal) {
-		// TODO Auto-generated method stub
-		
-	}
+    
+    
+    public int insertGoal(SqlSessionTemplate session,Goal goal) {
+    	return session.insert("goalMapper.insertGoal",goal);
+    }
+
+//    public Goal selectGoal(SqlSessionTemplate session,int goalNo) {
+//        return session.selectOne("goalMapper.selectGoalByNo(goalNo)",goalNo);
+//    }
 
 	
 

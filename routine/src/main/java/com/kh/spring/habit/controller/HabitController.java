@@ -44,14 +44,26 @@ public class HabitController {
 	
 	
 	@PostMapping("/goal")
-	public String goal(@ModelAttribute Goal goal, RedirectAttributes redirectAttributes) {
-		// 날짜 문자열(YYYYMMDD) -> java.util.Date 변환 처리 필요
+	public String goal(@ModelAttribute Goal goal,HttpSession session, RedirectAttributes ra) {
+		 
+		User loginUser = (User) session.getAttribute("loginUser");
+		    if (loginUser == null) {
+		        ra.addFlashAttribute("message", "로그인이 필요합니다.");
+		        return "redirect:/user/login";
+		    }
 
-        service.insertGoal(goal);
-
-        redirectAttributes.addFlashAttribute("message", "목표가 성공적으로 등록되었습니다.");
+		    goal.setUserNo(loginUser.getUserNo());
+		    
+		    // 날짜 문자열(YYYYMMDD) -> java.util.Date 변환 처리 필요
 		
+	    int result = service.insertGoal(goal);
+	    if (result > 0) {
+	        ra.addFlashAttribute("message", "목표가 등록되었습니다!");
+	        return "habit/goal"; // 예시
+	    } else {
+	        ra.addFlashAttribute("message", "등록 실패");
 		return "habit/goal";
+	    }
 	}
 	
 	
