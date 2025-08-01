@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문의사항 작성</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .main-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        .content-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 2.5rem;
+            margin: 2rem auto;
+            max-width: 800px;
+        }
+        .page-title {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+        }
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+        .form-card {
+            background: #f8f9ff;
+            border: 2px solid #e3e7ff;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .character-count {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-align: right;
+            margin-top: 0.25rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        .help-text {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        .required {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <div class="container">
+            <div class="content-container">
+                <h2 class="page-title">
+                    <i class="fas fa-edit me-2"></i>
+                    문의사항 작성
+                </h2>
+                
+                <div class="help-text">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>문의 작성 안내</strong><br>
+                    • 구체적이고 명확한 제목을 작성해주세요<br>
+                    • 문제 상황을 자세히 설명해주시면 더 정확한 답변을 받으실 수 있습니다<br>
+                    • 영업일 기준 1-2일 내에 답변 드리겠습니다
+                </div>
+                
+                <div class="form-card">
+                    <form th:action="@{/qna/write}" method="post" id="qnaForm">
+                        <div class="mb-4">
+                            <label for="userQnaTitle" class="form-label">
+                                <i class="fas fa-heading me-1"></i>
+                                제목 <span class="required">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="userQnaTitle" 
+                                   name="userQnaTitle" 
+                                   class="form-control" 
+                                   placeholder="문의사항의 제목을 입력해주세요"
+                                   maxlength="200"
+                                   required>
+                            <div class="character-count">
+                                <span id="titleCount">0</span>/200
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="category" class="form-label">
+                                <i class="fas fa-tags me-1"></i>
+                                문의 유형
+                            </label>
+                            <select class="form-select" id="category" name="category">
+                                <option value="GENERAL">일반 문의</option>
+                                <option value="TECHNICAL">기술 문의</option>
+                                <option value="ACCOUNT">계정 문의</option>
+                                <option value="BILLING">결제 문의</option>
+                                <option value="BUG">버그 신고</option>
+                                <option value="SUGGESTION">기능 제안</option>
+                                <option value="OTHER">기타</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="userQna" class="form-label">
+                                <i class="fas fa-align-left me-1"></i>
+                                문의 내용 <span class="required">*</span>
+                            </label>
+                            <textarea id="userQna" 
+                                      name="userQna" 
+                                      rows="10" 
+                                      class="form-control" 
+                                      placeholder="문의하실 내용을 자세히 작성해주세요.&#10;&#10;예시:&#10;- 문제가 발생한 상황&#10;- 기대했던 결과&#10;- 실제 발생한 결과&#10;- 오류 메시지 (있는 경우)&#10;- 사용 중인 브라우저나 기기 정보"
+                                      maxlength="5000"
+                                      required></textarea>
+                            <div class="character-count">
+                                <span id="contentCount">0</span>/5000
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="priority" class="form-label">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                우선순위
+                            </label>
+                            <select class="form-select" id="priority" name="priority">
+                                <option value="LOW">낮음 - 일반적인 문의</option>
+                                <option value="NORMAL" selected>보통 - 빠른 답변 희망</option>
+                                <option value="HIGH">높음 - 긴급한 문제</option>
+                            </select>
+                            <small class="text-muted">
+                                긴급한 문제의 경우 고객센터(1588-1234)로 직접 연락해주세요.
+                            </small>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i>
+                                문의사항 등록
+                            </button>
+                            <a th:href="@{/qna/list}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>
+                                취소
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 글자 수 카운터
+        function setupCharacterCounter(inputId, counterId, maxLength) {
+            const input = document.getElementById(inputId);
+            const counter = document.getElementById(counterId);
+            
+            input.addEventListener('input', function() {
+                const count = this.value.length;
+                counter.textContent = count;
+                
+                if (count > maxLength * 0.9) {
+                    counter.style.color = '#dc3545';
+                } else if (count > maxLength * 0.7) {
+                    counter.style.color = '#f39c12';
+                } else {
+                    counter.style.color = '#6c757d';
+                }
+            });
+        }
+        
+        // 글자 수 카운터 설정
+        setupCharacterCounter('userQnaTitle', 'titleCount', 200);
+        setupCharacterCounter('userQna', 'contentCount', 5000);
+        
+        // 폼 유효성 검사
+        document.getElementById('qnaForm').addEventListener('submit', function(e) {
+            const title = document.getElementById('userQnaTitle').value.trim();
+            const content = document.getElementById('userQna').value.trim();
+            
+            if (!title) {
+                alert('제목을 입력해주세요.');
+                document.getElementById('userQnaTitle').focus();
+                e.preventDefault();
+                return;
+            }
+            
+            if (title.length < 5) {
+                alert('제목은 최소 5자 이상 입력해주세요.');
+                document.getElementById('userQnaTitle').focus();
+                e.preventDefault();
+                return;
+            }
+            
+            if (!content) {
+                alert('문의 내용을 입력해주세요.');
+                document.getElementById('userQna').focus();
+                e.preventDefault();
+                return;
+            }
+            
+            if (content.length < 10) {
+                alert('문의 내용은 최소 10자 이상 입력해주세요.');
+                document.getElementById('userQna').focus();
+                e.preventDefault();
+                return;
+            }
+            
+            // 제출 확인
+            if (confirm('문의사항을 등록하시겠습니까?')) {
+                // 로딩 표시
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>등록 중...';
+                submitBtn.disabled = true;
+                
+                // 중복 제출 방지
+                this.onsubmit = function() { return false; };
+                
+                return true;
+            } else {
+                e.preventDefault();
+            }
+        });
+        
+        // 페이지 이탈 경고
+        let formChanged = false;
+        
+        document.getElementById('userQnaTitle').addEventListener('input', function() {
+            formChanged = true;
+        });
+        
+        document.getElementById('userQna').addEventListener('input', function() {
+            formChanged = true;
+        });
+        
+        window.addEventListener('beforeunload', function(e) {
+            if (formChanged) {
+                e.preventDefault();
+                e.returnValue = '작성 중인 내용이 있습니다. 정말로 페이지를 떠나시겠습니까?';
+                return e.returnValue;
+            }
+        });
+        
+        // 폼 제출 시 경고 해제
+        document.getElementById('qnaForm').addEventListener('submit', function() {
+            formChanged = false;
+        });
+        
+        // 자동 저장 기능 (로컬 스토리지)
+        function autoSave() {
+            const title = document.getElementById('userQnaTitle').value;
+            const content = document.getElementById('userQna').value;
+            
+            if (title.trim() || content.trim()) {
+                localStorage.setItem('qna_draft', JSON.stringify({
+                    title: title,
+                    content: content,
+                    timestamp: new Date().toISOString()
+                }));
+            }
+        }
+        
+        // 3초마다 자동 저장
+        setInterval(autoSave, 3000);
+        
+        // 페이지 로드 시 임시 저장된 내용 복원
+        window.onload = function() {
+            const draft = localStorage.getItem('qna_draft');
+            if (draft) {
+                const data = JSON.parse(draft);
+                const savedTime = new Date(data.timestamp);
+                const now = new Date();
+                const hoursDiff = (now - savedTime) / (1000 * 60 * 60);
+                
+                // 24시간 이내의 임시 저장만 복원
+                if (hoursDiff < 24 && (data.title.trim() || data.content.trim())) {
+                    if (confirm('이전에 작성 중이던 내용이 있습니다. 복원하시겠습니까?')) {
+                        document.getElementById('userQnaTitle').value = data.title;
+                        document.getElementById('userQna').value = data.content;
+                        
+                        // 글자 수 업데이트
+                        document.getElementById('userQnaTitle').dispatchEvent(new Event('input'));
+                        document.getElementById('userQna').dispatchEvent(new Event('input'));
+                        
+                        formChanged = true;
+                    }
+                }
+            }
+        };
+        
+        // 폼 제출 성공 시 임시 저장 데이터 삭제
+        document.getElementById('qnaForm').addEventListener('submit', function() {
+            localStorage.removeItem('qna_draft');
+        });
+    </script>
+</body>
+</html>
+

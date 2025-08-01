@@ -33,6 +33,21 @@
             border: 1px solid #ddd;
             border-radius: 5px;
         }
+        .role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .badge-admin {
+            background-color: #dc3545;
+            color: white;
+        }
+        .badge-user {
+            background-color: #28a745;
+            color: white;
+        }
         .menu-section {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -51,13 +66,25 @@
             transform: translateY(-5px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-        .menu-card h3 {
-            margin-bottom: 15px;
-            color: #333;
+        .admin-menu {
+            border-left: 4px solid #dc3545;
+            background: linear-gradient(135deg, #fff 0%, #fff5f5 100%);
         }
-        .menu-card p {
-            color: #666;
+        .alert {
+            padding: 15px;
             margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
         }
         .btn {
             display: inline-block;
@@ -69,6 +96,10 @@
             border: none;
             cursor: pointer;
         }
+        .btn:hover {
+            opacity: 0.8;
+            color: white;
+        }
         .btn-warning {
             background-color: #ffc107;
             color: black;
@@ -76,8 +107,8 @@
         .btn-danger {
             background-color: #dc3545;
         }
-        .btn:hover {
-            opacity: 0.8;
+        .btn-admin {
+            background-color: #dc3545;
         }
         .modal {
             display: none;
@@ -120,17 +151,24 @@
     <div id="header">
         <div id="header_1">
             <div id="header_1_left">
-                <img th:src="@{/images/logo.png}" alt="SPRING Logo" onclick="location.href='/'">
+                <img th:src="@{/images/logo.png}" alt="LOGO" onclick="location.href='/'">
             </div>
             <div id="header_1_center"></div>
             <div id="header_1_right">
                 <span th:text="${session.loginUser.nick} + '님 환영합니다!'"></span>
+                <!-- 권한 배지 표시 -->
+                <span th:if="${session.loginUser.role == 'ADMIN'}" class="role-badge badge-admin">관리자</span>
+                <span th:if="${session.loginUser.role == 'USER'}" class="role-badge badge-user">일반회원</span>
                 <a th:href="@{/user/logout}">로그아웃</a>
             </div>
         </div>
         <div id="header_2">
             <ul>
                 <li><a th:href="@{/}">홈</a></li>
+                <!-- 관리자 메뉴 (ADMIN만 표시) -->
+                <li th:if="${session.loginUser.role == 'ADMIN'}">
+                    <a th:href="@{/user/admin/dashboard}">관리자</a>
+                </li>
             </ul>
         </div>
     </div>
@@ -138,9 +176,14 @@
     <!-- Main Content -->
     <div class="content">
         <div class="innerOuter">
-            <!-- 알림 메시지 -->
-            <div th:if="${session.alertMsg}" style="background-color: #d4edda; padding: 10px; margin-bottom: 20px; border-radius: 5px;">
+            <!-- 알림 메시지 (성공) -->
+            <div th:if="${session.alertMsg}" class="alert alert-success">
                 <span th:text="${session.alertMsg}"></span>
+            </div>
+            
+            <!-- 에러 메시지 -->
+            <div th:if="${session.errorMsg}" class="alert alert-danger">
+                <span th:text="${session.errorMsg}"></span>
             </div>
 
             <div class="mypage-container">
@@ -171,7 +214,10 @@
                     </div>
                     <div class="info-row">
                         <div class="info-label">권한:</div>
-                        <div class="info-value" th:text="${session.loginUser.role}">USER</div>
+                        <div class="info-value">
+                            <span th:if="${session.loginUser.role == 'ADMIN'}" class="role-badge badge-admin">관리자</span>
+                            <span th:if="${session.loginUser.role == 'USER'}" class="role-badge badge-user">일반회원</span>
+                        </div>
                     </div>
                     <div class="info-row">
                         <div class="info-label">가입일:</div>
@@ -185,6 +231,13 @@
                         <h3>정보 수정</h3>
                         <p>이름, 닉네임, 이메일을 수정할 수 있습니다.</p>
                         <button class="btn" onclick="openUpdateModal()">수정하기</button>
+                    </div>
+                    
+                    <!-- 관리자 전용 메뉴 (ADMIN만 표시) -->
+                    <div th:if="${session.loginUser.role == 'ADMIN'}" class="menu-card admin-menu">
+                        <h3>🛠️ 관리자 대시보드</h3>
+                        <p>시스템 관리 및 사용자 관리</p>
+                        <a class="btn btn-admin" th:href="@{/admin/dashboard}">관리페이지</a>
                     </div>
                     
                     <div class="menu-card">
@@ -249,14 +302,19 @@
         </div>
     </div>
 
-
     <script>
-        // 알림 메시지 처리
+        // 페이지 로드 시 알림 메시지 자동 숨김
         window.onload = function() {
-            const alertMsg = '[[${session.alertMsg}]]';
-            if (alertMsg && alertMsg !== '') {
-                alert(alertMsg);
-            }
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.transition = 'opacity 0.5s';
+                    alert.style.opacity = '0';
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 500);
+                }, 3000);
+            });
         }
 
         // 정보수정 모달
