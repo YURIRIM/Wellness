@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="answerQnaMapper">
+    
+    <!-- 답변 등록 -->
+    <insert id="insertAnswer" parameterType="com.kh.spring.answerqna.model.vo.AnswerQna">
+        INSERT INTO ANSWER_INFO (
+            ANSWER_NO,
+            USERQNA_NO,
+            USER_NO,
+            ANSWER_QNA,
+            ADMIN_NAME,
+            CREATEDATE
+        ) VALUES (
+            ANSWER_QNA_SEQ.NEXTVAL,
+            #{userQnaNo},
+            #{userNo},
+            #{answerQna},
+            #{adminName},
+            SYSDATE
+        )
+    </insert>
+    
+    <!-- 문의사항 번호로 답변 조회 -->
+    <select id="selectAnswerByQnaNo" parameterType="int" resultType="com.kh.spring.answerqna.model.vo.AnswerQna">
+        SELECT 
+            ANSWER_NO as answerNo,
+            USERQNA_NO as userQnaNo,
+            USER_NO as userNo,
+            ANSWER_QNA as answerQna,
+            ADMIN_NAME as adminName,
+            CREATEDATE as createdate
+        FROM ANSWER_INFO
+        WHERE USERQNA_NO = #{userQnaNo}
+    </select>
+    
+    <!-- 답변 번호로 답변 조회 -->
+    <select id="selectAnswerByNo" parameterType="int" resultType="com.kh.spring.answerqna.model.vo.AnswerQna">
+        SELECT 
+            ANSWER_NO as answerNo,
+            USERQNA_NO as userQnaNo,
+            USER_NO as userNo,
+            ANSWER_QNA as answerQna,
+            ADMIN_NAME as adminName,
+            CREATEDATE as createdate
+        FROM ANSWER_INFO
+        WHERE ANSWER_NO = #{answerNo}
+    </select>
+    
+    <!-- 답변 삭제 -->
+    <delete id="deleteAnswer" parameterType="int">
+        DELETE FROM ANSWER_INFO
+        WHERE ANSWER_NO = #{answerNo}
+    </delete>
+    
+    <!-- 문의사항 번호로 답변 삭제 -->
+    <delete id="deleteAnswerByQnaNo" parameterType="int">
+        DELETE FROM ANSWER_INFO
+        WHERE USERQNA_NO = #{userQnaNo}
+    </delete>
+    
+</mapper>

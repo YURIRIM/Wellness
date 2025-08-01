@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SOAK - 로그인</title>
+    <title>WELLNESS - 로그인</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <style>
         .login-form {
@@ -51,6 +51,27 @@
             text-decoration: none;
             margin: 0 10px;
         }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .alert-info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
     </style>
 </head>
 <body>
@@ -80,9 +101,19 @@
             <div class="login-form">
                 <h2 style="text-align: center; margin-bottom: 30px;">로그인</h2>
                 
+                <!-- 세션 알림 메시지 (성공) -->
+                <div th:if="${session.alertMsg}" class="alert alert-success">
+                    <span th:text="${session.alertMsg}"></span>
+                </div>
+
                 <!-- 에러 메시지 -->
-                <div th:if="${errorMsg}" style="color: red; text-align: center; margin-bottom: 20px;">
+                <div th:if="${errorMsg}" class="alert alert-danger">
                     <span th:text="${errorMsg}"></span>
+                </div>
+
+                <!-- URL 파라미터로 전달된 메시지 처리 -->
+                <div th:if="${param.msg}" class="alert alert-info">
+                    <span th:text="${param.msg}"></span>
                 </div>
 
                 <form th:action="@{/user/login}" method="post">
@@ -108,6 +139,20 @@
         </div>
     </div>
 
-
+    <script>
+        // 페이지 로드 시 메시지가 있다면 3초 후 자동으로 숨김
+        window.onload = function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.transition = 'opacity 0.5s';
+                    alert.style.opacity = '0';
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 500);
+                }, 3000);
+            });
+        }
+    </script>
 </body>
 </html>
