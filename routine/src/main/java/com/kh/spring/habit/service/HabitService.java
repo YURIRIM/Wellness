@@ -5,6 +5,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 
+import com.kh.spring.habit.model.vo.Goal;
 import com.kh.spring.habit.model.vo.Habit;
 
 public interface HabitService {
@@ -19,6 +20,9 @@ public interface HabitService {
     Habit getHabitById(int habitNo);
     void updateHabit(Habit habit);
     void deleteHabit(int habitNo);
+
+
+	int saveGoal(Goal goal);
 
 
 }
