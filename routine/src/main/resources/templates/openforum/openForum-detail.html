@@ -8,12 +8,42 @@
     .meta { color: #555; font-size: 0.9em; margin-bottom: 10px; }
     .content { margin-top: 20px; white-space: pre-line; }
     .btn { margin-top: 20px; }
+  
+  	.updateBtn, #deletePostBtn{
+	  all: unset;
+	  display: inline-block;
+	  padding: 10px 15px;
+	  background-color: #007bff;
+	  color: white;
+	  border-radius: 4px;
+	  text-decoration: none;
+	}
+	  
+	 /* 이미지 미리보기 스타일 추가 */
+    .image-preview-container {
+      margin-top: 10px;
+      border: 1px solid #eee;
+      padding: 5px;
+      display: inline-block; /* 이미지가 여러 개일 때 옆으로 나열 */
+      margin-right: 10px;
+      vertical-align: top;
+    }
+    .image-preview-container img {
+      max-width: 300px; /* 미리보기 이미지 최대 너비 */
+      height: auto; /* 비율 유지 */
+      display: block; /* 이미지 아래 공백 제거 */
+    }  
+	  
+  
   </style>
 </head>
-
-
   <!-- ✅ jQuery CDN 추가 (최신 버전) -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div th:fragment="alert" th:if="${session.alertMsg}" class="alert-message" 
+     th:classappend="${session.alertMsg.contains('성공') ? 'alert-success' : 'alert-danger'}">
+    <span th:text="${session.alertMsg}"></span>
+</div>   
   
 <body>
   <h2 th:text="${post.title}">제목</h2>
@@ -30,11 +60,45 @@
   <h4>첨부파일:</h4>
   <ul>
     <li th:each="file : ${post.atList}">
+    	  <th:block th:if="${file.changeName.endsWith('.jpg') or 
+                         file.changeName.endsWith('.jpeg') or 
+                         file.changeName.endsWith('.png') or 
+                         file.changeName.endsWith('.gif') or 
+                         file.changeName.endsWith('.bmp') or
+                         file.changeName.endsWith('.webp')}">
+          <div class="image-preview-container">
+            <img th:src="@{${file.filePath} + ${file.changeName}}" th:alt="${file.originName}" />
+            <p>
+    
+    
       <a th:href="@{${file.filePath} + ${file.changeName}}" th:text="${file.originName}" download target="_blank"></a>
       <span> (크기: <span th:text="${#numbers.formatDecimal(file.fileSize / 1024.0, 1, 2)}"></span> KB)</span>
+    </p>
+    </div>
+    </th:block>
+    	<th:block th:unless="${file.changeName.endsWith('.jpg') or 
+                              file.changeName.endsWith('.jpeg') or 
+                              file.changeName.endsWith('.png') or 
+                              file.changeName.endsWith('.gif') or 
+                              file.changeName.endsWith('.bmp') or
+                              file.changeName.endsWith('.webp')}">
+          <a th:href="@{${file.filePath} + ${file.changeName}}" th:text="${file.originName}" download target="_blank"></a>
+          <span> (크기: <span th:text="${#numbers.formatDecimal(file.fileSize / 1024.0, 1, 2)}"></span> KB)</span>
+        </th:block>
+    
+    
     </li>
   </ul>
+  
+ <div id="fileInfoContainer">
+ 	<th:block th:each="file : ${post.atList}">
+   	 	<input type="hidden" name="filePaths" th:value="${file.changeName}" />
+  	</th:block>
 </div>
+
+</div>    
+
+ 
 
 <hr />
 <h4>댓글 작성</h4>
@@ -161,9 +225,59 @@
 </script>
 
 
-
+ 
   <div class="btn">
     <a th:href="@{/openForum/list}">← 목록으로</a>
   </div>
+ 
+ <br>
+ <br>
+  <a th:href="@{/openForum/update/{postId}(postId=${post.postId})}" class="updateBtn">게시글 수정</a>  
+  <br>
+  <br>
+  <button id="deletePostBtn">게시글 삭제</button>
+
+  <script th:inline="javaScript"> 
+	//매핑주소로 쿼리스트링을 전달하는 get방식의 경우 url 요청만으로 삭제처리를 해버릴 수 있기 때문에
+	//중요작업은 post요청으로 처리하여 쿼리스트링을 이용하지 못하게 해야한다.
+	
+	$(function(){
+		$("#deletePostBtn").click(function(){  
+		//form 태그를 만들어 전달값을 요소로 추가한 뒤 submit 처리를 통해 서버에 전송
+		
+		var check = confirm("게시물을 삭제하시겠습니까?");
+		
+		if(check){
+			var form = $("<form>"); //jQuery문법 : html 태그를 동적 생성하기? 
+			var inputObj = $("<input>");
+			
+			//form태그에 action속성과 method속성을 추가해주기  ///*[[@{/openForum/delete}]]*/
+			form.prop("action",/*[[@{/openForum/delete}]]*/ "/routine/openForum/delete").prop("method","post");
+			
+			//input 요소로 게시글 번호 전달하기 
+			inputObj.prop("type","hidden").prop("name","postId").prop("value",/*[[${post.postId}]]*/ '0');
+			//서버에 업로드된 파일이 있다면 삭제하기 위해서 파일정보 전달 
+			
+			
+			$("#fileInfoContainer input[name='filePaths']").each(function () {
+       		 const fileInput = $(this).clone(); // 숨겨진 input 복사
+       	//form 에 input 요소들 추가하기
+ 			form.append(inputObj,fileInput); 
+			});
+					
+			//문서에 포함시키기?
+			$("body").append(form);		
+			form.submit();
+		}
+		
+		});
+	});
+
+  </script>	 
+	
+  
+   
+
+
 </body>
 </html>

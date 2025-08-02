@@ -14,6 +14,13 @@
     button { margin-top: 15px; }
   </style>
 </head>
+
+<div th:fragment="alert" th:if="${session.alertMsg}" class="alert-message" 
+     th:classappend="${session.alertMsg.contains('성공') ? 'alert-success' : 'alert-danger'}">
+    <span th:text="${session.alertMsg}"></span>
+</div>
+
+
 <body>
   <h2>게시글 작성</h2>
   <form th:action="@{/openForum/write}" method="post" enctype="multipart/form-data">

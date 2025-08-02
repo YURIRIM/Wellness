@@ -29,6 +29,21 @@
   </collection>
   </resultMap>
   
+  <resultMap type="OpenForumAttachment" id="OpenForumAttachment"> 
+  	<id column="FILE_ID" property="fileId"/>
+	<result column="POST_ID" property="postId"/>
+	<result column="FILE_PATH" property="filePath"/>
+  	<result column="FILE_TYPE" property="fileType"></result>
+  	<result column="FILE_SIZE" property="fileSize"></result>
+  	<result column="UPLOAD_DATE" property="uploadDate"></result>
+  	<result column="ORIGIN_NAME" property="originName"></result>
+  	<result column="CHANGE_NAME" property="changeName"></result>
+  	<result column="FILE_LEVEL" property="fileLevel"></result>
+  	<result column="STATUS" property="views"></result>
+   </resultMap>
+  	
+  
+  
   <resultMap type="User" id="usersResultMap">
     <result column="USER_NO" property="userNo" />
     <result column="USER_ID" property="userId"/>
@@ -45,7 +60,6 @@
   	SELECT COUNT(*)
   	FROM OPEN_FORUM
   </select>
-  
   
   <insert id="postWrite" parameterType="OpenForum">
     INSERT INTO OPEN_FORUM ( POST_ID,  
@@ -94,7 +108,6 @@
   FROM DUAL
   </select>
   
- 
   <select id="selectPostList" resultMap="openForumResultMap">
   SELECT FORUM.POST_ID, U.USER_ID, FORUM.TITLE, FORUM.CONTENT, FORUM.CREATED_AT, FORUM.VIEWS
   FROM OPEN_FORUM FORUM
@@ -109,6 +122,7 @@
         FORUM.CONTENT, 
         FORUM.CREATED_AT, 
         FORUM.VIEWS,
+        A.FILE_ID,
         A.FILE_PATH,
         A.CHANGE_NAME,
         A.ORIGIN_NAME,
@@ -124,6 +138,12 @@
 		SET VIEWS = VIEWS + 1
 		WHERE POST_ID = #{postId}
   </update>
+  
+	  
+	 <delete id="deletePost">
+	 DELETE FROM OPEN_FORUM
+	 WHERE POST_ID = #{postId}
+	 </delete>
   
     <resultMap type="Comments" id="commentsResultMap">
   	<result column="COMMENT_ID" property="commentId" ></result>
@@ -167,7 +187,27 @@
 	  	AND C.STATUS = 'Y'
   	</select>
   
- 
+ 	<select id="selectAttachmentByFileId" resultMap="OpenForumAttachment">
+ 	SELECT * 
+ 	FROM ATTACHMENT_OPEN
+ 	WHERE FILE_ID=#{fileId}
+ 	</select>
+ 	
+ 	<delete id="deleteAttachment">
+ 	DELETE FROM ATTACHMENT_OPEN
+ 	WHERE FILE_ID=#{fileId}
+ 	</delete>
+	 
+	<update id="updatePost" parameterType="OpenForum">
+	    UPDATE OPEN_FORUM
+	  	SET USER_NO =1,
+    		TITLE = #{title},
+    		CONTENT = #{content},
+    		CREATED_AT = SYSDATE,
+    		VIEWS = 0
+    	WHERE POST_ID =#{postId} 	
+	</update> 
+	 
   
   		
 	 
