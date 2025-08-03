@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공지사항</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-bullhorn text-primary"></i> 공지사항</h2>
+                </div>
+                
+                <!-- 공지사항 개수 표시 -->
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle"></i> 
+                        총 <span th:text="${noticeCount}">0</span>개의 공지사항
+                    </small>
+                </div>
+                
+                <!-- 공지사항 목록 카드 형태 -->
+                <div class="row">
+                    <div th:each="notice : ${noticeList}" class="col-md-12 mb-3">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h5 class="card-title">
+                                            <a th:href="@{/notice/detail(noticeNum=${notice.noticeNum})}" 
+                                               class="text-decoration-none text-dark">
+                                                <span th:text="${notice.noticetitle}"></span>
+                                            </a>
+                                        </h5>
+                                        <p class="card-text text-muted" 
+                                           th:text="${#strings.length(notice.notice) > 100 ? #strings.substring(notice.notice, 0, 100) + '...' : notice.notice}"></p>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span th:text="${#dates.format(notice.createdate, 'yyyy-MM-dd')}"></span>
+                                        </small>
+                                        <br>
+                                        <span class="badge bg-secondary mt-1">
+                                            No. <span th:text="${notice.noticeNum}"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 공지사항이 없을 때 -->
+                    <div th:if="${#lists.isEmpty(noticeList)}" class="col-12">
+                        <div class="text-center py-5">
+                            <div class="text-muted">
+                                <i class="fas fa-inbox fa-4x mb-3"></i>
+                                <h4>등록된 공지사항이 없습니다</h4>
+                                <p>새로운 공지사항을 기다려주세요.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

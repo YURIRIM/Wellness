@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 - 문의사항 관리</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .admin-wrapper {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        .admin-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            padding: 2.5rem;
+            margin: 2rem auto;
+            max-width: 1400px;
+        }
+        .admin-header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .admin-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .admin-subtitle {
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+        .stats-row {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 1rem;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+        .stat-total { color: #2c3e50; }
+        .stat-waiting { color: #f39c12; }
+        .stat-answered { color: #27ae60; }
+        .filter-tabs {
+            border-bottom: 3px solid #e9ecef;
+            margin-bottom: 2rem;
+        }
+        .filter-tab {
+            background: none;
+            border: none;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            color: #6c757d;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            margin-right: 1rem;
+        }
+        .filter-tab.active {
+            color: #e74c3c;
+            border-bottom-color: #e74c3c;
+        }
+        .filter-tab:hover {
+            color: #e74c3c;
+            background: #fff5f5;
+        }
+        .qna-table {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        .table th {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 1.2rem 1rem;
+        }
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-color: #e9ecef;
+        }
+        .table tbody tr:hover {
+            background-color: #f8f9ff;
+            transition: all 0.3s ease;
+        }
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            min-width: 80px;
+        }
+        .status-waiting {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-answered {
+            background: #d1edff;
+            color: #0c5460;
+        }
+        .priority-badge {
+            padding: 0.3rem 0.6rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .priority-high {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .priority-normal {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        .qna-title-link {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .qna-title-link:hover {
+            color: #e74c3c;
+            text-decoration: underline;
+        }
+        .user-info {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .date-text {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        .btn-action {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: none;
+            transition: all 0.3s ease;
+            min-width: 65px;
+            text-decoration: none;
+        }
+        .btn-answer {
+            background: #17a2b8;
+            color: white;
+        }
+        .btn-answer:hover {
+            background: #138496;
+            color: white;
+            text-decoration: none;
+        }
+        .btn-view {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-view:hover {
+            background: #5a6268;
+            color: white;
+            text-decoration: none;
+        }
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-delete:hover {
+            background: #c82333;
+            color: white;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6c757d;
+        }
+        .empty-state i {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            color: #dee2e6;
+        }
+        .search-box {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .urgent-row {
+            background: #fff5f5 !important;
+            border-left: 4px solid #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-wrapper">
+        <div class="container-fluid">
+            <div class="admin-container">
+                <!-- 관리자 헤더 -->
+                <div class="admin-header">
+                    <h1 class="admin-title">
+                        <i class="fas fa-users-cog me-3"></i>
+                        문의사항 관리 시스템
+                    </h1>
+                    <p class="admin-subtitle">고객 문의사항을 효율적으로 관리하고 신속하게 답변하세요</p>
+                </div>
+                
+                <!-- 통계 카드 -->
+                <div class="stats-row">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-number stat-total" th:text="${qnaCount}">0</div>
+                                <div class="stat-label">총 문의사항</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-number stat-waiting" id="waitingCount">0</div>
+                                <div class="stat-label">답변 대기</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-number stat-answered" id="answeredCount">0</div>
+                                <div class="stat-label">답변 완료</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 검색 및 필터 -->
+                <div class="search-box">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control" id="searchInput" 
+                                       placeholder="제목, 내용, 작성자로 검색...">
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="dateFilter" id="today" autocomplete="off">
+                                <label class="btn btn-outline-secondary" for="today">오늘</label>
+                                
+                                <input type="radio" class="btn-check" name="dateFilter" id="week" autocomplete="off">
+                                <label class="btn btn-outline-secondary" for="week">1주일</label>
+                                
+                                <input type="radio" class="btn-check" name="dateFilter" id="all" autocomplete="off" checked>
+                                <label class="btn btn-outline-secondary" for="all">전체</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 필터 탭 -->
+                <div class="filter-tabs">
+                    <button class="filter-tab active" onclick="filterQna('all')">
+                        <i class="fas fa-list me-1"></i>전체 문의사항
+                    </button>
+                    <button class="filter-tab" onclick="filterQna('unanswered')">
+                        <i class="fas fa-clock me-1"></i>답변 대기
+                    </button>
+                    <button class="filter-tab" onclick="filterQna('answered')">
+                        <i class="fas fa-check me-1"></i>답변 완료
+                    </button>
+                </div>
+                
+                <!-- 문의사항 테이블 -->
+                <div th:if="${not #lists.isEmpty(qnaList)}">
+                    <div class="table-responsive qna-table">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 6%">번호</th>
+                                    <th style="width: 35%">제목</th>
+                                    <th style="width: 12%">작성자</th>
+                                    <th style="width: 10%">상태</th>
+                                    <th style="width: 12%">작성일</th>
+                                    <th style="width: 8%">우선순위</th>
+                                    <th style="width: 17%">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="qna, status : ${qnaList}" 
+                                    th:class="${!qna.status && status.index < 3} ? 'urgent-row' : ''">
+                                    <td class="text-center fw-bold">
+                                        [[${qnaCount - status.index}]]
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/admin/qna/detail(userQnaNo=${qna.userQnaNo})}" 
+                                           class="qna-title-link" th:text="${qna.userQnaTitle}">
+                                            문의 제목
+                                        </a>
+                                        <i th:if="${!qna.status && status.index < 3}" 
+                                           class="fas fa-exclamation-circle text-danger ms-2" 
+                                           title="긴급 처리 필요"></i>
+                                    </td>
+                                    <td>
+                                        <div class="user-info">
+                                            <i class="fas fa-user me-1"></i>
+                                            회원 [[${qna.userNo}]]
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span th:if="${qna.status}" class="status-badge status-answered">
+                                            <i class="fas fa-check me-1"></i>완료
+                                        </span>
+                                        <span th:unless="${qna.status}" class="status-badge status-waiting">
+                                            <i class="fas fa-clock me-1"></i>대기
+                                        </span>
+                                    </td>
+                                    <td class="date-text">
+                                        [[${#dates.format(qna.createdate, 'MM-dd')}]]
+                                        <br>
+                                        <small>[[${#dates.format(qna.createdate, 'HH:mm')}]]</small>
+                                    </td>
+                                    <td>
+                                        <span th:if="${!qna.status && status.index < 3}" class="priority-badge priority-high">
+                                            <i class="fas fa-exclamation me-1"></i>높음
+                                        </span>
+                                        <span th:unless="${!qna.status && status.index < 3}" class="priority-badge priority-normal">
+                                            <i class="fas fa-minus me-1"></i>보통
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a th:if="${qna.status}" 
+                                               th:href="@{/admin/qna/detail(userQnaNo=${qna.userQnaNo})}" 
+                                               class="btn btn-action btn-view">
+                                                <i class="fas fa-eye me-1"></i>보기
+                                            </a>
+                                            <a th:unless="${qna.status}" 
+                                               th:href="@{/admin/qna/detail(userQnaNo=${qna.userQnaNo})}" 
+                                               class="btn btn-action btn-answer">
+                                                <i class="fas fa-reply me-1"></i>답변
+                                            </a>
+                                            
+                                            <button type="button" class="btn btn-action btn-delete" 
+                                                    th:onclick="'deleteQna(' + ${qna.userQnaNo} + ')'">
+                                                <i class="fas fa-trash me-1"></i>삭제
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 문의사항이 없는 경우 -->
+                <div th:if="${#lists.isEmpty(qnaList)}" class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h4>표시할 문의사항이 없습니다</h4>
+                    <p class="mb-0">현재 선택한 필터 조건에 해당하는 문의사항이 없습니다.</p>
+                </div>
+                
+                <!-- 하단 버튼 -->
+                <div class="text-center mt-4">
+                    <a th:href="@{/admin/dashboard}" class="btn btn-secondary me-3">
+                        <i class="fas fa-dashboard me-1"></i>
+                        대시보드로
+                    </a>
+                    <button type="button" class="btn btn-primary" onclick="refreshPage()">
+                        <i class="fas fa-sync-alt me-1"></i>
+                        새로고침
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 삭제 확인 모달 -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        문의사항 삭제
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>정말로 이 문의사항을 삭제하시겠습니까?</p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>주의:</strong> 삭제된 문의사항과 관련 답변은 복구할 수 없습니다.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        취소
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">
+                        <i class="fas fa-trash me-1"></i>
+                        삭제하기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let deleteQnaNo = null;
+        
+        // 통계 계산
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusBadges = document.querySelectorAll('.status-badge');
+            let waitingCount = 0;
+            let answeredCount = 0;
+            
+            statusBadges.forEach(badge => {
+                if (badge.classList.contains('status-waiting')) {
+                    waitingCount++;
+                } else if (badge.classList.contains('status-answered')) {
+                    answeredCount++;
+                }
+            });
+            
+            document.getElementById('waitingCount').textContent = waitingCount;
+            document.getElementById('answeredCount').textContent = answeredCount;
+        });
+        
+        // 필터 기능
+        function filterQna(status) {
+            const currentUrl = new URL(window.location);
+            if (status === 'all') {
+                currentUrl.searchParams.delete('status');
+            } else {
+                currentUrl.searchParams.set('status', status);
+            }
+            window.location.href = currentUrl.toString();
+        }
+        
+        // 검색 기능
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('.qna-table tbody tr');
+            
+            tableRows.forEach(row => {
+                const title = row.querySelector('.qna-title-link').textContent.toLowerCase();
+                const user = row.querySelector('.user-info').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || user.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // 삭제 기능
+        function deleteQna(userQnaNo) {
+            deleteQnaNo = userQnaNo;
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+        
+        document.getElementById('confirmDelete').addEventListener('click', function() {
+            if (deleteQnaNo) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/routine/admin/qna/delete';
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'userQnaNo';
+                input.value = deleteQnaNo;
+                
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+        
+        // 새로고침 기능
+        function refreshPage() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>

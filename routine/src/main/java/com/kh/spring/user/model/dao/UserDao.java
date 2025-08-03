@@ -7,22 +7,7 @@ import com.kh.spring.user.model.vo.User;
 
 @Repository
 public class UserDao {
-	/*
-    // 로그인 기능
-    User loginUser(User user);
-    
-    // 회원가입 기능
-    int insertUser(User user);
-    
-    // 정보수정 메소드
-    int updateUser(User user);
-    
-    // 회원 탈퇴 메소드
-    int deleteUser(User user);
 
-
-    // 아이디 중복확인
-    int checkUserId(@Param("userId") String userId);*/
 	
 	public User loginUser(SqlSessionTemplate sqlSession, User u) {
 		

@@ -14,7 +14,6 @@ import com.kh.spring.challenge.model.vo.ProfileRequest;
 import com.kh.spring.challenge.model.vo.ProfileResponse;
 import com.kh.spring.challenge.model.vo.SearchMyChallenge;
 import com.kh.spring.user.model.vo.User;
-import com.kh.spring.util.challenge.ChallengeFix;
 import com.kh.spring.util.challenge.ProfileValidator;
 import com.kh.spring.util.common.BinaryAndBase64;
 
@@ -27,6 +26,9 @@ public class ProfileServiceImpl implements ProfileService{
 	private SqlSessionTemplate sqlSession;
 	@Autowired
 	private ProfileDao dao;
+	@Autowired
+	private ChallengeService chalService;
+	
 	
 	//내 프로필 조회
 	@Override
@@ -163,6 +165,15 @@ public class ProfileServiceImpl implements ProfileService{
 			profile.setPicture(null);
 		}
 		
+		if(profile.getUserNo()==-1) {
+			//인장 주작은 뭐야
+			profile.setChalParticiapteCount(14530529*3);
+			profile.setFailCount(14530529);
+			profile.setFailRatio(33.3);
+			profile.setSuccessCount(14530529);
+			profile.setSuccessRatio(33.4);
+		}
+		
 		return ResponseEntity.ok(profile);
 	}
 	
@@ -184,10 +195,8 @@ public class ProfileServiceImpl implements ProfileService{
 		
 		if(list==null || list.isEmpty()) return ResponseEntity.status(404).build();
 		
-		//html태그 등 지우기
-		for(ChallengeResponse chal : list) {
-			chal.setContent(ChallengeFix.deleteContentTag(chal.getContent()));
-		}
+		//조회한 챌린지 리스트 정상화
+		chalService.challengeResponseSanitizer(list);
 		
 		return ResponseEntity.ok(list);
 	}

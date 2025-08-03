@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 - 공지사항 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-cogs text-danger"></i> 관리자 - 공지사항 관리</h2>
+                    <div>
+                        <a href="/routine/admin/dashboard" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-tachometer-alt"></i> 대시보드
+                        </a>
+                        <a href="/routine/notice/list" class="btn btn-outline-info me-2">
+                            <i class="fas fa-eye"></i> 사용자 화면 보기
+                        </a>
+                        <a href="/routine/admin/notice/write" class="btn btn-danger">
+                            <i class="fas fa-plus"></i> 공지사항 등록
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 알림 메시지 -->
+                <div th:if="${alertMsg}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle"></i>
+                    <span th:text="${alertMsg}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span th:text="${errorMsg}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <!-- 공지사항 개수 표시 -->
+                <div class="mb-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5><i class="fas fa-chart-bar"></i> 공지사항 현황</h5>
+                            <h3>총 <span th:text="${noticeCount}">0</span>개의 공지사항이 등록되어 있습니다.</h3>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 공지사항 관리 테이블 -->
+                <div class="card shadow">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="fas fa-table"></i> 공지사항 목록</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th style="width: 8%">번호</th>
+                                        <th style="width: 45%">제목</th>
+                                        <th style="width: 15%">작성일</th>
+                                        <th style="width: 10%">상태</th>
+                                        <th style="width: 22%">관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="notice : ${noticeList}">
+                                        <td class="align-middle">
+                                            <span class="badge bg-secondary" th:text="${notice.noticeNum}"></span>
+                                        </td>
+                                        <td class="align-middle">
+                                            <a th:href="@{/admin/notice/detail(noticeNum=${notice.noticeNum})}" 
+                                               class="text-decoration-none text-dark fw-bold">
+                                                <span th:text="${notice.noticetitle}"></span>
+                                            </a>
+                                            <br>
+                                            <small class="text-muted" 
+                                                   th:text="${#strings.length(notice.notice) > 50 ? #strings.substring(notice.notice, 0, 50) + '...' : notice.notice}"></small>
+                                        </td>
+                                        <td class="align-middle">
+                                            <small th:text="${#dates.format(notice.createdate, 'yyyy-MM-dd')}"></small><br>
+                                            <small class="text-muted" th:text="${#dates.format(notice.createdate, 'HH:mm')}"></small>
+                                        </td>
+                                        <td class="align-middle">
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check"></i> 활성
+                                            </span>
+                                        </td>
+                                        <td class="align-middle">
+                                            <div class="btn-group" role="group">
+                                                <a th:href="@{/admin/notice/detail(noticeNum=${notice.noticeNum})}" 
+                                                   class="btn btn-sm btn-outline-info" title="상세보기">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a th:href="@{/admin/notice/edit(noticeNum=${notice.noticeNum})}" 
+                                                   class="btn btn-sm btn-outline-warning" title="수정">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        title="삭제"
+                                                        onclick="confirmDelete(this)" 
+                                                        th:attr="data-notice-num=${notice.noticeNum}, data-notice-title=${notice.noticetitle}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(noticeList)}">
+                                        <td colspan="5" class="text-center py-5">
+                                            <div class="text-muted">
+                                                <i class="fas fa-inbox fa-4x mb-3"></i>
+                                                <h4>등록된 공지사항이 없습니다</h4>
+                                                <p>새로운 공지사항을 등록해주세요.</p>
+                                                <a href="/routine/admin/notice/write" class="btn btn-primary">
+                                                    <i class="fas fa-plus"></i> 첫 번째 공지사항 등록
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 삭제 확인 모달 -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle"></i> 삭제 확인
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                        <h5>정말로 이 공지사항을 삭제하시겠습니까?</h5>
+                        <p class="text-muted" id="deleteNoticeTitle"></p>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>주의:</strong> 삭제된 공지사항은 복구할 수 없습니다.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> 취소
+                    </button>
+                    <form id="deleteForm" method="post" action="/routine/admin/notice/delete" style="display: inline;">
+                        <input type="hidden" name="noticeNum" id="deleteNoticeNum">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> 삭제
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function confirmDelete(button) {
+            const noticeNum = button.getAttribute('data-notice-num');
+            const noticeTitle = button.getAttribute('data-notice-title');
+            
+            document.getElementById('deleteNoticeNum').value = noticeNum;
+            document.getElementById('deleteNoticeTitle').textContent = '"' + noticeTitle + '"';
+            
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+    </script>
+</body>
+</html>

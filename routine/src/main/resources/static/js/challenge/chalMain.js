@@ -303,7 +303,10 @@ document.addEventListener("DOMContentLoaded", function () {
       })
         .then(function (response) {
           if (response.status === 200) {
-            $("#right-activateAi-msg").text("성공").css({ color: "green" });
+            $("#right-activateAi-msg")
+              .text("안아줬어요")
+              .css({ color: "green" });
+            $("#right-keyInput").val("");
           } else {
             $("#right-activateAi-msg").text("");
           }
@@ -313,7 +316,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const status = error.response.status;
             if (status === 400) {
               $("#right-activateAi-msg")
-                .text("열쇠가 이상해요")
+                .text("싫은데요")
                 .css({ color: "orange" });
             } else if (status === 500) {
               $("#right-activateAi-msg")
@@ -662,10 +665,10 @@ function newChalScript() {
       }
 
       // 200KB 초과 시 업로드 거부
-      if (finalFile.size > 200 * 1024) {
-        alert(`"${f.name}"은(는) 200KB를 초과합니다.`);
-        continue;
-      }
+      // if (finalFile.size > 200 * 1024) {
+      //   alert(`"${f.name}"은(는) 200KB를 초과합니다.`);
+      //   continue;
+      // }
 
       // 서버에 직접 업로드
       const formData = new FormData();
@@ -1084,14 +1087,14 @@ function chalMainCenterScript(searchKeyword) {
       })
       .catch((err) => {
         if (err.response?.status === 404) {
-          if ($("#center-chal-container").children(".col-6").length === 0) {
-            const imgUrl = `${contextPath}/attachment/defaultImg/not-found.webp`;
-            $("#center-chal-container").append(
-              `<div class="col-6 text-center">
-              <img src="${imgUrl}" class="img-fluid"/>
-             </div>`
-            );
-          }
+          // if ($("#center-chal-container").children(".col-6").length === 0) {
+          //   const imgUrl = `${contextPath}/attachment/defaultImg/not-found.webp`;
+          //   $("#center-chal-container").append(
+          //     `<div class="col-6 text-center">
+          //     <img src="${imgUrl}" class="img-fluid"/>
+          //    </div>`
+          //   );
+          // }
           hasMore = false;
         } else {
           const imgUrl = `${contextPath}/attachment/defaultImg/server-error.webp`;

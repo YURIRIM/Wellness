@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 문의사항</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .main-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        .content-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 2.5rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+        }
+        .page-title {
+            color: #333;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            position: relative;
+        }
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .btn-write {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .btn-write:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(40, 167, 69, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+        .qna-table {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        .table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 1rem;
+        }
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-color: #e9ecef;
+        }
+        .table tbody tr:hover {
+            background-color: #f8f9ff;
+            transition: all 0.3s ease;
+        }
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status-waiting {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-answered {
+            background: #d1edff;
+            color: #0c5460;
+        }
+        .qna-title {
+            color: #333;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .qna-title:hover {
+            color: #667eea;
+            text-decoration: underline;
+        }
+        .date-text {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #6c757d;
+        }
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: #dee2e6;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        .btn-action {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: none;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .btn-view {
+            background: #667eea;
+            color: white;
+        }
+        .btn-view:hover {
+            background: #5a6fd8;
+            color: white;
+            text-decoration: none;
+        }
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        .btn-delete:hover {
+            background: #c82333;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <div class="container">
+            <div class="content-container">
+                <h2 class="page-title">
+                    <i class="fas fa-list-alt me-2"></i>
+                    내 문의사항
+                </h2>
+                
+                <div class="stats-card">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h4><i class="fas fa-clipboard-list me-2"></i>[[${qnaCount}]]</h4>
+                            <p class="mb-0">총 문의사항</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h4><i class="fas fa-clock me-2"></i>
+                                <span id="waitingCount">0</span>
+                            </h4>
+                            <p class="mb-0">답변 대기</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h4><i class="fas fa-check-circle me-2"></i>
+                                <span id="answeredCount">0</span>
+                            </h4>
+                            <p class="mb-0">답변 완료</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>
+                        문의사항 목록
+                    </h5>
+                    <a th:href="@{/qna/write}" class="btn btn-write">
+                        <i class="fas fa-plus me-1"></i>
+                        새 문의사항 작성
+                    </a>
+                </div>
+                
+                <!-- 문의사항이 있는 경우 -->
+                <div th:if="${not #lists.isEmpty(qnaList)}">
+                    <div class="table-responsive qna-table">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 8%">번호</th>
+                                    <th style="width: 45%">제목</th>
+                                    <th style="width: 12%">상태</th>
+                                    <th style="width: 15%">작성일</th>
+                                    <th style="width: 20%">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="qna, status : ${qnaList}">
+                                    <td class="text-center fw-bold">
+                                        [[${qnaCount - status.index}]]
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/qna/detail/{id}(id=${qna.userQnaNo})}" 
+                                           class="qna-title" th:text="${qna.userQnaTitle}">
+                                            문의 제목
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span th:if="${qna.status}" class="status-badge status-answered">
+                                            <i class="fas fa-check me-1"></i>답변완료
+                                        </span>
+                                        <span th:unless="${qna.status}" class="status-badge status-waiting">
+                                            <i class="fas fa-clock me-1"></i>답변대기
+                                        </span>
+                                    </td>
+                                    <td class="date-text" th:text="${#dates.format(qna.createdate, 'yyyy-MM-dd')}">
+                                        작성일
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a th:href="@{/qna/detail/{id}(id=${qna.userQnaNo})}" 
+                                               class="btn btn-action btn-view">
+                                                <i class="fas fa-eye me-1"></i>보기
+                                            </a>
+                                            <button th:if="${!qna.status}" type="button" class="btn btn-action btn-delete" 
+                                                    th:onclick="'deleteQna(' + ${qna.userQnaNo} + ')'">
+                                                <i class="fas fa-trash me-1"></i>삭제
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 문의사항이 없는 경우 -->
+                <div th:if="${#lists.isEmpty(qnaList)}" class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h4>등록된 문의사항이 없습니다</h4>
+                    <p class="mb-3">궁금한 사항이 있으시면 언제든지 문의해주세요.</p>
+                    <a th:href="@{/qna/write}" class="btn btn-write">
+                        <i class="fas fa-plus me-1"></i>
+                        첫 문의사항 작성하기
+                    </a>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a th:href="@{/}" class="btn btn-outline-secondary">
+                        <i class="fas fa-home me-1"></i>
+                        메인으로 돌아가기
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 삭제 확인 모달 -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                        문의사항 삭제
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>정말로 이 문의사항을 삭제하시겠습니까?</p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>주의:</strong> 삭제된 문의사항은 복구할 수 없습니다.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        취소
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">
+                        <i class="fas fa-trash me-1"></i>
+                        삭제하기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let deleteQnaNo = null;
+        
+        // 통계 계산
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusBadges = document.querySelectorAll('.status-badge');
+            let waitingCount = 0;
+            let answeredCount = 0;
+            
+            statusBadges.forEach(badge => {
+                if (badge.classList.contains('status-waiting')) {
+                    waitingCount++;
+                } else if (badge.classList.contains('status-answered')) {
+                    answeredCount++;
+                }
+            });
+            
+            document.getElementById('waitingCount').textContent = waitingCount;
+            document.getElementById('answeredCount').textContent = answeredCount;
+        });
+        
+        function deleteQna(userQnaNo) {
+            deleteQnaNo = userQnaNo;
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+        
+        document.getElementById('confirmDelete').addEventListener('click', function() {
+            if (deleteQnaNo) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/routine/qna/delete';
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'userQnaNo';
+                input.value = deleteQnaNo;
+                
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -86,7 +86,7 @@ public class AttachmentServiceImpl implements AttachmentService {
 		return (String) uuidMap.get("uuid");
 	}
 
-	// challenge content의 img 태그가 요청하는 경로
+	//challenge content의 img 태그가 요청하는 경로
 	@Override
 	public ResponseEntity<byte[]> selectAtChal(HttpSession session, String uuidStr) throws Exception {
 		if (uuidStr == null || uuidStr.isEmpty())
@@ -219,7 +219,13 @@ public class AttachmentServiceImpl implements AttachmentService {
 			break;
 		case "D":// 디폴트
 			User loginUser = (User) session.getAttribute("loginUser");
-			at.setFileContent(Watermark.defaultStigma(at.getFileContent(), loginUser.getNick()));
+			
+			//프로필이 익명이면 낙인에 디폴트 이름 들어가기
+			String nick = null;
+			if(myProfile.getIsOpen().equals("A")) nick="숨을래요";
+			else nick = loginUser.getNick();
+			
+			at.setFileContent(Watermark.defaultStigma(at.getFileContent(), nick));
 			break;
 		}
 

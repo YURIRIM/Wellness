@@ -9,6 +9,10 @@ import java.util.Properties;
 
 import com.kh.spring.challenge.model.vo.ChallengeCategory;
 
+/**
+ * 작성된 카테고리 설명 파일을 읽어
+ * 이를 list로 반환함
+ */
 public class LoadCategoryExplanation {
 	
 	//config/category-explanation.properties내 파일 불러오기
@@ -21,7 +25,7 @@ public class LoadCategoryExplanation {
 	    List<ChallengeCategory> explanationList = new ArrayList<>();
 	    for (String key : props.stringPropertyNames()) {
 	        if (key.startsWith("no.")) {
-	            int keyNum = Integer.parseInt(key.substring(3));  // "no." 이후 숫자를 int로 변환
+	            int keyNum = Integer.parseInt(key.substring(3));
 	            explanationList.add(ChallengeCategory.builder()
 	            		.categoryNo(keyNum)
 	            		.embedding(props.getProperty(key))

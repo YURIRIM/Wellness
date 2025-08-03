@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>글쓰기</title>
+  <style>
+    body { font-family: 'Arial'; margin: 20px; }
+    label { display: block; margin-top: 10px; }
+    input[type="text"], textarea {
+      width: 100%;   
+      padding: 10px;
+      margin-top: 5px;
+    }
+    button { margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <h2>게시글 작성</h2>
+  <form th:action="@{/openForum/write}" method="post" enctype="multipart/form-data">
+	<label for="title">제목</label>
+    <input type="text" id="title" name="title" required />
+
+    <label for="userNo">작성자 유저넘버</label>
+    <input type="text" id="userNo" name="userNo" required />
+
+    <label for="content">내용</label>
+    <textarea id="content" name="content" rows="10" required></textarea>
+
+	<label for="첨부파일">첨부파일</label>
+	<input type="file" id="uploadFiles" name="uploadFiles" multiple>
+
+    <button type="submit" class="btn btn-primary">등록</button>
+    <button type="reset" class="btn btn-danger">초기화</button>
+  </form>
+
+  <a th:href="@{/openForum/list}">← 목록으로</a>
+</body>
+</html>

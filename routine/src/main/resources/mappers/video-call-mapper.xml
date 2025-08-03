@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="videoCallMapper">
+
+<select id="canCreateRoom" parameterType="LoginUserAndChal" resultType="int">
+select count(*)
+from CHALLENGE
+where USER_NO = #{userNo}
+and CHAL_NO = #{chalNo}
+and NOT EXISTS(
+	select *
+	from VIDEO_CALL
+	where CHAL_NO = CHALLENGE.CHAL_NO
+)
+</select>
+
+
+<insert id="insertRoom" parameterType="VideoCallRequest">
+insert into VIDEO_CALL
+	(ROOM_UUID, CHAL_NO, ROOM_NAME, CREATE_DATE, IS_RESTRICT, STATUS)
+values(
+	#{roomUuid}
+	,#{chalNo}
+	,#{roomName}
+	,SYSDATE
+	,#{isRestrict}
+	,'N'
+	)
+</insert>
+
+<select id="notCreatedRoom" parameterType="int" resultType="Challenge">
+select CHAL_NO, TITLE, CONTENT
+from CHALLENGE
+where USER_NO = #{userNo}
+and STATUS = 'Y'
+and NOT EXISTS(
+	select *
+	from VIDEO_CALL vc
+	where vc.CHAL_NO = CHALLENGE.CHAL_NO
+)
+order by CREATE_DATE DESC
+</select>
+
+<select id="createdRoom" parameterType="int" resultType="VideoCallResponse">
+select vc.ROOM_UUID
+	,vc.CHAL_NO
+	,vc.ROOM_NAME
+	,vc.CREATE_DATE
+	,vc.IS_RESTRICT
+	,vc.STATUS
+	,c.TITLE
+	,c.CONTENT
+from VIDEO_CALL vc
+left join CHALLENGE c on(c.CHAL_NO = vc.CHAL_NO)
+where c.USER_NO = #{userNo}
+and c.status = 'Y'
+order by CASE WHEN vc.STATUS = 'Y' THEN 0 ELSE 1 END,
+	CASE WHEN vc.STATUS = 'N' THEN 0 ELSE 1 END,
+	vc.CREATE_DATE DESC
+</select>
+
+<select id="invitedRoom" parameterType="int" resultType="VideoCallResponse">
+select vc.ROOM_UUID
+	,vc.CHAL_NO
+	,vc.ROOM_NAME
+	,vc.CREATE_DATE
+	,vc.IS_RESTRICT
+	,vc.STATUS
+	,c.TITLE
+	,c.CONTENT
+	,u.NICK
+from VIDEO_CALL vc
+left join CHALLENGE c on(c.CHAL_NO = vc.CHAL_NO)
+left join USERS u on(u.USER_NO = c.USER_NO)
+left join CHALLENGE_PARTICIPATION cp on(cp.CHAL_NO = c.CHAL_NO)
+where cp.USER_NO = #{userNo}
+and c.USER_NO != #{userNo}
+and vc.STATUS != 'D'
+and (
+	(vc.IS_RESTRICT = 'Y' AND cp.STATUS = 'Y')
+	OR (vc.IS_RESTRICT = 'N' AND cp.CHAL_NO IS NOT NULL)
+	OR (vc.IS_RESTRICT = 'S' AND cp.STATUS IN ('Y', 'S'))
+)
+order by CASE WHEN vc.STATUS = 'Y' THEN 0 ELSE 1 END,
+	CASE WHEN vc.STATUS = 'N' THEN 0 ELSE 1 END,
+	vc.CREATE_DATE
+</select>
+
+<update id="openRoom" parameterType="ConnectByUuid">
+update VIDEO_CALL vc
+set STATUS = 'Y'
+where vc.ROOM_UUID = #{uuid}
+and STATUS = 'N'
+and EXISTS(
+	select * FROM CHALLENGE c
+	where c.CHAL_NO = vc.CHAL_NO
+	and c.USER_NO = #{refNo}
+)
+</update>
+
+<select id="isParticipant" parameterType="ConnectByUuid" resultType="int">
+select count(*)
+from CHALLENGE_PARTICIPATION cp
+left join CHALLENGE c on(c.CHAL_NO = cp.CHAL_NO)
+left join VIDEO_CALL vc on(vc.CHAL_NO = c.CHAL_NO)
+where cp.USER_NO = #{refNo}
+and vc.ROOM_UUID = #{uuid}
+and (
+	vc.IS_RESTRICT = 'N'
+	or (vc.IS_RESTRICT = 'Y' and cp.STATUS = 'Y')
+	or (vc.IS_RESTRICT = 'S' and cp.STATUS in ('Y', 'S'))
+)
+</select>
+
+<delete id="deleteRoom" parameterType="ConnectByUuid">
+delete from VIDEO_CALL vc
+where vc.ROOM_UUID = #{uuid}
+and EXISTS(
+	select *
+	from CHALLENGE c
+	where c.CHAL_NO = vc.CHAL_NO
+	and c.USER_NO = #{refNo}
+)
+</delete>
+
+<select id="openedRoom" resultType="RoomStatus">
+select ROOM_UUID, STATUS
+from VIDEO_CALL
+where STATUS = 'Y'
+</select>
+
+<update id="closeNoManRooms" parameterType="list">
+update VIDEO_CALL
+set STATUS = 'N'
+where ROOM_UUID in
+<foreach collection="list" item="item" open="(" separator="," close=")">
+	#{item}
+</foreach>
+</update>
+
+<select id="isOwner" parameterType="ConnectByUuid" resultType="int">
+select count(*)
+from VIDEO_CALL vc
+left join CHALLENGE c on(c.CHAL_NO = vc.CHAL_NO)
+where vc.ROOM_UUID = #{uuid}
+and c.USER_NO = #{refNo}
+</select>
+
+</mapper>
