@@ -15,7 +15,17 @@ public class Goal {
     private String title;        // 주제
     private String content;      // 내용
     private Date startDate;      // 시작일
-    private Date repeatTime;     // 종료일
+    private Date endDate;     // 종료일
     private String status;       // 상태
+
+    private String goalCategory;
+    private String whyGoal;
+    private String action;
+    private Integer beforeState;
+    private Integer afterState;
+    private String unit;
+    private String deadlineType;
+    private Integer deadlineValue;
+    private String deadlineUnit;
 
 }

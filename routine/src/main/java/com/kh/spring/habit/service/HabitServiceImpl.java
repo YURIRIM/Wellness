@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.spring.habit.dao.HabitDao;
+import com.kh.spring.habit.model.vo.Goal;
 import com.kh.spring.habit.model.vo.Habit;
 import com.kh.spring.habit.model.vo.HabitCheck;
 import com.kh.spring.habit.model.vo.HabitRepeat;
@@ -84,6 +85,20 @@ public class HabitServiceImpl implements HabitService {
 	        // 4. 습관 삭제
 	        dao.deleteHabit(sqlSession, habitNo);
 	    }
+
+	    
+	    //목표 추가
+		@Override
+		public int insertGoal(Goal goal) {
+			
+			return dao.insertGoal(sqlSession,goal);
+		}
+
+//		@Override
+//		public Goal selectGoal(int goalNo) {
+//			// TODO Auto-generated method stub
+//			return dao.selectGoal(sqlSession,goalNo);
+//		}
 
 
 }
