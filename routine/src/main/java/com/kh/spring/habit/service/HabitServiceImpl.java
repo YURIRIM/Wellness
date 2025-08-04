@@ -1,9 +1,7 @@
 package com.kh.spring.habit.service;
 
-import java.time.LocalDate;
-import java.util.HashMap;
+import java.sql.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.kh.spring.habit.dao.HabitDao;
+import com.kh.spring.habit.model.vo.Goal;
 import com.kh.spring.habit.model.vo.Habit;
 import com.kh.spring.habit.model.vo.HabitCheck;
-import com.kh.spring.habit.model.vo.HabitRepeat;
 
 @Service
 public class HabitServiceImpl implements HabitService {
@@ -24,23 +22,7 @@ public class HabitServiceImpl implements HabitService {
 	@Autowired
 	private SqlSessionTemplate sqlSession;
 
-	@Override
-	@Transactional
-	public int insertHabit(Habit h) {
-		int result = dao.insertHabit(sqlSession, h); // 습관 insert + PK 생성
 
-		HabitRepeat repeat = h.getRepeat();
-		System.out.println(repeat);
-		if (repeat != null) {
-			repeat.setHabitNo(h.getHabitNo()); // 생성된 habitNo 세팅
-			System.out.println("habitNo: " + h.getHabitNo());
-			System.out.println(repeat);
-			// weekDays가 이미 String이면 별도 처리 불필요
-			int resultt = dao.insertHabitRepeat(sqlSession, repeat); // 반복 정보 insert
-		}
-
-		return result;
-	}
 
 	@Override
 	public List<Habit> habitList() {
@@ -84,6 +66,59 @@ public class HabitServiceImpl implements HabitService {
 	        // 4. 습관 삭제
 	        dao.deleteHabit(sqlSession, habitNo);
 	    }
+
+	    
+	    //목표 추가
+		@Override
+		public int insertGoal(Goal goal) {
+			
+			return dao.insertGoal(sqlSession,goal);
+		}
+
+		@Override
+		public List<Goal> selectGoalsByUser(int userNo) {
+			// TODO Auto-generated method stub
+			return dao.selectGoalsByUser(sqlSession,userNo);
+		}
+		
+		@Override
+		@Transactional
+		public void insertHabit(Habit habit) {
+	        // habit 테이블 저장
+	        dao.insertHabit(sqlSession, habit);
+
+	        // HabitRepeat가 있다면 별도로 저장 (DAO, Mapper에 구현 필요)
+	        if (habit.getRepeat() != null) {
+	            dao.insertHabitRepeat(sqlSession,habit.getHabitNo(), habit.getRepeat());
+	        }}
+
+		@Override
+	    public List<Goal> findGoalsWithHabits(int userNo) {
+	        // 1. 사용자 목표 목록 조회
+	        List<Goal> goals = dao.selectGoalsByUser(sqlSession,userNo);
+	        
+	        // 2. 각 목표별 습관 리스트 조회 후 Goal 객체의 habits 필드에 넣기
+	        for (Goal goal : goals) {
+	            List<Habit> habits = dao.selectHabitsByGoal(sqlSession,goal.getGoalNo());
+	            goal.setHabits(habits);
+	        }
+	        return goals;
+	    }
+		
+		
+		
+		@Override
+	    public List<HabitCheck> getChecksByHabit(int habitNo) {
+	        return dao.selectChecksByHabit(sqlSession, habitNo);
+	    }
+
+
+
+//		@Override
+//		public Goal selectGoal(int goalNo) {
+//			// TODO Auto-generated method stub
+//			return dao.selectGoal(sqlSession,goalNo);
+//		}
 
 
 }

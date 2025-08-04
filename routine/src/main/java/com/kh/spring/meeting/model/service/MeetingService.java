@@ -16,7 +16,7 @@ public interface MeetingService {
     int joinMeeting(int meetingNo, int userNo);
     int leaveMeeting(int meetingNo, int userNo);
     List<MeetingPart> selectMeetingPartsByMeetingNo(int meetingNo);
-    List<MeetingPart> selectMeetingPartsByUserNo(int userNo);
+    List<Meeting> selectMeetingPartsByUserNo(int userNo);
     int selectMeetingPartCount(int meetingNo);
     boolean isUserParticipant(int meetingNo, int userNo);
 }

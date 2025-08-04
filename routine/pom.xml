@@ -285,19 +285,10 @@
 		    <version>3.10.1</version>
 		</dependency>
 		
-		<!--잼미니-->
 		<dependency>
-		    <groupId>com.google.genai</groupId>
-		    <artifactId>google-genai</artifactId>
-		    <version>1.9.0</version>
+		    <groupId>com.fasterxml.jackson.dataformat</groupId>
+		    <artifactId>jackson-dataformat-xml</artifactId>
 		</dependency>
-		
-		<!--스프링 캐쉬-->
-		<dependency>
-		  <groupId>org.springframework.boot</groupId>
-		  <artifactId>spring-boot-starter-cache</artifactId>
-		</dependency>
-
 
 	</dependencies>
 

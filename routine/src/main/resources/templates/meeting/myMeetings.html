@@ -2,7 +2,7 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>모임 목록</title>
+    <title>내가 만든 모임</title>
     <th:block th:replace="~{common/fragment :: library}"></th:block>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
@@ -26,47 +26,32 @@
         .card-meta { font-size: 0.8rem; color: #8592A0; display: flex; flex-direction: column; gap: 6px; margin-top: auto; }
         .card-meta span { display: flex; align-items: center; }
         .card-meta i { margin-right: 8px; font-size: 1rem; }
-        .card-footer { background-color: #FDFEFE; padding: 16px 24px; text-align: center; border-top: 1px solid #EAECEF; }
-        .card-footer a { text-decoration: none; color: #4A90E2; font-weight: 600; display: block; }
+        .card-footer { background-color: #FDFEFE; padding: 12px 24px; border-top: 1px solid #EAECEF; display: flex; gap: 10px; }
+        .card-footer a { text-decoration: none; font-weight: 600; flex-grow: 1; text-align: center; padding: 8px; border-radius: 6px; transition: background-color 0.2s ease; }
+        .footer-btn-primary { color: #4A90E2; border: 1px solid #4A90E2; }
+        .footer-btn-primary:hover { background-color: #4A90E2; color: #fff; }
+        .footer-btn-secondary { color: #6c757d; border: 1px solid #6c757d; }
+        .footer-btn-secondary:hover { background-color: #6c757d; color: #fff; }
         .empty-state { text-align: center; padding: 60px; background: #fff; border-radius: 12px; border: 1px solid #EAECEF; }
     </style>
 </head>
 <body>
     <th:block th:replace="~{common/fragment :: header}"></th:block>
-        
+    
     <div class="page-container">
         <div class="page-header">
-            <h2>전체 모임</h2>
+            <h2>내가 만든 모임</h2>
             <div class="action-buttons">
                 <a th:href="@{/meeting/create}" class="btn-primary"><i class="bi bi-plus-lg"></i> 새 모임</a>
-                <a th:href="@{/meeting/my}" class="btn-secondary"><i class="bi bi-person-fill"></i> 내 모임</a>
+                <a th:href="@{/meeting/list}" class="btn-secondary"><i class="bi bi-list-ul"></i> 전체 모임</a>
                 <a th:href="@{/meeting/joined}" class="btn-info"><i class="bi bi-check2-circle"></i> 참여중인 모임</a>
             </div>
         </div>
         
-        <div th:if="${!#lists.isEmpty(meetingList)}" class="meeting-grid">
-            <div class="meeting-card" th:each="meeting : ${meetingList}">
+        <div th:if="${!#lists.isEmpty(myMeetings)}" class="meeting-grid">
+            <div class="meeting-card" th:each="meeting : ${myMeetings}">
                 <div class="card-content">
                     <h5 class="card-title" th:text="${meeting.title}">모임 제목</h5>
                     <p class="card-description" th:text="${meeting.description}">모임 소개</p>
                     <div class="card-meta">
-                        <span><i class="bi bi-calendar-event"></i><span th:text="${#temporals.format(meeting.meetingDate, 'MM.dd HH:mm')}"></span></span>
-                        <span th:if="${meeting.locationObject}"><i class="bi bi-geo-alt"></i><span th:text="${meeting.locationObject.address}"></span></span>
-                        <span><i class="bi bi-person"></i><span th:text="${meeting.creatorName}"></span></span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a th:href="@{/meeting/detail/{meetingNo}(meetingNo=${meeting.meetingNo})}">자세히 보기 &rarr;</a>
-                </div>
-            </div>
-        </div>
-        
-        <div th:if="${#lists.isEmpty(meetingList)}" class="empty-state">
-            <i class="bi bi-journal-x display-4 text-muted"></i>
-            <h4 class="mt-3">아직 모임이 없습니다.</h4>
-            <p class="text-muted">새로운 모임을 만들어보세요!</p>
-            <a th:href="@{/meeting/create}" class="btn btn-primary mt-3"><i class="bi bi-plus-lg"></i> 첫 모임 만들기</a>
-        </div>
-    </div>
-</body>
-</html>
+                        <span><i class="bi bi-calendar-event"></i><span th:text="${#temporals.format(meeting.meetingDate, 'MM.dd HH:mm')}">

@@ -4,6 +4,7 @@ import com.kh.spring.user.model.vo.User;
 
 public interface UserService {
 
+	
     // 로그인 기능 (SELECT)
     User loginUser(User u);
     
