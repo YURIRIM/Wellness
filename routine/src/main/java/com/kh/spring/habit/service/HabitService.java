@@ -1,16 +1,14 @@
 package com.kh.spring.habit.service;
 
-import java.time.LocalDate;
-import java.time.YearMonth;
+import java.sql.Date;
 import java.util.List;
-import java.util.Map;
 
 import com.kh.spring.habit.model.vo.Goal;
 import com.kh.spring.habit.model.vo.Habit;
+import com.kh.spring.habit.model.vo.HabitCheck;
 
 public interface HabitService {
 
-	int insertHabit(Habit habit);
 
 	List<Habit> habitList();
 
@@ -25,4 +23,12 @@ public interface HabitService {
     int insertGoal(Goal goal);
 //    Goal selectGoal(int goalNo);
 
+
+	List<Goal> selectGoalsByUser(int userNo);
+
+	void insertHabit(Habit habit);
+
+	List<Goal> findGoalsWithHabits(int userNo);
+
+	List<HabitCheck> getChecksByHabit(int habitNo); // 전체
 }

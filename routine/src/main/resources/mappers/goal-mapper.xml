@@ -24,6 +24,16 @@
     <result property="deadlineValue" column="DEADLINE_VALUE" />
     <result property="deadlineUnit" column="DEADLINE_UNIT" />
   </resultMap>
+  
+
+<select id="selectGoalsByUser" parameterType="int" resultMap="goalResultMap">
+  SELECT 
+      *
+  FROM GOAL
+  WHERE USER_NO = #{userNo}
+  ORDER BY START_DATE DESC
+</select>
+
 
   <!-- insert -->
   <insert id="insertGoal" parameterType="Goal" useGeneratedKeys="false">
@@ -36,12 +46,14 @@
       DEADLINE_TYPE, DEADLINE_VALUE, DEADLINE_UNIT
     )
     VALUES (
-      #{goalNo}, #{userNo}, #{title}, #{content}, SYSDATE, #{endDate}, #{status},
+      #{goalNo}, #{userNo},  CONCAT(CONCAT(CONCAT(#{action}, ' '), #{afterState}), #{unit}), #{content}, SYSDATE, #{endDate}, #{status},
       #{goalCategory}, #{whyGoal}, #{action}, #{beforeState}, #{afterState}, #{unit},
       #{deadlineType}, #{deadlineValue}, #{deadlineUnit}
     )
   </insert>
-	
-	
+  
+  
+  
+
 
 </mapper>

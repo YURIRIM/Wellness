@@ -5,151 +5,161 @@
 
 <mapper namespace="habitMapper">
 
-	<resultMap id="habitResultMap" type="Habit">
-        <id property="habitNo" column="HABIT_NO" />
-        <result property="userNo" column="USER_NO" />
-        <result property="title" column="TITLE" />
-        <result property="startDate" column="START_DATE" />
-        <result property="isChallenge" column="IS_CHALLENGE" />
-        <result property="totalCheck" column="TOTAL_CHECK" />
-        <result property="currentCheck" column="CURRENT_CHECK" />
-        <result property="maxCheck" column="MAX_CHECK" />
-        <result property="status" column="STATUS" />
-        <result property="lastCheck" column="LAST_CHECK" />
-    </resultMap>
-    
-    <!-- habitRepeat-resultMap.xml -->
-	<resultMap id="HabitRepeatResultMap" type="HabitRepeat">
-	    <id property="repeatNo" column="repeat_no" />
-	    <result property="habitNo" column="habit_no" />
-	    <result property="repeatType" column="repeat_type" />
-	    <result property="interval" column="interval" />
-	    
-	    <result property="weekDays" column="week_days" />
-	    <result property="nthWeek" column="nth_week" />
-	    
-	    <result property="dayOfMonth" column="day_of_month" />
-	    
-	    <result property="yearlyMonth" column="yearly_month" />
-	    <result property="yearlyDay" column="yearly_day" />
-	    
-	    <result property="yearlyNthWeek" column="yearly_nth_week" />
-	    <result property="yearlyDayOfWeek" column="yearly_day_of_week" />
-	    
-	    <result property="repeatTime" column="repeat_time" javaType="java.time.LocalTime" jdbcType="TIME"/>
-	    <result property="allDay" column="all_day" jdbcType="BOOLEAN"/>
-	</resultMap>
+  <!-- Habit resultMap -->
+  <resultMap id="habitResultMap" type="Habit">
+    <id property="habitNo" column="habit_no"/>
+    <result property="userNo" column="user_no"/>
+    <result property="goalNo" column="goal_no"/>
+    <result property="title" column="title"/>
+    <result property="what" column="what"/>
+    <result property="amount" column="amount"/>
+    <result property="unit" column="unit"/>
+    <result property="startDate" column="start_date"/>
+    <result property="isChallenge" column="is_challenge"/>
+    <result property="totalCheck" column="total_check"/>
+    <result property="currentCheck" column="current_check"/>
+    <result property="maxCheck" column="max_check"/>
+    <result property="status" column="status"/>
+    <result property="lastCheck" column="last_check"/>
+    <result property="action" column="action"/>
+    <association property="repeat" javaType="HabitRepeat" resultMap="habitRepeatResultMap" />
+  </resultMap>
 
-	
-	
-	
-	
-	
+  <!-- HabitRepeat resultMap -->
+  <resultMap id="habitRepeatResultMap" type="HabitRepeat">
+    <id property="repeatId" column="repeat_id"/>
+    <result property="habitNo" column="habit_no"/>
+    <result property="repeatType" column="repeat_type"/>
+    <result property="interval" column="interval"/>
+    <result property="weekDaysInterval" column="week_days_interval"/>
+    <result property="weekDays" column="week_days"/>
+    <result property="nthWeeks" column="nth_weeks"/>
+    <result property="allDay" column="all_day"/>
+    <result property="repeatTime" column="repeat_time"/>
+  </resultMap>
 
-    <!-- 전체 목록 조회 -->
-    <select id="habitList" resultMap="habitResultMap">
-        SELECT * FROM HABIT
-        ORDER BY HABIT_NO
-    </select>
+  <!-- Goal resultMap -->
+  <resultMap id="goalResultMap" type="Goal">
+    <id property="goalNo" column="goal_no"/>
+    <result property="userNo" column="user_no"/>
+    <result property="title" column="title"/>
+    <result property="content" column="content"/>
+    <result property="startDate" column="start_date"/>
+    <result property="endDate" column="end_date"/>
+    <result property="status" column="status"/>
+    <result property="goalCategory" column="goal_category"/>
+    <result property="whyGoal" column="why_goal"/>
+    <result property="action" column="action"/>
+    <result property="beforeState" column="before_state"/>
+    <result property="afterState" column="after_state"/>
+    <result property="unit" column="unit"/>
+    <result property="deadlineType" column="deadline_type"/>
+    <result property="deadlineValue" column="deadline_value"/>
+    <result property="deadlineUnit" column="deadline_unit"/>
+    <collection property="habits" ofType="Habit" resultMap="habitResultMap"/>
+  </resultMap>
 
-    <!-- 한 건 조회 (PK 기준) -->
-    <select id="selectHabitByNo" parameterType="int" resultMap="habitResultMap">
-        SELECT * FROM HABIT WHERE HABIT_NO = #{habitNo}
-    </select>
+  <!-- HabitCheck resultMap -->
+  <resultMap id="habitCheckResultMap" type="HabitCheck">
+    <id property="checkNo" column="check_no"/>
+    <result property="habitNo" column="habit_no"/>
+    <result property="status" column="status"/>
+    <result property="checkDate" column="check_date"/>
+  </resultMap>
 
-    <!-- 삽입 -->
-	<insert id="insertHabit" parameterType="Habit">
-	<selectKey resultType="int" keyProperty="habitNo" order="BEFORE">
-    SELECT HABIT_SEQ.NEXTVAL FROM DUAL
-  </selectKey>
-		INSERT INTO HABIT(
-		HABIT_NO, USER_NO, TITLE, START_DATE, IS_CHALLENGE,
-		TOTAL_CHECK, CURRENT_CHECK, MAX_CHECK, STATUS, LAST_CHECK
-		) VALUES (
-		#{habitNo}, #{userNo}, #{title}, #{startDate}, #{isChallenge},
-		#{totalCheck}, #{currentCheck}, #{maxCheck}, 'Y', SYSDATE
-		)
-	</insert>
-	
-	<insert id="insertHabitRepeat" parameterType="HabitRepeat">
-    INSERT INTO HABIT_REPEAT (
-        repeat_no,
-        habit_no,
-        repeat_type,
-        interval,
-        week_days,
-        nth_week,
-        day_of_month,
-        yearly_month,
-        yearly_day,
-        yearly_nth_week,
-        yearly_day_of_week,
-        repeat_time,
-        all_day
+  <!-- 특정 습관의 체크 이력 전체 조회 -->
+  <select id="selectChecksByHabit" parameterType="int" resultMap="habitCheckResultMap">
+    SELECT check_no, habit_no, status, check_date
+    FROM habit_check
+    WHERE habit_no = #{habitNo}
+    ORDER BY check_date
+  </select>
+
+  <!-- 전체 목록 조회 -->
+  <select id="habitList" resultMap="habitResultMap">
+    SELECT * FROM habit
+    ORDER BY habit_no
+  </select>
+
+  <!-- 한 건 조회 (PK 기준) -->
+  <select id="selectHabitByNo" parameterType="int" resultMap="habitResultMap">
+    SELECT * FROM habit WHERE habit_no = #{habitNo}
+  </select>
+
+  <!-- Habit 삽입 -->
+  <insert id="insertHabit" parameterType="Habit" useGeneratedKeys="false" keyProperty="habitNo">
+    <selectKey keyProperty="habitNo" resultType="int" order="BEFORE">
+      SELECT HABIT_SEQ.NEXTVAL FROM DUAL
+    </selectKey>
+    INSERT INTO habit (
+      habit_no, user_no, goal_no, title, what, amount, unit, action, start_date,
+      is_challenge, total_check, current_check, max_check, status, last_check
     ) VALUES (
-        REPEAT_SEQ.NEXTVAL,
-        #{habitNo},
-        #{repeatType},
-        #{interval},
-        #{weekDays},
-        #{nthWeek},
-        #{dayOfMonth},
-        #{yearlyMonth},
-        #{yearlyDay},
-        #{yearlyNthWeek},
-        #{yearlyDayOfWeek},
-        #{repeatTimeStr},
-        #{allDay}
+      #{habitNo}, #{userNo}, #{goalNo}, #{title}, #{what}, #{amount}, #{unit}, #{action}, #{startDate},
+      #{isChallenge}, #{totalCheck}, #{currentCheck}, #{maxCheck}, #{status}, #{lastCheck}
     )
-</insert>
+  </insert>
 
-	<!-- 1. 사용자 습관 리스트 -->
-    <select id="selectHabitsByUser" resultType="com.kh.spring.habit.model.vo.Habit">
-        SELECT * FROM HABIT
-        WHERE USER_NO = #{userNo}
-    </select>
-    
-    
-    
-    
-    
-    
-    
-    <select id="selectById" parameterType="_int" resultType="Habit">
-        SELECT * FROM HABIT WHERE HABIT_NO = #{habitNo}
-    </select>
+  <!-- HabitRepeat 삽입 -->
+  <insert id="insertHabitRepeat" parameterType="com.kh.spring.habit.model.vo.HabitRepeat">
+    INSERT INTO habit_repeat (
+      repeat_id, habit_no, repeat_type, interval, week_days_interval, week_days,
+      nth_weeks, all_day, repeat_time
+    ) VALUES (
+      habit_repeat_seq.NEXTVAL, #{habitNo}, #{repeatType}, #{interval}, #{weekDaysInterval}, #{weekDays},
+      #{nthWeeks}, #{allDay}, #{repeatTime}
+    )
+  </insert>
 
-    <update id="updateHabit" parameterType="Habit">
-        UPDATE HABIT
-        SET TITLE = #{title},
-            GOAL_NO = #{goalNo},
-            UPDATED_AT = SYSDATE
-        WHERE HABIT_NO = #{habitNo}
-    </update>
+  <!-- Habit 수정 -->
+  <update id="updateHabit" parameterType="com.kh.spring.habit.model.vo.Habit">
+    UPDATE habit
+    SET title = #{title},
+        goal_no = #{goalNo},
+        updated_at = SYSDATE
+    WHERE habit_no = #{habitNo}
+  </update>
 
-    <delete id="deleteStreakRewardsByHabitNo" parameterType="_int">
-	    DELETE FROM STREAK_REWARD
-	    WHERE HABIT_NO = #{habitNo}
-	</delete>
-	
-	<delete id="deleteHabitChecks" parameterType="_int">
-	    DELETE FROM HABIT_CHECK
-	    WHERE HABIT_NO = #{habitNo}
-	</delete>
-	
-	<delete id="deleteHabitRepeats" parameterType="_int">
-	    DELETE FROM HABIT_REPEAT
-	    WHERE HABIT_NO = #{habitNo}
-	</delete>
-    
-    
-    <delete id="deleteHabit" parameterType="_int">
-        DELETE FROM HABIT 
-        WHERE HABIT_NO = #{habitNo}
-    </delete>
-    
+  <!-- 삭제 관련 -->
+  <delete id="deleteStreakRewardsByHabitNo" parameterType="int">
+    DELETE FROM streak_reward WHERE habit_no = #{habitNo}
+  </delete>
 
-	
-	
+  <delete id="deleteHabitChecks" parameterType="int">
+    DELETE FROM habit_check WHERE habit_no = #{habitNo}
+  </delete>
+
+  <delete id="deleteHabitRepeats" parameterType="int">
+    DELETE FROM habit_repeat WHERE habit_no = #{habitNo}
+  </delete>
+
+  <delete id="deleteHabit" parameterType="int">
+    DELETE FROM habit WHERE habit_no = #{habitNo}
+  </delete>
+
+  <!-- 목표별 습관 목록 조회 -->
+  <select id="selectHabitsByGoal" parameterType="int" resultMap="habitResultMap">
+    SELECT * FROM habit WHERE goal_no = #{goalNo} ORDER BY habit_no DESC
+  </select>
+
+  <!-- 사용자별 습관 목록 조회 -->
+  <select id="selectHabitsByUser" parameterType="int" resultMap="habitResultMap">
+    SELECT * FROM habit WHERE user_no = #{userNo} ORDER BY habit_no DESC
+  </select>
+
+  <!-- 사용자별 목표 및 습관 조인 조회 -->
+  <select id="selectGoalsWithHabitsByUser" parameterType="int" resultMap="goalResultMap" fetchSize="100">
+    SELECT 
+      g.goal_no, g.user_no, g.title, g.content, g.start_date, g.end_date, g.status,
+      g.goal_category, g.why_goal, g.action, g.before_state, g.after_state, g.unit,
+      g.deadline_type, g.deadline_value, g.deadline_unit,
+      h.habit_no, h.user_no AS habit_user_no, h.goal_no AS habit_goal_no, h.title AS habit_title,
+      h.what, h.amount, h.unit AS habit_unit, h.action AS habit_action, h.start_date AS habit_start_date,
+      h.is_challenge, h.total_check, h.current_check, h.max_check, h.status AS habit_status, h.last_check
+    FROM goal g
+    LEFT JOIN habit h ON g.goal_no = h.goal_no
+    WHERE g.user_no = #{userNo}
+    ORDER BY g.start_date DESC, h.habit_no DESC
+  </select>
 
 </mapper>
