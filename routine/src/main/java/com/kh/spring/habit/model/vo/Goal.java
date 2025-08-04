@@ -1,6 +1,7 @@
 package com.kh.spring.habit.model.vo;
 
 import java.sql.Date;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,5 +28,7 @@ public class Goal {
     private String deadlineType;
     private Integer deadlineValue;
     private String deadlineUnit;
-
+    
+    private List<Habit> habits;
+    
 }

@@ -29,4 +29,6 @@ public interface HabitService {
 
 	void insertHabit(Habit habit);
 
+	List<Goal> findGoalsWithHabits(int userNo);
+
 }

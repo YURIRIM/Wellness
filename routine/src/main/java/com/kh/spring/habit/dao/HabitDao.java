@@ -2,7 +2,6 @@ package com.kh.spring.habit.dao;
 
 import java.util.List;
 
-import org.apache.ibatis.session.SqlSession;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -12,83 +11,67 @@ import com.kh.spring.habit.model.vo.HabitRepeat;
 
 @Repository
 public class HabitDao {
-	
 
-
-	public List<Habit> habitList(SqlSessionTemplate sqlSession) {
-		return sqlSession.selectList("habitMapper.habitList");
-	}
-
-	public int insertHabitRepeat(SqlSessionTemplate sqlSession, HabitRepeat repeat) {
-	    return sqlSession.insert("habitMapper.insertHabitRepeat", repeat);
-	}
-
-	public List<Habit> selectHabitsByUser(SqlSessionTemplate sqlSession, int userNo) {
-		// TODO Auto-generated method stub
-		return sqlSession.selectList("habitMapper.selectHabitsByUser", userNo);
-	}
-	
-	
-	
-	public Habit selectById(SqlSessionTemplate session, int habitNo) {
-        return session.selectOne("habitMapper.selectById", habitNo);
+    public List<Habit> habitList(SqlSessionTemplate sqlSession) {
+        return sqlSession.selectList("habitMapper.habitList");
     }
 
-    public int updateHabit(SqlSessionTemplate session, Habit habit) {
-        return session.update("habitMapper.updateHabit", habit);
+    public int insertHabitRepeat(SqlSessionTemplate sqlSession, HabitRepeat repeat) {
+        return sqlSession.insert("habitMapper.insertHabitRepeat", repeat);
     }
 
-    
-    
-    
-    
-    
-    public void deleteStreakRewardsByHabitNo(SqlSessionTemplate session, int  habitNo) {
-    	session.delete("habitMapper.deleteStreakRewardsByHabitNo", habitNo);
+    public List<Habit> selectHabitsByUser(SqlSessionTemplate sqlSession, int userNo) {
+        return sqlSession.selectList("habitMapper.selectHabitsByUser", userNo);
     }
 
-    public void deleteHabitChecks(SqlSessionTemplate session, int  habitNo) {
-    	session.delete("habitMapper.deleteHabitChecks", habitNo);
+    public Habit selectById(SqlSessionTemplate sqlSession, int habitNo) {
+        return sqlSession.selectOne("habitMapper.selectById", habitNo);
     }
 
-    public void deleteHabitRepeats(SqlSessionTemplate session, int  habitNo) {
-    	session.delete("habitMapper.deleteHabitRepeats", habitNo);
-    }
-    
-    public int deleteHabit(SqlSessionTemplate session, int habitNo) {
-        return session.delete("habitMapper.deleteHabit", habitNo);
+    public int updateHabit(SqlSessionTemplate sqlSession, Habit habit) {
+        return sqlSession.update("habitMapper.updateHabit", habit);
     }
 
-    
-    
-    public int insertGoal(SqlSessionTemplate session,Goal goal) {
-    	return session.insert("goalMapper.insertGoal",goal);
+    public void deleteStreakRewardsByHabitNo(SqlSessionTemplate sqlSession, int habitNo) {
+        sqlSession.delete("habitMapper.deleteStreakRewardsByHabitNo", habitNo);
     }
 
+    public void deleteHabitChecks(SqlSessionTemplate sqlSession, int habitNo) {
+        sqlSession.delete("habitMapper.deleteHabitChecks", habitNo);
+    }
 
-	public List<Goal> selectGoalsByUser(SqlSessionTemplate session, int userNo) {
-		// TODO Auto-generated method stub
-		return session.selectList("goalMapper.selectGoalsByUser",userNo);
-	}
-	
-	
-	
+    public void deleteHabitRepeats(SqlSessionTemplate sqlSession, int habitNo) {
+        sqlSession.delete("habitMapper.deleteHabitRepeats", habitNo);
+    }
 
-	public int insertHabit(SqlSessionTemplate sqlSession, Habit h) {
-	    return sqlSession.insert("habitMapper.insertHabit", h);
-	}
+    public int deleteHabit(SqlSessionTemplate sqlSession, int habitNo) {
+        return sqlSession.delete("habitMapper.deleteHabit", habitNo);
+    }
 
-	public void insertHabitRepeat(SqlSessionTemplate session, int habitNo, HabitRepeat repeat) {
-	    repeat.setHabitNo(habitNo);
-	    session.insert("habitMapper.insertHabitRepeat", repeat);
-	}
+    public int insertGoal(SqlSessionTemplate sqlSession, Goal goal) {
+        return sqlSession.insert("goalMapper.insertGoal", goal);
+    }
 
+    public List<Goal> selectGoalsByUser(SqlSessionTemplate sqlSession, int userNo) {
+        return sqlSession.selectList("goalMapper.selectGoalsByUser", userNo);
+    }
 
-//    public Goal selectGoal(SqlSessionTemplate session,int goalNo) {
-//        return session.selectOne("goalMapper.selectGoalByNo(goalNo)",goalNo);
-//    }
+    public int insertHabit(SqlSessionTemplate sqlSession, Habit habit) {
+        return sqlSession.insert("habitMapper.insertHabit", habit);
+    }
 
-	
+    /**
+     * habitNo가 필요하므로 사전에 habit insert 후 호출해야 함
+     */
+    public int insertHabitRepeat(SqlSessionTemplate sqlSession, int habitNo, HabitRepeat repeat) {
+        repeat.setHabitNo(habitNo);
+        return sqlSession.insert("habitMapper.insertHabitRepeat", repeat);
+    }
 
-
+    /**
+     * 목표별 습관 리스트 조회
+     */
+    public List<Habit> selectHabitsByGoal(SqlSessionTemplate sqlSession, int goalNo) {
+        return sqlSession.selectList("habitMapper.selectHabitsByGoal", goalNo);
+    }
 }

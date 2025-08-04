@@ -122,6 +122,19 @@
         WHERE HABIT_NO = #{habitNo}
     </delete>
     
+     <select id="selectGoalsWithHabitsByUser" parameterType="int" resultMap="goalResultMap" fetchSize="100">
+    SELECT 
+      g.GOAL_NO, g.USER_NO, g.TITLE, g.CONTENT, g.START_DATE, g.END_DATE, g.STATUS,
+      g.GOAL_CATEGORY, g.WHY_GOAL, g.ACTION, g.BEFORE_STATE, g.AFTER_STATE, g.UNIT,
+      g.DEADLINE_TYPE, g.DEADLINE_VALUE, g.DEADLINE_UNIT,
+      h.HABIT_NO, h.USER_NO AS HABIT_USER_NO, h.GOAL_NO AS HABIT_GOAL_NO, h.TITLE AS HABIT_TITLE,
+      h.WHAT, h.AMOUNT, h.UNIT AS HABIT_UNIT, h.ACTION AS HABIT_ACTION, h.START_DATE AS HABIT_START_DATE,
+      h.IS_CHALLENGE, h.TOTAL_CHECK, h.CURRENT_CHECK, h.MAX_CHECK, h.STATUS AS HABIT_STATUS, h.LAST_CHECK
+    FROM GOAL g
+    LEFT JOIN HABIT h ON g.GOAL_NO = h.GOAL_NO
+    WHERE g.USER_NO = #{userNo}
+    ORDER BY g.START_DATE DESC, h.HABIT_NO DESC
+  </select>
 	
 	
 

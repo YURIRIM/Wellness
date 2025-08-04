@@ -34,11 +34,17 @@ public class HabitController {
 
 	@GetMapping("/list")
 	public String habitList(HttpSession session, Model model) {
-		List<Habit> list = service.habitList();
-		model.addAttribute("habit", list);
+	    User loginUser = (User) session.getAttribute("loginUser");
+	    if (loginUser == null) {
+	        return "redirect:/user/login";
+	    }
 
-		return "habit/list";
+	    List<Goal> goals = service.findGoalsWithHabits(loginUser.getUserNo());
+	    model.addAttribute("goals", goals);
+
+	    return "habit/list";  // thymeleaf에서 goals 기반 출력
 	}
+
 	
 	// 등록 폼 보여주기
 	@GetMapping("/goal")
@@ -118,17 +124,15 @@ public class HabitController {
 	
 	
 	
-	 @GetMapping("/edit/{habitNo}")
-	    public String showEditForm() {
-	        return "habit/edit"; 
-	    }
+	// GET 요청 시 수정 폼 로드 + 기존 데이터 모델에 추가
+	@GetMapping("/edit/{habitNo}")
+	public String showEditForm(@PathVariable int habitNo, Model model) {
+	    Habit habit = service.getHabitById(habitNo);
+	    model.addAttribute("habit", habit);
+	    return "habit/edit";
+	}
+
 	 
-	 @PostMapping("/edit/{habitNo}")
-	    public String EditForm(@PathVariable int habitNo, Model model) {
-	        Habit habit = service.getHabitById(habitNo);
-	        model.addAttribute("habit", habit);
-	        return "habit/edit"; // habit 수정용 JSP/Thymeleaf
-	    }
 
 	    @PostMapping("/update")
 	    public String updateHabit(Habit habit, RedirectAttributes ra) {
@@ -146,7 +150,7 @@ public class HabitController {
 	    }
 	    
 	    @PostMapping("/delete/{habitNo}")
-	    public String deleteHabit(@PathVariable("habitNo") int habitNo, RedirectAttributes ra) {
+	    public String deleteHabit(@PathVariable int habitNo, RedirectAttributes ra) {
 	        service.deleteHabit(habitNo);
 	        ra.addFlashAttribute("msg", "습관이 삭제되었습니다.");
 	        return "redirect:/habit/list";
