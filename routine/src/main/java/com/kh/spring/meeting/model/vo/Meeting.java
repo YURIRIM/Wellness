@@ -21,4 +21,5 @@ public class Meeting {
     private Double longitude;     
     private LocalDateTime meetingDate;
     private Location locationObject; 
+    private String creatorName;
 }

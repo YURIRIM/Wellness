@@ -17,4 +17,5 @@ public class ChatMessage {
     private String fileUrl;
     private String fileName;
     private LocalDateTime sentAt;
+    private String userName;
 }

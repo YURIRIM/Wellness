@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
 <mapper namespace="meetingMapper">
 
     <resultMap id="meetingWithLocationResultMap" type="Meeting">
@@ -10,7 +9,8 @@
         <result property="description" column="description"/>
         <result property="locationNo" column="location_no"/>
         <result property="meetingDate" column="meeting_date"/>
-        
+        <result property="creatorName" column="creator_name"/>
+
         <association property="locationObject" javaType="com.kh.spring.recommend.model.vo.Location">
             <id property="locationNo" column="loc_no"/>
             <result property="locationName" column="loc_name"/>
@@ -44,13 +44,9 @@
     </delete>
 
     <select id="selectMeetingByNo" parameterType="int" resultMap="meetingWithLocationResultMap">
-        SELECT 
-            m.meeting_no,
-            m.user_no,
-            m.title,
-            m.description,
-            m.location_no,
-            m.meeting_date,
+        SELECT
+            m.*,
+            u.name as creator_name,
             l.location_no as loc_no,
             l.location_name as loc_name,
             l.address as loc_address,
@@ -59,18 +55,15 @@
             l.nx as loc_nx,
             l.ny as loc_ny
         FROM MEETINGS m
+        JOIN USERS u ON m.user_no = u.user_no
         LEFT JOIN LOCATION l ON m.location_no = l.location_no
         WHERE m.meeting_no = #{meetingNo}
     </select>
 
     <select id="selectMeetingsByUser" parameterType="int" resultMap="meetingWithLocationResultMap">
-        SELECT 
-            m.meeting_no,
-            m.user_no,
-            m.title,
-            m.description,
-            m.location_no,
-            m.meeting_date,
+        SELECT
+            m.*,
+            u.name as creator_name,
             l.location_no as loc_no,
             l.location_name as loc_name,
             l.address as loc_address,
@@ -79,19 +72,16 @@
             l.nx as loc_nx,
             l.ny as loc_ny
         FROM MEETINGS m
+        JOIN USERS u ON m.user_no = u.user_no
         LEFT JOIN LOCATION l ON m.location_no = l.location_no
-        WHERE m.user_no = #{userNo} 
+        WHERE m.user_no = #{userNo}
         ORDER BY m.meeting_date DESC
     </select>
 
     <select id="selectAllMeetings" resultMap="meetingWithLocationResultMap">
-        SELECT 
-            m.meeting_no,
-            m.user_no,
-            m.title,
-            m.description,
-            m.location_no,
-            m.meeting_date,
+        SELECT
+            m.*,
+            u.name as creator_name,
             l.location_no as loc_no,
             l.location_name as loc_name,
             l.address as loc_address,
@@ -100,6 +90,7 @@
             l.nx as loc_nx,
             l.ny as loc_ny
         FROM MEETINGS m
+        JOIN USERS u ON m.user_no = u.user_no
         LEFT JOIN LOCATION l ON m.location_no = l.location_no
         ORDER BY m.meeting_date DESC
     </select>
@@ -119,13 +110,9 @@
     </select>
 
     <select id="selectJoinedMeetingsByUserNo" parameterType="int" resultMap="meetingWithLocationResultMap">
-        SELECT 
-            m.meeting_no,
-            m.user_no,
-            m.title,
-            m.description,
-            m.location_no,
-            m.meeting_date,
+        SELECT
+            m.*,
+            u.name as creator_name,
             l.location_no as loc_no,
             l.location_name as loc_name,
             l.address as loc_address,
@@ -135,6 +122,7 @@
             l.ny as loc_ny
         FROM MEETING_PART mp
         JOIN MEETINGS m ON mp.MEETING_NO = m.MEETING_NO
+        JOIN USERS u ON m.user_no = u.user_no
         LEFT JOIN LOCATION l ON m.location_no = l.location_no
         WHERE mp.USER_NO = #{userNo}
         ORDER BY m.meeting_date DESC
