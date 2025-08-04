@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttribute;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.kh.spring.habit.model.vo.Goal;
 import com.kh.spring.habit.model.vo.Habit;
 import com.kh.spring.habit.service.HabitService;
 import com.kh.spring.user.model.vo.User;
@@ -44,10 +44,26 @@ public class HabitController {
 	
 	
 	@PostMapping("/goal")
-	public String goal(HttpSession session, Model model) {
+	public String goal(@ModelAttribute Goal goal,HttpSession session, RedirectAttributes ra) {
+		 
+		User loginUser = (User) session.getAttribute("loginUser");
+		    if (loginUser == null) {
+		        ra.addFlashAttribute("message", "로그인이 필요합니다.");
+		        return "redirect:/user/login";
+		    }
+
+		    goal.setUserNo(loginUser.getUserNo());
+		    
+		    // 날짜 문자열(YYYYMMDD) -> java.util.Date 변환 처리 필요
 		
-		
+	    int result = service.insertGoal(goal);
+	    if (result > 0) {
+	        ra.addFlashAttribute("message", "목표가 등록되었습니다!");
+	        return "habit/goal"; // 예시
+	    } else {
+	        ra.addFlashAttribute("message", "등록 실패");
 		return "habit/goal";
+	    }
 	}
 	
 	

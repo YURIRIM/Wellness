@@ -40,6 +40,11 @@
 	    <result property="allDay" column="all_day" jdbcType="BOOLEAN"/>
 	</resultMap>
 
+	
+	
+	
+	
+	
 
     <!-- 전체 목록 조회 -->
     <select id="habitList" resultMap="habitResultMap">
