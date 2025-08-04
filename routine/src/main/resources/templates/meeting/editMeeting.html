@@ -4,31 +4,25 @@
     <meta charset="UTF-8">
     <title>모임 수정</title>
     <th:block th:replace="~{common/fragment :: library}"></th:block>
-    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=YOUR_KAKAO_APP_KEY&libraries=services"></script>
+    <script type="text/javascript" th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoJsApiKey} + '&libraries=services'}"></script>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
-        #map {
-            width: 100%;
-            height: 400px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 15px;
-        }
-        .map-search-container {
-            display: flex;
-            margin-bottom: 15px;
-        }
-        .map-search-container input {
-            flex-grow: 1;
-            margin-right: 10px;
-        }
+        body { font-family: 'Pretendard', sans-serif; background-color: #F7F9FC; }
+        .form-container { max-width: 700px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 12px; border: 1px solid #EAECEF; }
+        .form-container h2 { font-weight: 700; font-size: 28px; color: #2C3E50; text-align: center; margin-bottom: 30px; }
+        .form-label { font-weight: 600; color: #5D6D7E; margin-bottom: 8px; }
+        .form-control { border: 1px solid #D5D8DC; border-radius: 6px; padding: 10px 14px; }
+        .form-control:focus { border-color: #4A90E2; box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1); }
+        #map { width: 100%; height: 350px; border-radius: 8px; border: 1px solid #EAECEF; margin-top: 10px; }
+        .btn-submit { background-color: #4A90E2; color: #fff; font-weight: 600; padding: 12px; border-radius: 6px; }
+        .btn-cancel { background-color: #F7F9FC; border: 1px solid #D5D8DC; color: #5D6D7E; font-weight: 600; padding: 12px; border-radius: 6px; }
     </style>
 </head>
 <body>
-	<th:block th:replace="~{common/fragment :: header}"></th:block>	
-	    
-    <div class="container mt-4">
-        <h2>모임 정보 수정</h2>
-        
+    <th:block th:replace="~{common/fragment :: header}"></th:block>    
+    
+    <div class="form-container">
+        <h2 class="mb-4 text-center">모임 정보 수정</h2>
         <form id="editMeetingForm" th:action="@{/meeting/edit}" method="post" th:object="${meeting}">
             <input type="hidden" th:field="*{meetingNo}">
             
@@ -36,113 +30,74 @@
                 <label for="title" class="form-label">모임 제목</label>
                 <input type="text" class="form-control" th:field="*{title}" required>
             </div>
-            
-            <div class="mb-3">
+            <div class="mb-4">
                 <label for="description" class="form-label">모임 소개</label>
                 <textarea class="form-control" th:field="*{description}" rows="4"></textarea>
             </div>
-            
-            <div class="mb-3">
+            <div class="mb-4">
                 <label class="form-label">모임 장소 (지도에서 선택) <span class="text-danger">*</span></label>
-                <div class="map-search-container">
+                <div class="input-group">
                     <input type="text" class="form-control" id="addressSearchInput" placeholder="주소를 검색하세요">
-                    <button type="button" class="btn btn-outline-secondary" id="searchAddressBtn">주소 검색</button>
+                    <button type="button" class="btn btn-outline-secondary" id="searchAddressBtn">검색</button>
                 </div>
                 <div id="map"></div>
-                
                 <input type="hidden" id="latitudeInput" name="latitude" th:value="*{locationObject?.latitude}">
                 <input type="hidden" id="longitudeInput" name="longitude" th:value="*{locationObject?.longitude}">
                 <input type="hidden" id="addressDetailInput" name="addressDetail" th:value="*{locationObject?.address}">
-
-                <div class="alert alert-info" role="alert">
-                    <i class="bi bi-info-circle"></i> 지도에서 모임 장소를 클릭하거나, 주소 검색 후 마커를 옮겨서 정확한 위치를 지정해주세요.
-                    <br> 현재 선택된 주소: <span id="selectedAddressDisplay" class="fw-bold text-primary" th:text="*{locationObject?.address ?: '선택되지 않음'}"></span>
-                </div>
+                <div class="form-text mt-2">선택된 주소: <span id="selectedAddressDisplay" class="fw-bold text-primary" th:text="*{locationObject?.address ?: '선택되지 않음'}"></span></div>
             </div>
-            
-            <div class="mb-3">
-                <button type="submit" class="btn btn-primary">수정 완료</button>
-                <a th:href="@{/meeting/detail/{meetingNo}(meetingNo=${meeting.meetingNo})}" class="btn btn-secondary">취소</a>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a th:href="@{/meeting/detail/{meetingNo}(meetingNo=${meeting.meetingNo})}" class="btn btn-cancel">취소</a>
+                <button type="submit" class="btn btn-submit">수정 완료</button>
             </div>
         </form>
     </div>
 
-    <script>
-        var KAKAO_APP_KEY = '5906707ed128640b9379a3c52b607014'; 
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            const initialLat = /*[[${meeting.locationObject?.latitude}]]*/ 37.566826;
+            const initialLng = /*[[${meeting.locationObject?.longitude}]]*/ 126.9786567;
 
-        const initialLatitude = /*[[${meeting.locationObject?.latitude}]]*/ null;
-        const initialLongitude = /*[[${meeting.locationObject?.longitude}]]*/ null;
-        const initialAddress = /*[[${meeting.locationObject?.address}]]*/ '선택되지 않음';
-
-        window.kakao.maps.load(function() {
-            var mapContainer = document.getElementById('map');
-            var mapOption = { 
-                center: new kakao.maps.LatLng(initialLatitude || 37.566826, initialLongitude || 126.9786567), 
-                level: 3 
-            };
-            var map = new kakao.maps.Map(mapContainer, mapOption); 
-
+            var mapContainer = document.getElementById('map'),
+                mapOption = { center: new kakao.maps.LatLng(initialLat, initialLng), level: 3 };
+            var map = new kakao.maps.Map(mapContainer, mapOption);
             var geocoder = new kakao.maps.services.Geocoder();
-
-            var marker = new kakao.maps.Marker({
-                position: mapOption.center 
-            });
+            var marker = new kakao.maps.Marker({ position: map.getCenter() });
             marker.setMap(map);
 
-            document.getElementById('selectedAddressDisplay').textContent = initialAddress;
-
-            document.getElementById('searchAddressBtn').addEventListener('click', function() {
-                var address = document.getElementById('addressSearchInput').value;
-                if (!address) {
-                    alert('주소를 입력해주세요!');
-                    return;
-                }
-                geocoder.addressSearch(address, function(result, status) {
-                    if (status === kakao.maps.services.Status.OK) {
-                        var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
-                        map.setCenter(coords); 
-                        marker.setPosition(coords); 
-                        
-                        document.getElementById('latitudeInput').value = result[0].y;
-                        document.getElementById('longitudeInput').value = result[0].x;
-                        document.getElementById('addressDetailInput').value = result[0].address_name;
-                        document.getElementById('selectedAddressDisplay').textContent = result[0].address_name;
-
-                    } else {
-                        alert('주소를 찾을 수 없습니다.');
-                    }
-                });
-            });
-
-            kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
-                var latlng = mouseEvent.latLng; 
-                marker.setPosition(latlng); 
-
+            function updateLocation(latlng) {
+                marker.setPosition(latlng);
                 geocoder.coord2Address(latlng.getLng(), latlng.getLat(), function(result, status) {
                     if (status === kakao.maps.services.Status.OK) {
-                        var address = result[0].address ? result[0].address.address_name : result[0].road_address.address_name;
-                        
+                        var address = result[0].road_address ? result[0].road_address.address_name : result[0].address.address_name;
                         document.getElementById('latitudeInput').value = latlng.getLat();
                         document.getElementById('longitudeInput').value = latlng.getLng();
                         document.getElementById('addressDetailInput').value = address;
                         document.getElementById('selectedAddressDisplay').textContent = address;
+                    }
+                });
+            }
 
+            kakao.maps.event.addListener(map, 'click', (mouseEvent) => updateLocation(mouseEvent.latLng));
+
+            document.getElementById('searchAddressBtn').addEventListener('click', function() {
+                var address = document.getElementById('addressSearchInput').value;
+                if (!address) return alert('주소를 입력해주세요!');
+                geocoder.addressSearch(address, function(result, status) {
+                    if (status === kakao.maps.services.Status.OK) {
+                        var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                        map.setCenter(coords);
+                        updateLocation(coords);
                     } else {
-                        document.getElementById('latitudeInput').value = latlng.getLat();
-                        document.getElementById('longitudeInput').value = latlng.getLng();
-                        document.getElementById('addressDetailInput').value = ''; 
-                        document.getElementById('selectedAddressDisplay').textContent = '주소를 찾을 수 없는 위치입니다. 위도/경도만 저장됩니다.';
+                        alert('검색 결과가 없습니다.');
                     }
                 });
             });
-            
-            document.getElementById('editMeetingForm').addEventListener('submit', function(event) {
-                var latitude = document.getElementById('latitudeInput').value;
-                var longitude = document.getElementById('longitudeInput').value;
 
-                if (!latitude || !longitude) {
-                    alert('모임 장소를 지도에서 선택하거나 검색하여 정확한 위치를 지정해주세요.');
-                    event.preventDefault(); 
+            document.getElementById('editMeetingForm').addEventListener('submit', function(event) {
+                if (!document.getElementById('latitudeInput').value) {
+                    alert('모임 장소를 지도에서 선택해주세요.');
+                    event.preventDefault();
                 }
             });
         });

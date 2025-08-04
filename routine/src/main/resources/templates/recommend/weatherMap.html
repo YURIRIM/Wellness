@@ -5,230 +5,183 @@
     <title>날씨 기반 운동 추천 지도</title>
     <th:block th:replace="~{common/fragment :: library}"></th:block>
     <script type="text/javascript" th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoJsApiKey} + '&libraries=services'}"></script>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #F7F9FC;
+            color: #333;
+        }
+        .page-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .page-header h2 {
+            font-weight: 700;
+            font-size: 28px;
+            color: #2C3E50;
+        }
+        .page-header p {
+            font-size: 1rem;
+            color: #5D6D7E;
+        }
         #weatherMapContainer {
             width: 100%;
-            height: 600px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 15px;
+            height: 65vh;
+            border-radius: 12px;
             position: relative;
+            overflow: hidden;
+            border: 1px solid #EAECEF;
+            box-shadow: 0 8px 16px rgba(44, 62, 80, 0.1);
         }
         #currentLocationBtn {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
+            top: 15px;
+            right: 15px;
             z-index: 2;
             background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 8px 12px;
+            border: 1px solid #d5d8dc;
+            border-radius: 8px;
+            padding: 10px;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background-color 0.2s ease;
         }
         #currentLocationBtn:hover {
-            background-color: #f0f0f0;
+            background-color: #f2f2f2;
         }
-
-        .weather-info-window {
-            padding: 10px;
-            font-size: 14px;
-            line-height: 1.5;
-            position: relative;
+        #currentLocationBtn i {
+            font-size: 1.2rem;
+            color: #4A90E2;
         }
-        .weather-info-window h5 {
-            margin-top: 0;
-            margin-bottom: 5px;
-            color: #333;
-        }
-        .weather-info-window p {
-            margin-bottom: 3px;
-        }
-        .weather-info-window .recommend-list {
-            margin-top: 10px;
-            list-style-type: none;
-            padding-left: 0;
-        }
-        .weather-info-window .recommend-list li {
-            background-color: #e9ecef;
-            border-radius: 3px;
-            padding: 3px 8px;
-            margin-bottom: 3px;
-            display: inline-block;
-            font-size: 12px;
-        }
-        .weather-info-window .close-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            width: 20px;
-            height: 20px;
-            background: #fff;
-            color: #888;
-            border: 1px solid #888;
-            border-radius: 10px;
-            text-align: center;
-            line-height: 18px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .weather-info-window .close-btn:hover {
-            background-color: #eee;
-        }
-
-        .weather-condition-맑음 { color: #007bff; font-weight: bold; }
-        .weather-condition-흐림 { color: #6c757d; }
-        .weather-condition-구름많음 { color: #5a5a5a; }
-        .weather-condition-비 { color: #17a2b8; font-weight: bold; }
-        .weather-condition-눈 { color: #add8e6; font-weight: bold; }
-        .air-grade-좋음 { color: #28a745; font-weight: bold; }
-        .air-grade-보통 { color: #ffc107; font-weight: bold; }
-        .air-grade-나쁨 { color: #dc3545; font-weight: bold; }
-        .air-grade-매우나쁨 { color: #6610f2; font-weight: bold; }
+        .info-window-wrap { padding: 10px; }
+        .info-window-content { width: 280px; padding: 15px; font-size: 14px; line-height: 1.6; }
+        .info-window-content h5 { font-weight: 600; font-size: 1.1rem; color: #2C3E50; margin: 0 0 12px 0; }
+        .info-item { display: flex; align-items: center; margin-bottom: 8px; }
+        .info-item i { font-size: 1.2rem; margin-right: 10px; color: #8592A0; min-width: 20px; text-align: center; }
+        .status-badge { padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: 600; color: #fff; }
+        .status-맑음 { background-color: #4A90E2; }
+        .status-흐림, .status-구름많음 { background-color: #90A4AE; }
+        .status-비, .status-눈 { background-color: #546E7A; }
+        .status-좋음 { background-color: #66BB6A; }
+        .status-보통 { background-color: #FFEE58; color: #333; }
+        .status-나쁨 { background-color: #FFA726; }
+        .status-매우나쁨 { background-color: #EF5350; }
+        .recommend-title { font-weight: 600; margin-top: 15px; margin-bottom: 8px; }
+        .recommend-list { list-style-type: none; padding-left: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+        .recommend-list li { background-color: #EAECEF; border-radius: 4px; padding: 4px 10px; font-size: 12px; color: #5D6D7E; }
     </style>
 </head>
 <body>
     <th:block th:replace="~{common/fragment :: header}"></th:block>
     
-    <div class="container mt-4">
-        <h2>날씨 기반 운동 추천 지도</h2>
-        <p>지도에서 각 지역의 날씨 정보와 추천 운동을 확인하세요.</p>
+    <div class="page-container">
+        <div class="page-header">
+            <h2>날씨 기반 운동 추천 지도</h2>
+            <p>지도에서 각 지역의 날씨 정보와 추천 운동을 확인하세요.</p>
+        </div>
         
         <div id="weatherMapContainer">
-            <button id="currentLocationBtn">내 위치로 이동</button>
+            <button id="currentLocationBtn" title="내 위치로 이동"><i class="bi bi-crosshair"></i></button>
         </div>
     </div>
 
     <script th:inline="javascript">
-        var currentMarker = null; 
-        var infoWindow = null; 
-        var map; 
+        var map, infoWindow = null, currentPosMarker = null;
 
-        function removeCurrentMarker() {
-            if (currentMarker) {
-                currentMarker.setMap(null);
-                currentMarker = null;
-            }
-            if (infoWindow) {
-                infoWindow.close(); 
-            }
-        }
-
-        function displayMarkerAndInfo(locationData) {
-            removeCurrentMarker(); 
-
+        function displayInfoWindow(locationData) {
             var position = new kakao.maps.LatLng(locationData.latitude, locationData.longitude);
-            
-            var marker = new kakao.maps.Marker({
-                map: map,
-                position: position,
-                title: locationData.locationName, 
-            });
-            currentMarker = marker; 
+            if (infoWindow) infoWindow.close();
 
-            map.setCenter(position);
-            map.setLevel(3);
+            var weather = locationData.weatherObject;
+            var content = '<div class="info-window-wrap"><div class="info-window-content">';
+            content += '<h5>' + (locationData.locationName || locationData.address) + '</h5>';
 
-            var iwContent = '<div class="weather-info-window">' +
-                '<span class="close-btn" onclick="infoWindow.close()">x</span>' + 
-                '<h5>' + (locationData.locationName || locationData.address) + '</h5>'; 
-            
-            if (locationData.weatherObject) {
-                var weather = locationData.weatherObject;
-                iwContent += '<p>날씨: <span class="weather-condition-' + weather.weatherCondition + '">' + weather.weatherCondition + '</span>, ' +
-                             '온도: ' + weather.temperature + '°C</p>' +
-                             '<p>미세먼지: <span class="air-grade-' + weather.airGrade + '">' + weather.airGrade + ' (' + weather.pm10 + '㎍/㎥)</span></p>' +
-                             '<p>습도: ' + weather.humidity + '%, 강수확률: ' + weather.rainProbability + '%</p>';
+            if (weather) {
+                var weatherIcon = weather.weatherCondition.includes('비') ? 'bi-cloud-rain' : (weather.weatherCondition.includes('눈') ? 'bi-cloud-snow' : (weather.weatherCondition.includes('흐림') || weather.weatherCondition.includes('구름') ? 'bi-cloudy' : 'bi-sun'));
+                content += '<div class="info-item"><i class="bi ' + weatherIcon + '"></i><span><span class="status-badge status-' + weather.weatherCondition + '">' + weather.weatherCondition + '</span> ' + weather.temperature + '°C</span></div>';
+                content += '<div class="info-item"><i class="bi bi-wind"></i><span>미세먼지 <span class="status-badge status-' + weather.airGrade + '">' + weather.airGrade + '</span> (' + weather.pm10 + '㎍/㎥)</span></div>';
                 
                 if (weather.recommendList && weather.recommendList.length > 0) {
-                    iwContent += '<p><strong>추천 운동:</strong></p><ul class="recommend-list">';
-                    weather.recommendList.forEach(function(rec) {
-                        iwContent += '<li>' + rec.exerciseType + ' (' + rec.locationType + ')</li>';
+                    content += '<div class="recommend-title">추천 운동</div><ul class="recommend-list">';
+                    weather.recommendList.forEach(rec => {
+                        content += '<li>' + rec.exerciseType + '</li>';
                     });
-                    iwContent += '</ul>';
-                } else {
-                    iwContent += '<p>추천 운동 정보 없음</p>';
+                    content += '</ul>';
                 }
             } else {
-                iwContent += '<p>날씨 정보 없음</p>';
+                content += '<p>날씨 정보가 없습니다.</p>';
             }
-            iwContent += '</div>';
+            content += '</div></div>';
 
-            if (!infoWindow) {
-                 infoWindow = new kakao.maps.InfoWindow({zIndex:1});
-            }
-
-            kakao.maps.event.addListener(marker, 'click', function() {
-                infoWindow.setContent(iwContent);
-                infoWindow.open(map, marker);
+            infoWindow = new kakao.maps.InfoWindow({
+                position: position,
+                content: content,
+                removable: true
             });
-
-            infoWindow.setContent(iwContent); 
-            infoWindow.open(map, marker);
+            infoWindow.open(map);
         }
 
-        function fetchWeatherAndDisplayForCoords(latitude, longitude) {
-            fetch('/routine/recommend/weather-by-coords?latitude=' + latitude + '&longitude=' + longitude)
-                .then(response => {
-                    if (!response.ok) { 
-                        throw new Error('Network response was not ok. Status: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data && data.locationNo != null) { 
-                        displayMarkerAndInfo(data); 
-                    } else {
-                        alert('해당 위치의 날씨 데이터를 찾을 수 없습니다.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching weather data:', error);
-                    alert('날씨 데이터를 불러오는 중 오류가 발생했습니다: ' + error.message);
-                });
+        function handleLocationSelect(lat, lng) {
+            var locPosition = new kakao.maps.LatLng(lat, lng);
+            if (currentPosMarker) {
+                currentPosMarker.setMap(null);
+            }
+            
+            var imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png';
+            var imageSize = new kakao.maps.Size(24, 35);
+            var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
+
+            currentPosMarker = new kakao.maps.Marker({
+                map: map,
+                position: locPosition,
+                image: markerImage
+            });
+            
+            map.panTo(locPosition);
+
+            fetch(`/routine/recommend/weather-by-coords?latitude=${lat}&longitude=${lng}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.locationNo != null) {
+                    displayInfoWindow(data);
+                } else {
+                    if(infoWindow) infoWindow.close();
+                    alert('해당 위치의 날씨 데이터를 찾을 수 없습니다.');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching weather data:', error);
+                alert('날씨 데이터를 불러오는 중 오류가 발생했습니다.');
+            });
         }
 
         window.kakao.maps.load(function() {
-            var defaultLat = 37.566826; 
-            var defaultLng = 126.9786567; 
-            var defaultZoomLevel = 7; 
-
             var mapContainer = document.getElementById('weatherMapContainer');
             map = new kakao.maps.Map(mapContainer, {
-                center: new kakao.maps.LatLng(defaultLat, defaultLng),
-                level: defaultZoomLevel
+                center: new kakao.maps.LatLng(37.566826, 126.9786567),
+                level: 7
             });
 
             document.getElementById('currentLocationBtn').addEventListener('click', function() {
                 if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(function(position) {
-                        var lat = position.coords.latitude;
-                        var lng = position.coords.longitude;
-                        
-                        fetchWeatherAndDisplayForCoords(lat, lng); 
-
-                    }, function(error) {
-                        console.error('Error getting current location on button click:', error);
-                        alert('현재 위치를 가져올 수 없습니다. 위치 정보 접근을 허용해주세요.');
-                    }, {
-                        enableHighAccuracy: true, 
-                        maximumAge: 0, 
-                        timeout: 5000 
-                    });
+                    navigator.geolocation.getCurrentPosition(
+                        pos => handleLocationSelect(pos.coords.latitude, pos.coords.longitude),
+                        () => alert('현재 위치를 가져올 수 없습니다. 위치 정보 접근을 허용해주세요.'),
+                        { enableHighAccuracy: true, timeout: 5000 }
+                    );
                 } else {
                     alert('이 브라우저는 Geolocation을 지원하지 않습니다.');
                 }
             });
 
-            kakao.maps.event.addListener(map, 'click', function(mouseEvent) {        
-                var latlng = mouseEvent.latLng; 
-                var lat = latlng.getLat();
-                var lng = latlng.getLng();
-                
-                alert('지도를 클릭한 위치: 위도 ' + lat + ', 경도 ' + lng);
-                fetchWeatherAndDisplayForCoords(lat, lng); 
-            });
+            kakao.maps.event.addListener(map, 'click', mouseEvent => handleLocationSelect(mouseEvent.latLng.getLat(), mouseEvent.latLng.getLng()));
+            
+            handleLocationSelect(37.566826, 126.9786567);
         });
     </script>
 </body>
