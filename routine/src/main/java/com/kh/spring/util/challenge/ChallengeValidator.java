@@ -92,15 +92,21 @@ public class ChallengeValidator {
 			}
 		}
 		
+		/*
+		 * 아래 날짜 필드 검증 로직은 비활성화
+		 * 시작일 지난 후 챌린지 수정 시도하면 오류남
+		 * 따로 검증하는 방식을 도입해야 하는데 시간 없으니 비활성화
+		 */
 		//시작일이 과거면 뭐냐 넌 과거에서 왔냐?
-		if (chal.getStartDate()!=null && 
-				chal.getStartDate().isBefore(LocalDate.now()))
-			return false;
+//		if (chal.getStartDate()!=null && 
+//				chal.getStartDate().isBefore(LocalDate.now()))
+//			return false;
+		
 		
 		//종료일이 과거면 뭐냐 너도 과거에서 왔냐?
-		if(chal.getEndDate()!=null && 
-				chal.getEndDate().isBefore(LocalDate.now()))
-			return false;
+//		if(chal.getEndDate()!=null && 
+//				chal.getEndDate().isBefore(LocalDate.now()))
+//			return false;
 		
 		return true;
 	}
