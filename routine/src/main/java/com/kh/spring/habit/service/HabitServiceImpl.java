@@ -1,6 +1,5 @@
 package com.kh.spring.habit.service;
 
-import java.sql.Date;
 import java.util.List;
 
 import org.mybatis.spring.SqlSessionTemplate;
@@ -41,17 +40,20 @@ public class HabitServiceImpl implements HabitService {
 	
 	
 	
+	@Override
+    public int updateGoal(Goal goal) {
+        return dao.updateGoal(sqlSession, goal);
+    }
 	
-	
-	 @Override
-	    public Habit getHabitById(int habitNo) {
-	        return dao.selectById(sqlSession, habitNo);
-	    }
+    @Override
+    public int updateHabit(Habit habit) {
+        return dao.updateHabit(sqlSession, habit);
+    }
 
-	    @Override
-	    public void updateHabit(Habit habit) {
-	    	dao.updateHabit(sqlSession, habit);
-	    }
+    @Override
+    public Habit getHabitById(int habitNo) {
+        return dao.selectHabitByNo(sqlSession, habitNo);
+    }
 
 	    @Override
 	    public void deleteHabit(int habitNo) {
@@ -113,12 +115,29 @@ public class HabitServiceImpl implements HabitService {
 	    }
 
 
+		 @Override
+		 public List<Habit> getTodayHabitsByUser(int userNo) {
+			// TODO Auto-generated method stub
+			return dao.selectTodayHabits(sqlSession, userNo);
+		 }
 
-//		@Override
+
+
 //		public Goal selectGoal(int goalNo) {
 //			// TODO Auto-generated method stub
 //			return dao.selectGoal(sqlSession,goalNo);
 //		}
+		 
+		 
+		 @Override
+		    public int deleteGoal(int goalNo) {
+		        return dao.deleteGoal(sqlSession, goalNo);
+		    }
+		 
+		 @Override
+		 public Goal getGoalById(int goalNo) {
+		     return dao.selectGoalById(sqlSession, goalNo);
+		 }
 
 
 }

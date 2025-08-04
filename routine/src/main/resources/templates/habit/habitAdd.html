@@ -276,7 +276,7 @@
 
   <div>
     <label for="what">1️⃣ 목표를 위해 무엇을 얼만큼 할 건가요?</label>
-    <div class="example">예: 운동장 3바퀴 이상 뛰기 / 게임 30분만 하기</div>
+    <div class="example">예: 운동장 3바퀴 이상 뛰기 / 게임 30분 이하로 하기</div>
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
       <input type="text" id="what" name="what" placeholder="예: 운동장" style="flex: 3;" required aria-describedby="amountError" />
       <input type="number" id="amount" name="amount" placeholder="예: 3" style="flex: 1;" required min="1"
@@ -287,6 +287,9 @@
     </div>
     <div id="amountError" class="example" style="color: red;" aria-live="polite" aria-atomic="true"></div>
   </div>
+
+  <!-- hidden title 추가 -->
+  <input type="hidden" id="title" name="title" />
 
   <div>
     <label for="feasibilityLevel">2️⃣ 이 목표가 얼마나 실현 가능하다고 느껴지나요?</label>
@@ -409,11 +412,24 @@
 
   let calendarYear, calendarMonth;
 
-  // 단위 텍스트 업데이트
+  // 단위 텍스트 업데이트 + title 업데이트 추가
   function updateUnitSuffix() {
     const category = document.getElementById('habitCategory').value;
     const suffixSpan = document.getElementById('unitSuffix');
-    suffixSpan.textContent = category === 'build' ? '이상' : category === 'reduce' ? '만' : '';
+    suffixSpan.textContent = category === 'build' ? '이상' : category === 'reduce' ? '이하로' : '';
+    updateTitleValue();
+  }
+
+  // title hidden 필드에 값 세팅
+  function updateTitleValue() {
+    const what = document.getElementById('what').value.trim();
+    const amount = document.getElementById('amount').value.trim();
+    const unit = document.getElementById('unit').value.trim();
+    const unitSuffix = document.getElementById('unitSuffix').textContent.trim();
+    const action = document.getElementById('action').value.trim();
+
+    const titleValue = `${what} ${amount}${unit}${unitSuffix} ${action}`.trim();
+    document.getElementById('title').value = titleValue;
   }
 
   function updateIntervalUnit() {
@@ -645,10 +661,7 @@
   // 금액 유효성 검사
   const amountInput = document.getElementById('amount');
   const amountError = document.getElementById('amountError');
-  
-  
-  
-  
+
   function validateAmount() {
     const value = amountInput.value.trim();
 
@@ -656,6 +669,7 @@
     if (value === "") {
       amountError.textContent = "";
       amountInput.setCustomValidity("");
+      updateTitleValue();
       return;
     }
 
@@ -666,11 +680,8 @@
       amountError.textContent = "";
       amountInput.setCustomValidity("");
     }
+    updateTitleValue();
   }
-
-  
-  
-  
 
   // 추천 메시지 업데이트
   function updateSuggestionMessage() {
@@ -739,22 +750,20 @@
 
   // 초기화 및 이벤트 설정
   window.addEventListener("DOMContentLoaded", () => {
-    ['habitCategory', 'feasibilityLevel', 'amount'].forEach(id => {
+    ['habitCategory', 'feasibilityLevel', 'amount', 'what', 'unit', 'action'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.addEventListener('change', updateSuggestionMessage);
+      if (el) el.addEventListener('input', () => {
+        if (id === 'habitCategory') updateUnitSuffix();
+        updateSuggestionMessage();
+        updateTitleValue();
+      });
     });
 
-    document.getElementById('habitCategory').addEventListener('change', () => {
-      updateUnitSuffix();
-      updateSuggestionMessage();
-    });
-
-    amountInput.addEventListener('input', () => {
+    document.getElementById('amount').addEventListener('input', () => {
       validateAmount();
       updateSuggestionMessage();
+      updateTitleValue();
     });
-
-    document.getElementById('feasibilityLevel').addEventListener('change', updateSuggestionMessage);
 
     document.getElementById("prevMonthBtn").addEventListener("click", goToPrevMonth);
     document.getElementById("nextMonthBtn").addEventListener("click", goToNextMonth);
@@ -787,6 +796,7 @@
     validateAmount();
     updateUnitSuffix();
     updateSuggestionMessage();
+
     onRepeatTypeChange();
 
     const today = new Date();

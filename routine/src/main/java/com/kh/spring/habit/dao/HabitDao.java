@@ -36,6 +36,10 @@ public class HabitDao {
         return sqlSession.update("habitMapper.updateHabit", habit);
     }
 
+    public Habit selectHabitByNo(SqlSessionTemplate sqlSession, int habitNo) {
+        return sqlSession.selectOne("habitMapper.selectHabitByNo", habitNo);
+    }
+
     public void deleteStreakRewardsByHabitNo(SqlSessionTemplate sqlSession, int habitNo) {
         sqlSession.delete("habitMapper.deleteStreakRewardsByHabitNo", habitNo);
     }
@@ -85,4 +89,28 @@ public class HabitDao {
     public List<HabitCheck> selectChecksByHabit(SqlSessionTemplate sqlSession, int habitNo) {
         return sqlSession.selectList("habitMapper.selectChecksByHabit", habitNo);
     }
+    
+    
+    
+    
+    
+    public List<Habit> selectTodayHabits(SqlSessionTemplate sqlSession, int userNo) {
+        return sqlSession.selectList("habitMapper.selectTodayHabits", userNo);
+    }
+
+    public int updateGoal(SqlSessionTemplate sqlSession, Goal goal) {
+        return sqlSession.update("goalMapper.updateGoal", goal);
+    }
+    
+    
+    public int deleteGoal(SqlSessionTemplate sqlSession, int goalNo) {
+        return sqlSession.delete("goalMapper.deleteGoal", goalNo);
+    }
+    
+ // Goal 단일 조회 (추가)
+    public Goal selectGoalById(SqlSessionTemplate sqlSession, int goalNo) {
+        return sqlSession.selectOne("goalMapper.selectGoalById", goalNo);
+    }
+    
+    
 }
