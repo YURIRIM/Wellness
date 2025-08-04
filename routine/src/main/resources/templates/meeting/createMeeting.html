@@ -4,38 +4,139 @@
     <meta charset="UTF-8">
     <title>새 모임 만들기</title>
     <th:block th:replace="~{common/fragment :: library}"></th:block>
+    <script type="text/javascript" th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoJsApiKey} + '&libraries=services'}"></script>
+    <style>
+        #map {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .map-search-container {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        .map-search-container input {
+            flex-grow  :1;
+            margin-right: 10px;
+        }
+    </style>
 </head>
 <body>
 	<th:block th:replace="~{common/fragment :: header}"></th:block>
-	
+
     <div class="container mt-4">
         <h2>새 모임 만들기</h2>
-        
-        <form th:action="@{/meeting/create}" method="post">
+
+        <form id="createMeetingForm" th:action="@{/meeting/create}" method="post">
             <div class="mb-3">
                 <label for="title" class="form-label">모임 제목 <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" id="title" name="title" required>
             </div>
-            
+
             <div class="mb-3">
                 <label for="description" class="form-label">모임 소개</label>
                 <textarea class="form-control" id="description" name="description" rows="4"></textarea>
             </div>
-            
+
             <div class="mb-3">
-                <label for="location" class="form-label">지역/관심 분야</label>
-                <input type="text" class="form-control" id="location" name="location">
+                <label class="form-label">모임 장소<span class="text-danger">*</span></label>
+                <div class="map-search-container">
+                    <input type="text" class="form-control" id="addressSearchInput" placeholder="주소를 검색하세요">
+                    <button type="button" class="btn btn-outline-secondary" id="searchAddressBtn">주소 검색</button>
+                </div>
+                <div id="map"></div>
+
+                <input type="hidden" id="latitudeInput" name="latitude">
+                <input type="hidden" id="longitudeInput" name="longitude">
+                <input type="hidden" id="addressDetailInput" name="addressDetail">
+
+                <div class="alert alert-info" role="alert">
+                    <i class="bi bi-info-circle"></i> 지도에서 모임 장소를 클릭하거나, 주소 검색 후 마커를 옮겨서 정확한 위치를 지정해주세요.
+                    <br> 선택된 주소: <span id="selectedAddressDisplay" class="fw-bold text-primary">선택되지 않음</span>
+                </div>
             </div>
-            
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle"></i>
-            </div>
-            
+
             <div class="mb-3">
                 <button type="submit" class="btn btn-primary">모임 생성하고 채팅 시작</button>
                 <a th:href="@{/meeting/list}" class="btn btn-secondary">취소</a>
             </div>
         </form>
     </div>
+
+    <script>
+
+        window.kakao.maps.load(function() {
+            var mapContainer = document.getElementById('map');
+            var mapOption = { 
+                center: new kakao.maps.LatLng(37.566826, 126.9786567), 
+                level: 3
+            };
+            var map = new kakao.maps.Map(mapContainer, mapOption); 
+
+            var geocoder = new kakao.maps.services.Geocoder();
+
+            var marker = new kakao.maps.Marker({
+                position: mapOption.center 
+            });
+            marker.setMap(map);
+
+            document.getElementById('searchAddressBtn').addEventListener('click', function() {
+                var address = document.getElementById('addressSearchInput').value;
+                if (!address) {
+                    alert('주소를 입력해주세요!');
+                    return;
+                }
+                geocoder.addressSearch(address, function(result, status) {
+                    if (status === kakao.maps.services.Status.OK) {
+                        var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                        map.setCenter(coords);
+                        marker.setPosition(coords); 
+
+                        document.getElementById('latitudeInput').value = result[0].y;
+                        document.getElementById('longitudeInput').value = result[0].x;
+                        document.getElementById('addressDetailInput').value = result[0].address_name;
+                        document.getElementById('selectedAddressDisplay').textContent = result[0].address_name;
+
+                    } else {
+                        alert('주소를 찾을 수 없습니다.');
+                    }
+                });
+            });
+
+            kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+                var latlng = mouseEvent.latLng; 
+                marker.setPosition(latlng); 
+
+                geocoder.coord2Address(latlng.getLng(), latlng.getLat(), function(result, status) {
+                    if (status === kakao.maps.services.Status.OK) {
+                        var address = result[0].address ? result[0].address.address_name : result[0].road_address.address_name;
+
+                        document.getElementById('latitudeInput').value = latlng.getLat();
+                        document.getElementById('longitudeInput').value = latlng.getLng();
+                        document.getElementById('addressDetailInput').value = address;
+                        document.getElementById('selectedAddressDisplay').textContent = address;
+
+                    } else {
+                        document.getElementById('latitudeInput').value = latlng.getLat();
+                        document.getElementById('longitudeInput').value = latlng.getLng();
+                        document.getElementById('addressDetailInput').value = ''; 
+                        document.getElementById('selectedAddressDisplay').textContent = '주소를 찾을 수 없는 위치입니다. 위도/경도만 저장됩니다.';
+                    }
+                });
+            });
+
+            document.getElementById('createMeetingForm').addEventListener('submit', function(event) {
+                var latitude = document.getElementById('latitudeInput').value;
+                var longitude = document.getElementById('longitudeInput').value;
+
+                if (!latitude || !longitude) {
+                    alert('모임 장소를 지도에서 선택하거나 검색하여 정확한 위치를 지정해주세요.');
+                    event.preventDefault(); 
+                }
+            });
+        });
+    </script>
 </body>
 </html>

@@ -14,4 +14,4 @@ public interface ChatMessageService {
     int updateReadTime(int meetingNo, int userNo);
     int updateSenderReadTime(int messageNo);
     int sendMessage(ChatMessage message);
-}
+}	

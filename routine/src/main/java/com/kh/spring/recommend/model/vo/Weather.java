@@ -3,6 +3,7 @@ package com.kh.spring.recommend.model.vo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.List; 
 
 @Data
 @NoArgsConstructor
@@ -10,13 +11,11 @@ import lombok.NoArgsConstructor;
 public class Weather {
     private int weatherNo;          
     private int locationNo;        
-    
-   
-    private int temperature;        
-    private int humidity;         
-    private int rainProbability; 
+    private Integer temperature;  
+    private Integer humidity;      
+    private Integer rainProbability;
     private String weatherCondition; 
-    
-    private int pm10;             
+    private Integer pm10;          
     private String airGrade;       
+    private List<Recommend> recommendList; 
 }
