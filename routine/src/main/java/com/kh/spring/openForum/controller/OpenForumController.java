@@ -68,10 +68,20 @@ public class OpenForumController {
 	public String openForumWrite(OpenForum forum, List<MultipartFile> uploadFiles, HttpSession session) {
 		ArrayList<OpenForumAttachment> atList = new ArrayList<>();// 첨부파일 정보들 등록할 리스트
 
+		System.out.println(uploadFiles);
+		System.out.println("이거라도 나오는 지 보자!");
+		System.out.println(uploadFiles.isEmpty());
+		
+		for(MultipartFile file : uploadFiles) {
+			System.out.println(file.getOriginalFilename());
+			System.out.println("아웅정말짜증나");
+		}
+		
 		int count = 1;
-
+		
+		
 		for (MultipartFile m : uploadFiles) {
-			if (!m.getOriginalFilename().equals("")) {
+			if (!m.getOriginalFilename().equals("") && m.getOriginalFilename() != null) {
 				String changeName = saveFile(m, session); // 업로드 및 파일명 반환받기
 				String originName = m.getOriginalFilename(); // 원본 파일명 추출
 				OpenForumAttachment forumAt = new OpenForumAttachment();
@@ -86,7 +96,9 @@ public class OpenForumController {
 				}
 				atList.add(forumAt);
 			}
-		}
+		
+		} // 첨부파일이 없으므로 첨부파일 저장 로직 생략하고 게시글만 저장
+	
 
 		// 업로드된 파일 정보를 담아주는 객체 MultipartFile
 		// 요청시 input file 태그의 name값과 일치하도록 참조변수명 설정하기
@@ -121,9 +133,9 @@ public class OpenForumController {
 	public String postDetail(int postId, Model model) {
 		// postId(글번호) 이용해서 조회수 증가 및 게시글 조회
 		int result = service.increaseCount(postId);
-
 		if (result > 0) {
 			OpenForum post = service.postDetail(postId);
+			System.out.println(post);
 			model.addAttribute("post", post);
 			return "openforum/openForum-detail";
 		} else {
@@ -223,11 +235,11 @@ public class OpenForumController {
 
 	// 4. 게시물 삭제
 	@PostMapping("/delete")
-	public String deletePost(int postId, @RequestParam(required = false) List<String> filePaths, HttpSession session) { // OpenForum
+	public String deletePost(int postId, @RequestParam(required = false) List<String> filePaths, HttpSession session, Model model) { // OpenForum
 
 		// 게시글 삭제 처리
 		int result = service.deletePost(postId);
-
+	
 		if (result > 0) {
 			session.setAttribute("alertMsg", "게시글 삭제 성공");
 

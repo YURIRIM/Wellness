@@ -17,7 +17,7 @@
   	<!-- 첨부파일 담을 여러개를 담을 수 있는 Collection -->
   <collection property="atList" ofType="OpenForumAttachment" javaType="java.util.ArrayList" >
   	<result column="FILE_ID" property="fileId" ></result>
-  	<result column="POST_ID" property="postId"></result>	
+<!--   	<result column="POST_ID" property="postId"></result>	 -->
   	<result column="FILE_PATH" property="filePath"></result>		
   	<result column="FILE_TYPE" property="fileType"></result>	
   	<result column="FILE_SIZE" property="fileSize"></result>	

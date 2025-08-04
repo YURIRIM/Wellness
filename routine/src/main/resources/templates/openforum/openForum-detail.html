@@ -34,18 +34,17 @@
       display: block; /* 이미지 아래 공백 제거 */
     }  
 	  
-  
+    
   </style>
+
 </head>
   <!-- ✅ jQuery CDN 추가 (최신 버전) -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<div th:fragment="alert" th:if="${session.alertMsg}" class="alert-message" 
-     th:classappend="${session.alertMsg.contains('성공') ? 'alert-success' : 'alert-danger'}">
-    <span th:text="${session.alertMsg}"></span>
-</div>   
+   
   
 <body>
+
   <h2 th:text="${post.title}">제목</h2>
   <div class="meta">
     <span th:text="'작성자: ' + ${post.userId}">작성자</span> |
