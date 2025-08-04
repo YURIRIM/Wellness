@@ -17,11 +17,11 @@ public class HabitRepeat {
     private int repeatId;               // repeat_id: PK
     private int habitNo;                // habit_no: FK (습관번호)
     private String repeatType;          // repeat_type: 반복 유형
-    private Integer interval;           // interval: 반복 간격(숫자)
+    private int interval;           // interval: 반복 간격(숫자)
     private String  nthWeeks;          // 체크박스 배열
     private String  weekDaysInterval;  // 체크박스 배열
     private String  weekDays;          // 체크박스 배열
-    private Integer allDay;
+    private int allDay;
     private String repeatTime;
 
 }

@@ -1,12 +1,16 @@
 package com.kh.spring.habit.dao;
 
+import java.sql.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.kh.spring.habit.model.vo.Goal;
 import com.kh.spring.habit.model.vo.Habit;
+import com.kh.spring.habit.model.vo.HabitCheck;
 import com.kh.spring.habit.model.vo.HabitRepeat;
 
 @Repository
@@ -73,5 +77,12 @@ public class HabitDao {
      */
     public List<Habit> selectHabitsByGoal(SqlSessionTemplate sqlSession, int goalNo) {
         return sqlSession.selectList("habitMapper.selectHabitsByGoal", goalNo);
+    }
+    
+    
+    
+    // 특정 습관 체크 이력 전체 조회
+    public List<HabitCheck> selectChecksByHabit(SqlSessionTemplate sqlSession, int habitNo) {
+        return sqlSession.selectList("habitMapper.selectChecksByHabit", habitNo);
     }
 }

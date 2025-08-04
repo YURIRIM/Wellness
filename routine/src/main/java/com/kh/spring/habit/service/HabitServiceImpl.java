@@ -1,9 +1,7 @@
 package com.kh.spring.habit.service;
 
-import java.time.LocalDate;
-import java.util.HashMap;
+import java.sql.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +12,6 @@ import com.kh.spring.habit.dao.HabitDao;
 import com.kh.spring.habit.model.vo.Goal;
 import com.kh.spring.habit.model.vo.Habit;
 import com.kh.spring.habit.model.vo.HabitCheck;
-import com.kh.spring.habit.model.vo.HabitRepeat;
 
 @Service
 public class HabitServiceImpl implements HabitService {
@@ -107,7 +104,13 @@ public class HabitServiceImpl implements HabitService {
 	        }
 	        return goals;
 	    }
-
+		
+		
+		
+		@Override
+	    public List<HabitCheck> getChecksByHabit(int habitNo) {
+	        return dao.selectChecksByHabit(sqlSession, habitNo);
+	    }
 
 
 
