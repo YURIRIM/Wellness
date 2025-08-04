@@ -21,6 +21,8 @@ public class ApiConfig {
         factory.setConnectTimeout(connectionTimeout);  
         factory.setReadTimeout(readTimeout);           
         
-        return new RestTemplate(factory);
+        RestTemplate restTemplate = new RestTemplate(factory);
+        
+        return restTemplate;
     }
 }
