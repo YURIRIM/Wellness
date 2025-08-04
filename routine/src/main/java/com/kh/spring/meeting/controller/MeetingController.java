@@ -283,4 +283,11 @@ public class MeetingController {
 
         return "meeting/joinedMeetings";
     }
+    
+    
+    
+    
+    
+    
+    
 }

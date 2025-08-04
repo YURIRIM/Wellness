@@ -10,19 +10,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpEntity;
 
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpEntity;
 
 @Service
 public class RecommendServiceImpl implements RecommendService {
@@ -67,11 +68,10 @@ public class RecommendServiceImpl implements RecommendService {
         newLocation.setLongitude(longitude);
 
         try {
-            // Kakao API URL building: allow UriComponentsBuilder to handle encoding automatically
             String kakaoCoord2AddressUrl = UriComponentsBuilder.fromUriString(kakaoApiUrl)
                     .path("/geo/coord2address.json")
-                    .queryParam("x", longitude) // NO ', false'
-                    .queryParam("y", latitude)  // NO ', false'
+                    .queryParam("x", longitude)
+                    .queryParam("y", latitude)
                     .toUriString();
 
             HttpHeaders headers = new HttpHeaders();
@@ -107,6 +107,10 @@ public class RecommendServiceImpl implements RecommendService {
             Map<String, Integer> xy = convertLatLngToXY(latitude, longitude);
             newLocation.setNx(xy.get("nx"));
             newLocation.setNy(xy.get("ny"));
+             
+            if (newLocation.getNy() <= 0) {
+                newLocation.setNy(127);
+            }
 
         } catch (Exception e) {
             System.err.println("Kakao Local API 호출 및 좌표 변환 오류: " + e.getMessage());
@@ -118,209 +122,202 @@ public class RecommendServiceImpl implements RecommendService {
         }
 
         recommendDao.insertLocation(newLocation);
-
         return newLocation;
     }
-
+     
     @Override
     public Weather getWeatherInfo(Location location) {
         Weather existingWeather = recommendDao.selectWeatherByLocationNo(location.getLocationNo());
-
         if (existingWeather != null) {
             return existingWeather;
         }
 
         Weather newWeather = new Weather();
+        // =================================================================
+        // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ 수정된 부분 ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+        // newLocation.setLocationNo(location.getLocationNo()); -> newWeather.setLocationNo(location.getLocationNo());
         newWeather.setLocationNo(location.getLocationNo());
+        // =================================================================
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ 수정된 부분 ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
         try {
             LocalDateTime now = LocalDateTime.now();
             String baseDate = getBaseDate(now);
             String baseTime = getBaseTime(now);
 
-            // Weather API URL building: allow UriComponentsBuilder to handle encoding automatically
-            String weatherApiUrlFull = UriComponentsBuilder.fromUriString(weatherApiUrl)
-                .path("/getVilageFcst")
-                .queryParam("serviceKey", weatherApiKey) // NO ', false'
-                .queryParam("pageNo", 1)
-                .queryParam("numOfRows", 100)
-                .queryParam("dataType", "JSON")
-                .queryParam("base_date", baseDate)
-                .queryParam("base_time", baseTime)
-                .queryParam("nx", location.getNx())
-                .queryParam("ny", location.getNy())
-                .toUriString();
-            System.out.println("기상청 API URL: " + weatherApiUrlFull); // Debug log
+            String encodedKey = URLEncoder.encode(weatherApiKey, StandardCharsets.UTF_8);
+            String weatherUrl = String.format("%s/getVilageFcst?serviceKey=%s&pageNo=1&numOfRows=100&dataType=JSON&base_date=%s&base_time=%s&nx=%d&ny=%d",
+                    weatherApiUrl, encodedKey, baseDate, baseTime, location.getNx(), location.getNy());
+            URI weatherUri = URI.create(weatherUrl);
 
-            ResponseEntity<Map> weatherApiResponse = restTemplate.getForEntity(URI.create(weatherApiUrlFull), Map.class);
+            System.out.println("기상청 API URL: " + weatherUri);
+
+            ResponseEntity<Map> weatherApiResponse = restTemplate.getForEntity(weatherUri, Map.class);
             Map weatherResponseBody = weatherApiResponse.getBody();
-            System.out.println("기상청 API 응답 본문: " + weatherResponseBody); // Debug log
+            System.out.println("기상청 API 응답 본문: " + weatherResponseBody);
 
             if (weatherResponseBody != null && weatherResponseBody.containsKey("response")) {
                 Map responseMap = (Map) weatherResponseBody.get("response");
-                if(responseMap.containsKey("header") && ((Map)responseMap.get("header")).containsKey("resultCode")){
-                    String resultCode = (String) ((Map)responseMap.get("header")).get("resultCode");
-                    String resultMsg = (String) ((Map)responseMap.get("header")).get("resultMsg");
-                    if (!"00".equals(resultCode)) { // resultCode가 00이 아니면 오류
-                         throw new RuntimeException("기상청 API 오류: " + resultCode + " - " + resultMsg);
-                    }
-                }
+                if(responseMap.containsKey("header")){
+                    Map headerMap = (Map) responseMap.get("header");
+                    String resultCode = (String) headerMap.get("resultCode");
+                    if (!"00".equals(resultCode)) {
+                        System.err.println("기상청 API 오류: " + resultCode + " - " + headerMap.get("resultMsg"));
+                    } else {
+                        Map bodyMap = (Map) responseMap.get("body");
+                        if (bodyMap != null && bodyMap.containsKey("items")) {
+                            Map itemsMap = (Map) bodyMap.get("items");
+                            List<Map<String, String>> item = (List<Map<String, String>>) itemsMap.get("item");
 
-                Map bodyMap = (Map) responseMap.get("body");
-                if (bodyMap != null && bodyMap.containsKey("items")) {
-                    Map itemsMap = (Map) bodyMap.get("items");
-                    List<Map> item = (List<Map>) itemsMap.get("item");
+                            if (item != null) {
+                                for (Map<String, String> itemData : item) {
+                                    String category = itemData.get("category");
+                                    String fcstValue = itemData.get("fcstValue");
 
-                    Integer temp = null;
-                    Integer humid = null;
-                    Integer rainProb = null;
-                    String weatherCond = "알 수 없음";
-
-                    if (item != null) {
-                        for (Map<String, String> itemData : item) {
-                            String category = itemData.get("category");
-                            String fcstValue = itemData.get("fcstValue");
-
-                            switch (category) {
-                                case "TMP":
-                                    temp = (int) Double.parseDouble(fcstValue);
-                                    break;
-                                case "REH":
-                                    humid = (int) Double.parseDouble(fcstValue);
-                                    break;
-                                case "POP":
-                                    rainProb = (int) Double.parseDouble(fcstValue);
-                                    break;
-                                case "PTY":
-                                    if (fcstValue.equals("1") || fcstValue.equals("2") || fcstValue.equals("4")) {
-                                        weatherCond = "비";
-                                    } else if (fcstValue.equals("3")) {
-                                        weatherCond = "눈";
+                                    if (fcstValue != null) {
+                                        switch (category) {
+                                            case "TMP": newWeather.setTemperature((int) Double.parseDouble(fcstValue)); break;
+                                            case "REH": newWeather.setHumidity((int) Double.parseDouble(fcstValue)); break;
+                                            case "POP": newWeather.setRainProbability((int) Double.parseDouble(fcstValue)); break;
+                                            case "PTY":
+                                                if ("1".equals(fcstValue) || "2".equals(fcstValue) || "4".equals(fcstValue)) {
+                                                    newWeather.setWeatherCondition("비");
+                                                } else if ("3".equals(fcstValue)) {
+                                                    newWeather.setWeatherCondition("눈");
+                                                }
+                                                break;
+                                            case "SKY":
+                                                if (newWeather.getWeatherCondition() == null || "알 수 없음".equals(newWeather.getWeatherCondition())) {
+                                                    if ("1".equals(fcstValue)) newWeather.setWeatherCondition("맑음");
+                                                    else if ("3".equals(fcstValue)) newWeather.setWeatherCondition("구름많음");
+                                                    else if ("4".equals(fcstValue)) newWeather.setWeatherCondition("흐림");
+                                                }
+                                                break;
+                                        }
                                     }
-                                    break;
-                                case "SKY":
-                                    if (weatherCond.equals("알 수 없음")) {
-                                        if (fcstValue.equals("1")) weatherCond = "맑음";
-                                        else if (fcstValue.equals("3")) weatherCond = "구름많음";
-                                        else if (fcstValue.equals("4")) weatherCond = "흐림";
-                                    }
-                                    break;
+                                }
                             }
                         }
                     }
-                    newWeather.setTemperature(temp);
-                    newWeather.setHumidity(humid);
-                    newWeather.setRainProbability(rainProb);
-                    newWeather.setWeatherCondition(weatherCond);
                 }
             }
-
-            // Air Korea API URL building: allow UriComponentsBuilder to handle encoding automatically
-            String airStationName = "종로";
-
-            String airApiUrlFull = UriComponentsBuilder.fromUriString(airApiUrl)
-                .path("/getMsrstnAcctoRltmMesureDnsty")
-                .queryParam("serviceKey", airApiKey) // NO ', false'
-                .queryParam("returnType", "json")
-                .queryParam("numOfRows", 1)
-                .queryParam("pageNo", 1)
-                .queryParam("dataTime", now.format(DateTimeFormatter.ofPattern("yyyyMMddHH")))
-                .queryParam("stationName", airStationName)
-                .toUriString();
-            System.out.println("에어코리아 API URL: " + airApiUrlFull); // Debug log
-
-            ResponseEntity<Map> airApiResponse = restTemplate.getForEntity(URI.create(airApiUrlFull), Map.class);
-            Map airResponseBody = airApiResponse.getBody();
-            System.out.println("에어코리아 API 응답 본문: " + airResponseBody); // Debug log
-
-            if (airResponseBody != null && airResponseBody.containsKey("response")) {
-                // 이 부분을 수정해야 합니다!
-                // Map responseMap = (Map) responseBody.get("response"); // <-- 이렇게 되어 있을 겁니다.
-                Map responseMap = (Map) airResponseBody.get("response"); // <-- 이렇게 airResponseBody 로 변경!
-
-                if(responseMap.containsKey("header") && ((Map)responseMap.get("header")).containsKey("resultCode")){
-                    String resultCode = (String) ((Map)responseMap.get("header")).get("resultCode");
-                    String resultMsg = (String) ((Map)responseMap.get("header")).get("resultMsg");
-                    if (!"00".equals(resultCode)) { // resultCode가 00이 아니면 오류
-                         throw new RuntimeException("에어코리아 API 오류: " + resultCode + " - " + resultMsg);
-                    }
-                }
-                Map bodyMap = (Map) responseMap.get("body");
-                if (bodyMap != null && bodyMap.containsKey("items")) {
-                    List<Map> item = (List<Map>) bodyMap.get("items");
-                    if (!item.isEmpty()) {
-                        Map airData = item.get(0);
-                        String pm10Value = (String) airData.get("pm10Value");
-                        String airGradeValue = (String) airData.get("pm10Grade");
-
-                        newWeather.setPm10(pm10Value != null && !pm10Value.isEmpty() ? Integer.parseInt(pm10Value) : null);
-                        newWeather.setAirGrade(airGradeValue != null && !airGradeValue.isEmpty() ? convertAirGradeToText(airGradeValue) : "알 수 없음");
-                    }
-                }
-            }
-
         } catch (Exception e) {
-            System.err.println("날씨/미세먼지 API 호출 오류: " + e.getMessage());
+            System.err.println("날씨 API 호출 오류: " + e.getMessage());
             e.printStackTrace();
             newWeather.setTemperature(null);
             newWeather.setHumidity(null);
             newWeather.setRainProbability(null);
             newWeather.setWeatherCondition("정보 없음");
+        }
+
+        try {
+            String stationName = getNearbyStationName(location.getLatitude(), location.getLongitude());
+            
+            if (stationName == null) {
+                stationName = "종로구";
+            }
+            
+            String encodedKey = URLEncoder.encode(airApiKey, StandardCharsets.UTF_8);
+            String encodedStationName = URLEncoder.encode(stationName, StandardCharsets.UTF_8);
+            
+            String airUrl = String.format(
+                    "%s/getMsrstnAcctoRltmMesureDnsty?serviceKey=%s&returnType=json&numOfRows=1&pageNo=1&stationName=%s&dataTerm=DAILY&ver=1.0",
+                    airApiUrl, 
+                    encodedKey, 
+                    encodedStationName
+            );
+
+            URI airUri = URI.create(airUrl);
+
+            System.out.println("에어코리아 API URL: " + airUri);
+
+            ResponseEntity<Map> airApiResponse = restTemplate.getForEntity(airUri, Map.class);
+            Map airResponseBody = airApiResponse.getBody();
+            System.out.println("에어코리아 API 응답 본문: " + airResponseBody);
+
+            if (airResponseBody != null && airResponseBody.containsKey("response")) {
+                Map responseMap = (Map) airResponseBody.get("response");
+
+                if(responseMap.containsKey("header")){
+                    Map headerMap = (Map) responseMap.get("header");
+                    String resultCode = (String) headerMap.get("resultCode");
+                    if (!"00".equals(resultCode)) {
+                        System.err.println("에어코리아 API 오류: " + resultCode + " - " + headerMap.get("resultMsg"));
+                    } else {
+                        Map bodyMap = (Map) responseMap.get("body");
+                        if (bodyMap != null && bodyMap.containsKey("items") && bodyMap.get("totalCount") != null && (Integer)bodyMap.get("totalCount") > 0) {
+                            List<Map> item = (List<Map>) bodyMap.get("items");
+                            if (!item.isEmpty()) {
+                                Map airData = item.get(0);
+                                String pm10Value = (String) airData.get("pm10Value");
+                                String airGradeValue = (String) airData.get("pm10Grade");
+
+                                newWeather.setPm10(pm10Value != null && !"-".equals(pm10Value) ? Integer.parseInt(pm10Value) : null);
+                                newWeather.setAirGrade(airGradeValue != null && !"-".equals(airGradeValue) ? convertAirGradeToText(airGradeValue) : "알 수 없음");
+                            }
+                        } else {
+                             System.err.println("에어코리아 API 응답에 유효한 미세먼지 데이터가 없습니다.");
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("미세먼지 API 호출 오류: " + e.getMessage());
+            e.printStackTrace();
             newWeather.setPm10(null);
             newWeather.setAirGrade("정보 없음");
         }
 
         recommendDao.insertWeather(newWeather);
-
         return newWeather;
     }
 
     @Override
     public List<Recommend> getRecommendations(Weather weather) {
         List<Recommend> recommendations = new ArrayList<>();
-
+         
         if (weather != null && weather.getTemperature() != null && weather.getPm10() != null && weather.getRainProbability() != null) {
-            if (weather.getTemperature() >= 5 && weather.getTemperature() <= 30) {
-                if (weather.getPm10() <= 80) {
-                    if (weather.getRainProbability() <= 50) {
-                        addRecommendation(recommendations, weather.getWeatherNo(), "조깅", "OUTDOOR");
-                        addRecommendation(recommendations, weather.getWeatherNo(), "축구", "OUTDOOR");
-                        addRecommendation(recommendations, weather.getWeatherNo(), "농구", "OUTDOOR");
-                        addRecommendation(recommendations, weather.getWeatherNo(), "자전거", "OUTDOOR");
-                    }
-                }
+            boolean isGoodForOutdoor = (weather.getTemperature() >= 5 && weather.getTemperature() <= 30)
+                                    && (weather.getPm10() <= 80)
+                                    && (weather.getRainProbability() <= 50);
+             
+            if (isGoodForOutdoor) {
+                recommendations.add(createRecommend(weather.getWeatherNo(), "조깅", "OUTDOOR"));
+                recommendations.add(createRecommend(weather.getWeatherNo(), "축구", "OUTDOOR"));
+                recommendations.add(createRecommend(weather.getWeatherNo(), "농구", "OUTDOOR"));
+                recommendations.add(createRecommend(weather.getWeatherNo(), "자전거", "OUTDOOR"));
             }
 
-            addRecommendation(recommendations, weather.getWeatherNo(), "헬스장", "INDOOR");
-            addRecommendation(recommendations, weather.getWeatherNo(), "복싱", "INDOOR");
-
-            if (weather.getTemperature() != null && weather.getTemperature() > 28) {
-                addRecommendation(recommendations, weather.getWeatherNo(), "수영", "INDOOR");
-                addRecommendation(recommendations, weather.getWeatherNo(), "실내 헬스장", "INDOOR");
-            } else if (weather.getTemperature() <= 28 && weather.getTemperature() >= 5) {
-                addRecommendation(recommendations, weather.getWeatherNo(), "수영", "INDOOR");
-            }
-
-            if (weather.getTemperature() != null && weather.getTemperature() < 5) {
-                addRecommendation(recommendations, weather.getWeatherNo(), "홈트레이닝", "INDOOR");
-                addRecommendation(recommendations, weather.getWeatherNo(), "탁구", "INDOOR");
+            recommendations.add(createRecommend(weather.getWeatherNo(), "헬스장", "INDOOR"));
+            recommendations.add(createRecommend(weather.getWeatherNo(), "복싱", "INDOOR"));
+            recommendations.add(createRecommend(weather.getWeatherNo(), "수영", "INDOOR"));
+             
+            if (weather.getTemperature() > 28) {
+                recommendations.add(createRecommend(weather.getWeatherNo(), "실내 헬스장", "INDOOR"));
+            } else if (weather.getTemperature() < 5) {
+                recommendations.add(createRecommend(weather.getWeatherNo(), "홈트레이닝", "INDOOR"));
+                recommendations.add(createRecommend(weather.getWeatherNo(), "탁구", "INDOOR"));
             }
         } else {
-            addRecommendation(recommendations, weather != null ? weather.getWeatherNo() : 0, "걷기 (정보 부족)", "OUTDOOR");
-            addRecommendation(recommendations, weather != null ? weather.getWeatherNo() : 0, "집에서 운동하기", "INDOOR");
+            recommendations.add(createRecommend(weather != null ? weather.getWeatherNo() : 0, "걷기", "OUTDOOR"));
+            recommendations.add(createRecommend(weather != null ? weather.getWeatherNo() : 0, "집에서 운동하기", "INDOOR"));
+        }
+
+        if (!recommendations.isEmpty()) {
+            for (Recommend recommend : recommendations) {
+                recommendDao.insertRecommend(recommend);
+            }
         }
 
         return recommendations;
     }
-
-    private void addRecommendation(List<Recommend> list, int weatherNo, String exerciseType, String locationType) {
+     
+    private Recommend createRecommend(int weatherNo, String exerciseType, String locationType) {
         Recommend recommend = new Recommend();
         recommend.setWeatherNo(weatherNo);
         recommend.setExerciseType(exerciseType);
         recommend.setLocationType(locationType);
-
-        recommendDao.insertRecommend(recommend);
-        list.add(recommend);
+        return recommend;
     }
 
     @Override
@@ -331,18 +328,98 @@ public class RecommendServiceImpl implements RecommendService {
     @Override
     public Location getWeatherAndRecommendationsByCoords(double latitude, double longitude) {
         Location location = getLocationByCoords(latitude, longitude);
-
         Weather weather = getWeatherInfo(location);
-
         List<Recommend> recommendations = recommendDao.selectRecommendsByWeatherNo(weather.getWeatherNo());
+         
         if (recommendations == null || recommendations.isEmpty()) {
             recommendations = getRecommendations(weather);
         }
 
         location.setWeatherObject(weather);
         weather.setRecommendList(recommendations);
-
         return location;
+    }
+    
+    private Map<String, Double> convertWGS84ToTM(double longitude, double latitude) {
+        try {
+            String transcoordUrl = UriComponentsBuilder.fromUriString(kakaoApiUrl)
+                    .path("/geo/transcoord.json")
+                    .queryParam("x", longitude)
+                    .queryParam("y", latitude)
+                    .queryParam("input_coord", "WGS84")
+                    .queryParam("output_coord", "TM")
+                    .toUriString();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "KakaoAK " + kakaoApiKey);
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<Map> response = restTemplate.exchange(
+                URI.create(transcoordUrl), HttpMethod.GET, entity, Map.class
+            );
+
+            Map responseBody = response.getBody();
+            if (responseBody != null && responseBody.containsKey("documents")) {
+                List<Map> documents = (List<Map>) responseBody.get("documents");
+                if (!documents.isEmpty()) {
+                    Map<String, Object> coordsDoc = documents.get(0);
+                    Map<String, Double> tmCoords = new HashMap<>();
+                    tmCoords.put("tmX", (Double) coordsDoc.get("x"));
+                    tmCoords.put("tmY", (Double) coordsDoc.get("y"));
+                    return tmCoords;
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Kakao 좌표 변환 API 호출 오류: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    private String getNearbyStationName(double latitude, double longitude) {
+        Map<String, Double> tmCoords = convertWGS84ToTM(longitude, latitude);
+        if (tmCoords == null) {
+            System.err.println("TM 좌표 변환 실패. 기본 측정소 '종로구'를 사용합니다.");
+            return "종로구";
+        }
+
+        try {
+            String encodedKey = URLEncoder.encode(airApiKey, StandardCharsets.UTF_8);
+            
+            String nearbyStationUrl = String.format(
+                "%s/getNearbyMsrstnList?serviceKey=%s&returnType=json&tmX=%f&tmY=%f",
+                airApiUrl, encodedKey, tmCoords.get("tmX"), tmCoords.get("tmY")
+            );
+            
+            URI nearbyStationUri = URI.create(nearbyStationUrl);
+            
+            System.out.println("근접 측정소 API URL: " + nearbyStationUri);
+
+            ResponseEntity<Map> response = restTemplate.getForEntity(nearbyStationUri, Map.class);
+            Map responseBody = response.getBody();
+
+            if (responseBody != null && responseBody.containsKey("response")) {
+                Map responseMap = (Map) responseBody.get("response");
+                if (responseMap.containsKey("body")) {
+                    Map bodyMap = (Map) responseMap.get("body");
+                    if (bodyMap.containsKey("items") && bodyMap.get("items") instanceof List) {
+                        List<Map> items = (List<Map>) bodyMap.get("items");
+                        if (!items.isEmpty()) {
+                            Map<String, Object> firstStation = items.get(0);
+                            String stationName = (String) firstStation.get("stationName");
+                            System.out.println("가장 가까운 측정소: " + stationName);
+                            return stationName;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("근접 측정소 API 호출 오류: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        System.err.println("근접 측정소 API 조회 실패. 기본 측정소 '종로구'를 사용합니다.");
+        return "종로구";
     }
 
     private Map<String, Integer> convertLatLngToXY(double lat, double lng) {
@@ -354,8 +431,7 @@ public class RecommendServiceImpl implements RecommendService {
         double OLAT = 38.0;
 
         double DEGRAD = Math.PI / 180.0;
-        double RADDEG = 180.0 / Math.PI;
-
+        
         double re = RE / GRID;
         double slat1 = SLAT1 * DEGRAD;
         double slat2 = SLAT2 * DEGRAD;
@@ -366,25 +442,22 @@ public class RecommendServiceImpl implements RecommendService {
         sn = Math.log(Math.cos(slat1) / Math.cos(slat2)) / Math.log(sn);
         double sf = Math.tan(Math.PI * 0.25 + slat1 * 0.5);
         sf = Math.pow(sf, sn) * Math.cos(slat1) / sn;
-        double ro = RE * sf / Math.tan(Math.PI * 0.25 + olat * 0.5);
+        double ro = re * sf / Math.tan(Math.PI * 0.25 + olat * 0.5);
 
-        Map<String, Integer> result = new HashMap<>();
-        double ra = RE * sf / Math.tan(Math.PI * 0.25 + lat * DEGRAD * 0.5);
+        double ra = re * sf / Math.tan(Math.PI * 0.25 + lat * DEGRAD * 0.5);
         double theta = lng * DEGRAD - olon;
         if (theta > Math.PI) theta -= 2.0 * Math.PI;
         if (theta < -Math.PI) theta += 2.0 * Math.PI;
         theta *= sn;
 
-        double nx = Math.floor(ra * Math.sin(theta) + BaseX + 0.5);
-        double ny = Math.floor(ro - ra * Math.cos(theta) + BaseY + 0.5);
+        int x = (int) Math.floor(ra * Math.sin(theta) + 1.5);
+        int y = (int) Math.floor(ro - ra * Math.cos(theta) + 1.5);
 
-        result.put("nx", (int) nx);
-        result.put("ny", (int) ny);
+        Map<String, Integer> result = new HashMap<>();
+        result.put("nx", x);
+        result.put("ny", y);
         return result;
     }
-
-    private static final int BaseX = 60;
-    private static final int BaseY = 127;
 
     private String getBaseDate(LocalDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
