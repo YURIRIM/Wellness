@@ -10,7 +10,6 @@ import com.kh.spring.habit.model.vo.Habit;
 
 public interface HabitService {
 
-	int insertHabit(Habit habit);
 
 	List<Habit> habitList();
 
@@ -24,5 +23,10 @@ public interface HabitService {
 
     int insertGoal(Goal goal);
 //    Goal selectGoal(int goalNo);
+
+
+	List<Goal> selectGoalsByUser(int userNo);
+
+	void insertHabit(Habit habit);
 
 }

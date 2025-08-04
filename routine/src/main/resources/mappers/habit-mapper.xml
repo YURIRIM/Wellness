@@ -5,40 +5,41 @@
 
 <mapper namespace="habitMapper">
 
-	<resultMap id="habitResultMap" type="Habit">
-        <id property="habitNo" column="HABIT_NO" />
-        <result property="userNo" column="USER_NO" />
-        <result property="title" column="TITLE" />
-        <result property="startDate" column="START_DATE" />
-        <result property="isChallenge" column="IS_CHALLENGE" />
-        <result property="totalCheck" column="TOTAL_CHECK" />
-        <result property="currentCheck" column="CURRENT_CHECK" />
-        <result property="maxCheck" column="MAX_CHECK" />
-        <result property="status" column="STATUS" />
-        <result property="lastCheck" column="LAST_CHECK" />
-    </resultMap>
-    
-    <!-- habitRepeat-resultMap.xml -->
-	<resultMap id="HabitRepeatResultMap" type="HabitRepeat">
-	    <id property="repeatNo" column="repeat_no" />
-	    <result property="habitNo" column="habit_no" />
-	    <result property="repeatType" column="repeat_type" />
-	    <result property="interval" column="interval" />
-	    
-	    <result property="weekDays" column="week_days" />
-	    <result property="nthWeek" column="nth_week" />
-	    
-	    <result property="dayOfMonth" column="day_of_month" />
-	    
-	    <result property="yearlyMonth" column="yearly_month" />
-	    <result property="yearlyDay" column="yearly_day" />
-	    
-	    <result property="yearlyNthWeek" column="yearly_nth_week" />
-	    <result property="yearlyDayOfWeek" column="yearly_day_of_week" />
-	    
-	    <result property="repeatTime" column="repeat_time" javaType="java.time.LocalTime" jdbcType="TIME"/>
-	    <result property="allDay" column="all_day" jdbcType="BOOLEAN"/>
-	</resultMap>
+<resultMap id="habitResultMap" type="Habit">
+    <id property="habitNo" column="habit_no"/>
+    <result property="userNo" column="user_no"/>
+    <result property="goalNo" column="goal_no"/>
+    <result property="title" column="title"/>
+    <result property="what" column="what"/>
+    <result property="amount" column="amount"/>
+    <result property="unit" column="unit"/>
+    <result property="startDate" column="start_date"/>
+    <result property="isChallenge" column="is_challenge"/>
+    <result property="totalCheck" column="total_check"/>
+    <result property="currentCheck" column="current_check"/>
+    <result property="maxCheck" column="max_check"/>
+    <result property="status" column="status"/>
+    <result property="lastCheck" column="last_check"/>
+    <result property="action" column="action"/>
+
+
+    <association property="repeat" javaType="HabitRepeat" resultMap="habitRepeatResultMap" />
+</resultMap>
+
+<!-- HabitRepeat resultMap 예시 -->
+<resultMap id="habitRepeatResultMap" type="HabitRepeat">
+    <id property="repeatId" column="repeat_id"/>
+    <result property="habitNo" column="habit_no"/>
+    <result property="repeatType" column="repeat_type"/>
+    <result property="interval" column="interval"/>
+    <result property="weekDaysInterval" column="week_days_interval"/>
+    <result property="weekDays" column="week_days"/>
+    <result property="nthWeeks" column="nth_weeks"/>
+    <result property="allDay" column="all_day"/>
+    <result property="repeatTime" column="repeat_time"/>
+</resultMap>
+
+
 
 	
 	
@@ -53,62 +54,35 @@
     </select>
 
     <!-- 한 건 조회 (PK 기준) -->
-    <select id="selectHabitByNo" parameterType="int" resultMap="habitResultMap">
+    <select id="selectHabitByNo" parameterType="_int" resultMap="habitResultMap">
         SELECT * FROM HABIT WHERE HABIT_NO = #{habitNo}
     </select>
 
     <!-- 삽입 -->
-	<insert id="insertHabit" parameterType="Habit">
-	<selectKey resultType="int" keyProperty="habitNo" order="BEFORE">
-    SELECT HABIT_SEQ.NEXTVAL FROM DUAL
-  </selectKey>
-		INSERT INTO HABIT(
-		HABIT_NO, USER_NO, TITLE, START_DATE, IS_CHALLENGE,
-		TOTAL_CHECK, CURRENT_CHECK, MAX_CHECK, STATUS, LAST_CHECK
-		) VALUES (
-		#{habitNo}, #{userNo}, #{title}, #{startDate}, #{isChallenge},
-		#{totalCheck}, #{currentCheck}, #{maxCheck}, 'Y', SYSDATE
-		)
-	</insert>
-	
-	<insert id="insertHabitRepeat" parameterType="HabitRepeat">
-    INSERT INTO HABIT_REPEAT (
-        repeat_no,
-        habit_no,
-        repeat_type,
-        interval,
-        week_days,
-        nth_week,
-        day_of_month,
-        yearly_month,
-        yearly_day,
-        yearly_nth_week,
-        yearly_day_of_week,
-        repeat_time,
-        all_day
-    ) VALUES (
-        REPEAT_SEQ.NEXTVAL,
-        #{habitNo},
-        #{repeatType},
-        #{interval},
-        #{weekDays},
-        #{nthWeek},
-        #{dayOfMonth},
-        #{yearlyMonth},
-        #{yearlyDay},
-        #{yearlyNthWeek},
-        #{yearlyDayOfWeek},
-        #{repeatTimeStr},
-        #{allDay}
+	  <insert id="insertHabit" parameterType="Habit" useGeneratedKeys="false" keyProperty="habitNo">
+    <selectKey keyProperty="habitNo" resultType="_int" order="BEFORE">
+      SELECT HABIT_SEQ.NEXTVAL FROM DUAL
+    </selectKey>
+		 INSERT INTO habit (habit_no, user_no, goal_no, title, what, amount, unit, action, start_date, is_challenge, total_check, current_check, max_check, status, last_check)
+    VALUES (
+  #{habitNo}, #{userNo}, #{goalNo},#{what} || ' ' || #{amount} || #{unit} || ' ' || #{action}, #{what}, #{amount}, #{unit},#{action},
+  #{startDate}, #{isChallenge}, #{totalCheck}, #{currentCheck}, #{maxCheck}, #{status}, #{lastCheck}
+)
+  </insert>
+  
+     <!-- HabitRepeat 삽입 -->
+  <insert id="insertHabitRepeat" parameterType="HabitRepeat">
+    INSERT INTO habit_repeat (
+      repeat_id, habit_no, repeat_type, interval, week_days_interval, week_days,
+      nth_weeks, all_day, repeat_time
     )
-</insert>
+    VALUES (
+      habit_repeat_seq.NEXTVAL, #{habitNo}, #{repeatType}, #{interval}, #{weekDaysInterval}, #{weekDays},
+      #{nthWeeks}, #{allDay}, #{repeatTime}
+    )
+  </insert>
 
-	<!-- 1. 사용자 습관 리스트 -->
-    <select id="selectHabitsByUser" resultType="com.kh.spring.habit.model.vo.Habit">
-        SELECT * FROM HABIT
-        WHERE USER_NO = #{userNo}
-    </select>
-    
+
     
     
     
@@ -148,7 +122,6 @@
         WHERE HABIT_NO = #{habitNo}
     </delete>
     
-
 	
 	
 
