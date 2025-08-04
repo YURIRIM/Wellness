@@ -1,24 +1,19 @@
 package com.kh.spring.habit.dao;
 
-import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import org.apache.ibatis.session.SqlSession;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.kh.spring.habit.model.vo.Goal;
 import com.kh.spring.habit.model.vo.Habit;
-import com.kh.spring.habit.model.vo.HabitCheck;
 import com.kh.spring.habit.model.vo.HabitRepeat;
 
 @Repository
 public class HabitDao {
+	
 
-	public int insertHabit(SqlSessionTemplate sqlSession, Habit h) {
-		return sqlSession.insert("habitMapper.insertHabit",h);
-	}
 
 	public List<Habit> habitList(SqlSessionTemplate sqlSession) {
 		return sqlSession.selectList("habitMapper.habitList");
@@ -69,6 +64,25 @@ public class HabitDao {
     public int insertGoal(SqlSessionTemplate session,Goal goal) {
     	return session.insert("goalMapper.insertGoal",goal);
     }
+
+
+	public List<Goal> selectGoalsByUser(SqlSessionTemplate session, int userNo) {
+		// TODO Auto-generated method stub
+		return session.selectList("goalMapper.selectGoalsByUser",userNo);
+	}
+	
+	
+	
+
+	public int insertHabit(SqlSessionTemplate sqlSession, Habit h) {
+	    return sqlSession.insert("habitMapper.insertHabit", h);
+	}
+
+	public void insertHabitRepeat(SqlSessionTemplate session, int habitNo, HabitRepeat repeat) {
+	    repeat.setHabitNo(habitNo);
+	    session.insert("habitMapper.insertHabitRepeat", repeat);
+	}
+
 
 //    public Goal selectGoal(SqlSessionTemplate session,int goalNo) {
 //        return session.selectOne("goalMapper.selectGoalByNo(goalNo)",goalNo);

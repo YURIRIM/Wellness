@@ -1,11 +1,13 @@
 package com.kh.spring.habit.controller;
 
+
 import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +20,8 @@ import com.kh.spring.habit.model.vo.Goal;
 import com.kh.spring.habit.model.vo.Habit;
 import com.kh.spring.habit.service.HabitService;
 import com.kh.spring.user.model.vo.User;
+
+
 
 import jakarta.servlet.http.HttpSession;
 
@@ -44,45 +48,61 @@ public class HabitController {
 	
 	
 	@PostMapping("/goal")
-	public String goal(@ModelAttribute Goal goal,HttpSession session, RedirectAttributes ra) {
-		 
-		User loginUser = (User) session.getAttribute("loginUser");
-		    if (loginUser == null) {
-		        ra.addFlashAttribute("message", "로그인이 필요합니다.");
-		        return "redirect:/user/login";
-		    }
+	public String goal(@ModelAttribute Goal goal, HttpSession session, 
+	                   RedirectAttributes ra, Model model) {
 
-		    goal.setUserNo(loginUser.getUserNo());
-		    
-		    // 날짜 문자열(YYYYMMDD) -> java.util.Date 변환 처리 필요
-		
+	    User loginUser = (User) session.getAttribute("loginUser");
+
+	    if (loginUser == null) {
+	        ra.addFlashAttribute("message", "로그인이 필요합니다.");
+	        return "redirect:/user/login";
+	    }
+
+	    goal.setUserNo(loginUser.getUserNo());
+
 	    int result = service.insertGoal(goal);
+
 	    if (result > 0) {
+	        // 최근 등록한 목표 다시 조회 (예: goalService.selectRecentGoalByUser(loginUser.getUserNo()))
+	        // FlashAttribute로 전달해야 redirect 후에도 유지됨
 	        ra.addFlashAttribute("message", "목표가 등록되었습니다!");
-	        return "habit/goal"; // 예시
+
+	        return "redirect:/habit/add";  // habitAdd로 redirect
 	    } else {
 	        ra.addFlashAttribute("message", "등록 실패");
-		return "habit/goal";
+	        return "redirect:/habit/goal";  // 실패 시 다시 등록 페이지로 이동
 	    }
 	}
+
 	
 	
 	// 등록 폼 보여주기
 	@GetMapping("/add")
-	public String showHabitAddForm() {
+	public String showHabitAddForm(HttpSession session, Model model) {
+		
+	    User loginUser = (User) session.getAttribute("loginUser");
+
+	    if (loginUser == null) {
+	        return "redirect:/user/login"; 
+	    }
+	    List<Goal> goalList = service.selectGoalsByUser(loginUser.getUserNo());
+	    model.addAttribute("goalList", goalList);
+	    model.addAttribute("habit", new Habit());
+	    
+	    System.out.println(goalList);
+	    
 		return "habit/habitAdd";
 	}
 
 	// 등록 처리
 	@PostMapping("/add")
-	public String insertHabit(@ModelAttribute Habit h, HttpSession session) {
-		User loginUser = (User) session.getAttribute("loginUser");
-		h.setUserNo(loginUser.getUserNo());
+	public String insertHabit(@ModelAttribute("habit") Habit habit, BindingResult result, Model model) {
 
-		service.insertHabit(h);
 
-		return "redirect:/habit/list";
-	}
+        service.insertHabit(habit);
+        return "redirect:/habit/list"; // 등록 후 목록 페이지 등으로 리다이렉트
+    }
+	
 	
 	@GetMapping("/cal")
 	public String habitCalendar(Model model, @SessionAttribute("loginUser") User user) {
@@ -137,6 +157,10 @@ public class HabitController {
 	    public String showTodayHabits(Model model) {
 	        return "habit/today"; 
 	    }
+	    
+	    
+	    
+	    
 	    
 
 }

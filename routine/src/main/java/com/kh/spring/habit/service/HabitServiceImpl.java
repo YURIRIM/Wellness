@@ -25,23 +25,7 @@ public class HabitServiceImpl implements HabitService {
 	@Autowired
 	private SqlSessionTemplate sqlSession;
 
-	@Override
-	@Transactional
-	public int insertHabit(Habit h) {
-		int result = dao.insertHabit(sqlSession, h); // 습관 insert + PK 생성
 
-		HabitRepeat repeat = h.getRepeat();
-		System.out.println(repeat);
-		if (repeat != null) {
-			repeat.setHabitNo(h.getHabitNo()); // 생성된 habitNo 세팅
-			System.out.println("habitNo: " + h.getHabitNo());
-			System.out.println(repeat);
-			// weekDays가 이미 String이면 별도 처리 불필요
-			int resultt = dao.insertHabitRepeat(sqlSession, repeat); // 반복 정보 insert
-		}
-
-		return result;
-	}
 
 	@Override
 	public List<Habit> habitList() {
@@ -93,6 +77,26 @@ public class HabitServiceImpl implements HabitService {
 			
 			return dao.insertGoal(sqlSession,goal);
 		}
+
+		@Override
+		public List<Goal> selectGoalsByUser(int userNo) {
+			// TODO Auto-generated method stub
+			return dao.selectGoalsByUser(sqlSession,userNo);
+		}
+		
+		@Override
+		@Transactional
+		public void insertHabit(Habit habit) {
+	        // habit 테이블 저장
+	        dao.insertHabit(sqlSession, habit);
+
+	        // HabitRepeat가 있다면 별도로 저장 (DAO, Mapper에 구현 필요)
+	        if (habit.getRepeat() != null) {
+	            dao.insertHabitRepeat(sqlSession,habit.getHabitNo(), habit.getRepeat());
+	        }}
+
+
+
 
 //		@Override
 //		public Goal selectGoal(int goalNo) {
