@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="recommendMapper">
 
-    <!-- Location 저장 -->
-    <insert id="insertLocation" parameterType="com.kh.spring.recommend.model.vo.Location">
+    <insert id="insertLocation" parameterType="com.kh.spring.recommend.model.vo.Location" useGeneratedKeys="true" keyProperty="locationNo">
         <selectKey keyProperty="locationNo" resultType="int" order="BEFORE">
             SELECT SEQ_LOCATION.NEXTVAL FROM DUAL
         </selectKey>
@@ -16,7 +14,6 @@
         )
     </insert>
 
-    <!-- Weather 저장 -->
     <insert id="insertWeather" parameterType="com.kh.spring.recommend.model.vo.Weather">
         <selectKey keyProperty="weatherNo" resultType="int" order="BEFORE">
             SELECT SEQ_WEATHER.NEXTVAL FROM DUAL
@@ -30,7 +27,6 @@
         )
     </insert>
 
-    <!-- Recommend 저장 -->
     <insert id="insertRecommend" parameterType="com.kh.spring.recommend.model.vo.Recommend">
         <selectKey keyProperty="recommendNo" resultType="int" order="BEFORE">
             SELECT SEQ_RECOMMEND.NEXTVAL FROM DUAL
@@ -42,7 +38,6 @@
         )
     </insert>
 
-    <!-- Weather 조회 -->
     <select id="selectWeatherByNo" parameterType="int" resultType="com.kh.spring.recommend.model.vo.Weather">
         SELECT WEATHER_NO, LOCATION_NO, TEMPERATURE, HUMIDITY, RAIN_PROBABILITY,
                WEATHER_CONDITION, PM10, AIR_GRADE
@@ -50,11 +45,97 @@
         WHERE WEATHER_NO = #{weatherNo}
     </select>
 
-    <!-- Recommend 목록 조회 -->
     <select id="selectRecommendsByWeatherNo" parameterType="int" resultType="com.kh.spring.recommend.model.vo.Recommend">
         SELECT RECOMMEND_NO, WEATHER_NO, EXERCISE_TYPE, LOCATION_TYPE
         FROM RECOMMEND
         WHERE WEATHER_NO = #{weatherNo}
     </select>
 
+    <resultMap id="locationWeatherRecommendMap" type="com.kh.spring.recommend.model.vo.Location">
+        <id property="locationNo" column="L_LOCATION_NO"/>
+        <result property="locationName" column="L_LOCATION_NAME"/>
+        <result property="address" column="L_ADDRESS"/>
+        <result property="latitude" column="L_LATITUDE"/>
+        <result property="longitude" column="L_LONGITUDE"/>
+        <result property="nx" column="L_NX"/>
+        <result property="ny" column="L_NY"/>
+
+        <association property="weatherObject" javaType="com.kh.spring.recommend.model.vo.Weather">
+            <id property="weatherNo" column="W_WEATHER_NO"/>
+            <result property="locationNo" column="W_LOCATION_NO"/>
+            <result property="temperature" column="W_TEMPERATURE"/>
+            <result property="humidity" column="W_HUMIDITY"/>
+            <result property="rainProbability" column="W_RAIN_PROBABILITY"/>
+            <result property="weatherCondition" column="W_WEATHER_CONDITION"/>
+            <result property="pm10" column="W_PM10"/>
+            <result property="airGrade" column="W_AIR_GRADE"/>
+
+            <collection property="recommendList" ofType="com.kh.spring.recommend.model.vo.Recommend">
+                <id property="recommendNo" column="R_RECOMMEND_NO"/>
+                <result property="weatherNo" column="R_WEATHER_NO"/>
+                <result property="exerciseType" column="R_EXERCISE_TYPE"/>
+                <result property="locationType" column="R_LOCATION_TYPE"/>
+            </collection>
+        </association>
+    </resultMap>
+
+    <select id="selectAllWeatherLocations" resultMap="locationWeatherRecommendMap">
+        SELECT 
+            L.LOCATION_NO AS L_LOCATION_NO,
+            L.LOCATION_NAME AS L_LOCATION_NAME,
+            L.ADDRESS AS L_ADDRESS,
+            L.LATITUDE AS L_LATITUDE,
+            L.LONGITUDE AS L_LONGITUDE,
+            L.NX AS L_NX,
+            L.NY AS L_NY,
+            W.WEATHER_NO AS W_WEATHER_NO,
+            W.LOCATION_NO AS W_LOCATION_NO,
+            W.TEMPERATURE AS W_TEMPERATURE,
+            W.HUMIDITY AS W_HUMIDITY,
+            W.RAIN_PROBABILITY AS W_RAIN_PROBABILITY,
+            W.WEATHER_CONDITION AS W_WEATHER_CONDITION,
+            W.PM10 AS W_PM10,
+            W.AIR_GRADE AS W_AIR_GRADE,
+            R.RECOMMEND_NO AS R_RECOMMEND_NO,
+            R.WEATHER_NO AS R_WEATHER_NO,
+            R.EXERCISE_TYPE AS R_EXERCISE_TYPE,
+            R.LOCATION_TYPE AS R_LOCATION_TYPE
+        FROM LOCATION L
+        LEFT JOIN WEATHER W ON L.LOCATION_NO = W.LOCATION_NO
+        LEFT JOIN RECOMMEND R ON W.WEATHER_NO = R.WEATHER_NO
+        WHERE W.WEATHER_NO IS NOT NULL 
+        ORDER BY L.LOCATION_NO, W.WEATHER_NO, R.RECOMMEND_NO
+    </select>
+
+    <select id="selectLocationByCoords" parameterType="map" resultType="com.kh.spring.recommend.model.vo.Location">
+        SELECT 
+            LOCATION_NO as locationNo,
+            LOCATION_NAME as locationName,
+            ADDRESS as address,
+            LATITUDE as latitude,
+            LONGITUDE as longitude,
+            NX as nx,
+            NY as ny
+        FROM LOCATION
+        WHERE LATITUDE = #{latitude} AND LONGITUDE = #{longitude}
+    </select>
+
+    <select id="selectWeatherByLocationNo" parameterType="int" resultType="com.kh.spring.recommend.model.vo.Weather">
+        SELECT * FROM (
+            SELECT 
+                WEATHER_NO as weatherNo,
+                LOCATION_NO as locationNo,
+                TEMPERATURE as temperature,
+                HUMIDITY as humidity,
+                RAIN_PROBABILITY as rainProbability,
+                WEATHER_CONDITION as weatherCondition,
+                PM10 as pm10,
+                AIR_GRADE as airGrade
+            FROM WEATHER
+            WHERE LOCATION_NO = #{locationNo}
+            ORDER BY WEATHER_NO DESC 
+        )
+        WHERE ROWNUM = 1
+    </select>
+    
 </mapper>
