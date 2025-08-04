@@ -263,18 +263,6 @@
                                        placeholder="제목, 내용, 작성자로 검색...">
                             </div>
                         </div>
-                        <div class="col-md-6 text-end">
-                            <div class="btn-group" role="group">
-                                <input type="radio" class="btn-check" name="dateFilter" id="today" autocomplete="off">
-                                <label class="btn btn-outline-secondary" for="today">오늘</label>
-                                
-                                <input type="radio" class="btn-check" name="dateFilter" id="week" autocomplete="off">
-                                <label class="btn btn-outline-secondary" for="week">1주일</label>
-                                
-                                <input type="radio" class="btn-check" name="dateFilter" id="all" autocomplete="off" checked>
-                                <label class="btn btn-outline-secondary" for="all">전체</label>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 
@@ -301,9 +289,8 @@
                                     <th style="width: 35%">제목</th>
                                     <th style="width: 12%">작성자</th>
                                     <th style="width: 10%">상태</th>
-                                    <th style="width: 12%">작성일</th>
-                                    <th style="width: 8%">우선순위</th>
-                                    <th style="width: 17%">관리</th>
+                                    <th style="width: 12%">작성일</th>                                   
+                                    <th style="width: 25%; text-align: center;">관리</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -317,9 +304,6 @@
                                            class="qna-title-link" th:text="${qna.userQnaTitle}">
                                             문의 제목
                                         </a>
-                                        <i th:if="${!qna.status && status.index < 3}" 
-                                           class="fas fa-exclamation-circle text-danger ms-2" 
-                                           title="긴급 처리 필요"></i>
                                     </td>
                                     <td>
                                         <div class="user-info">
@@ -339,14 +323,6 @@
                                         [[${#dates.format(qna.createdate, 'MM-dd')}]]
                                         <br>
                                         <small>[[${#dates.format(qna.createdate, 'HH:mm')}]]</small>
-                                    </td>
-                                    <td>
-                                        <span th:if="${!qna.status && status.index < 3}" class="priority-badge priority-high">
-                                            <i class="fas fa-exclamation me-1"></i>높음
-                                        </span>
-                                        <span th:unless="${!qna.status && status.index < 3}" class="priority-badge priority-normal">
-                                            <i class="fas fa-minus me-1"></i>보통
-                                        </span>
                                     </td>
                                     <td>
                                         <div class="action-buttons">

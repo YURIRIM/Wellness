@@ -146,22 +146,6 @@
                         </div>
                         
                         <div class="mb-4">
-                            <label for="category" class="form-label">
-                                <i class="fas fa-tags me-1"></i>
-                                문의 유형
-                            </label>
-                            <select class="form-select" id="category" name="category">
-                                <option value="GENERAL">일반 문의</option>
-                                <option value="TECHNICAL">기술 문의</option>
-                                <option value="ACCOUNT">계정 문의</option>
-                                <option value="BILLING">결제 문의</option>
-                                <option value="BUG">버그 신고</option>
-                                <option value="SUGGESTION">기능 제안</option>
-                                <option value="OTHER">기타</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-4">
                             <label for="userQna" class="form-label">
                                 <i class="fas fa-align-left me-1"></i>
                                 문의 내용 <span class="required">*</span>
@@ -176,21 +160,6 @@
                             <div class="character-count">
                                 <span id="contentCount">0</span>/5000
                             </div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="priority" class="form-label">
-                                <i class="fas fa-exclamation-circle me-1"></i>
-                                우선순위
-                            </label>
-                            <select class="form-select" id="priority" name="priority">
-                                <option value="LOW">낮음 - 일반적인 문의</option>
-                                <option value="NORMAL" selected>보통 - 빠른 답변 희망</option>
-                                <option value="HIGH">높음 - 긴급한 문제</option>
-                            </select>
-                            <small class="text-muted">
-                                긴급한 문제의 경우 고객센터(1588-1234)로 직접 연락해주세요.
-                            </small>
                         </div>
                         
                         <div class="action-buttons">
@@ -306,53 +275,7 @@
         document.getElementById('qnaForm').addEventListener('submit', function() {
             formChanged = false;
         });
-        
-        // 자동 저장 기능 (로컬 스토리지)
-        function autoSave() {
-            const title = document.getElementById('userQnaTitle').value;
-            const content = document.getElementById('userQna').value;
-            
-            if (title.trim() || content.trim()) {
-                localStorage.setItem('qna_draft', JSON.stringify({
-                    title: title,
-                    content: content,
-                    timestamp: new Date().toISOString()
-                }));
-            }
-        }
-        
-        // 3초마다 자동 저장
-        setInterval(autoSave, 3000);
-        
-        // 페이지 로드 시 임시 저장된 내용 복원
-        window.onload = function() {
-            const draft = localStorage.getItem('qna_draft');
-            if (draft) {
-                const data = JSON.parse(draft);
-                const savedTime = new Date(data.timestamp);
-                const now = new Date();
-                const hoursDiff = (now - savedTime) / (1000 * 60 * 60);
-                
-                // 24시간 이내의 임시 저장만 복원
-                if (hoursDiff < 24 && (data.title.trim() || data.content.trim())) {
-                    if (confirm('이전에 작성 중이던 내용이 있습니다. 복원하시겠습니까?')) {
-                        document.getElementById('userQnaTitle').value = data.title;
-                        document.getElementById('userQna').value = data.content;
-                        
-                        // 글자 수 업데이트
-                        document.getElementById('userQnaTitle').dispatchEvent(new Event('input'));
-                        document.getElementById('userQna').dispatchEvent(new Event('input'));
-                        
-                        formChanged = true;
-                    }
-                }
-            }
-        };
-        
-        // 폼 제출 성공 시 임시 저장 데이터 삭제
-        document.getElementById('qnaForm').addEventListener('submit', function() {
-            localStorage.removeItem('qna_draft');
-        });
+       
     </script>
 </body>
 </html>

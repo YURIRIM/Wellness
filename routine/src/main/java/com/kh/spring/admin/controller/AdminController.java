@@ -319,7 +319,7 @@ public class AdminController {
         return "admin/adminQnaDetail";
     }
     
- // 관리자용 - 답변 작성 처리
+    // 관리자용 - 답변 작성 처리
     @PostMapping("/qna/answer")
     public String createAnswer(@RequestParam("userQnaNo") int userQnaNo,
                               @RequestParam("answerQna") String answerContent,
