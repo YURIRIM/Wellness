@@ -269,21 +269,21 @@
     <label for="habitCategory">습관 유형</label>
     <select id="habitCategory" name="habitCategory" required>
       <option value="" disabled selected>유형 선택</option>
-      <option value="build">늘릴 습관 (예: 공부/운동/자기계발 등)</option>
+      <option value="build">늘릴 습관 (예: 운동/공부/자기계발 등)</option>
       <option value="reduce">줄일 습관 (예: 게임/TV/음주/야식 등)</option>
     </select>
   </div>
 
   <div>
     <label for="what">1️⃣ 목표를 위해 무엇을 얼만큼 할 건가요?</label>
-    <div class="example">예: 영단어 30개 이상 외우기 / 게임 30분만 하기 / 아침 7시에 일어나기</div>
+    <div class="example">예: 운동장 3바퀴 이상 뛰기 / 게임 30분만 하기</div>
     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
-      <input type="text" id="what" name="what" placeholder="예: 영단어" style="flex: 3;" required aria-describedby="amountError" />
-      <input type="number" id="amount" name="amount" placeholder="예: 30" style="flex: 1;" required min="1"
+      <input type="text" id="what" name="what" placeholder="예: 운동장" style="flex: 3;" required aria-describedby="amountError" />
+      <input type="number" id="amount" name="amount" placeholder="예: 3" style="flex: 1;" required min="1"
         oninput="validateAmount()" inputmode="numeric" pattern="\d*" aria-describedby="amountError" />
-      <input type="text" id="unit" name="unit" placeholder="예: 개" style="flex: 1;" required />
+      <input type="text" id="unit" name="unit" placeholder="예: 바퀴" style="flex: 1;" required />
       <span id="unitSuffix" style="min-width: 30px; font-weight: 600; user-select: none;"></span>
-      <input type="text" id="action" name="action" placeholder="예: 외우기" style="flex: 2;" required />
+      <input type="text" id="action" name="action" placeholder="예: 뛰기" style="flex: 2;" required />
     </div>
     <div id="amountError" class="example" style="color: red;" aria-live="polite" aria-atomic="true"></div>
   </div>

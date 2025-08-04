@@ -1,9 +1,7 @@
 package com.kh.spring.habit.service;
 
-import java.time.LocalDate;
-import java.util.HashMap;
+import java.sql.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +12,6 @@ import com.kh.spring.habit.dao.HabitDao;
 import com.kh.spring.habit.model.vo.Goal;
 import com.kh.spring.habit.model.vo.Habit;
 import com.kh.spring.habit.model.vo.HabitCheck;
-import com.kh.spring.habit.model.vo.HabitRepeat;
 
 @Service
 public class HabitServiceImpl implements HabitService {
@@ -95,6 +92,25 @@ public class HabitServiceImpl implements HabitService {
 	            dao.insertHabitRepeat(sqlSession,habit.getHabitNo(), habit.getRepeat());
 	        }}
 
+		@Override
+	    public List<Goal> findGoalsWithHabits(int userNo) {
+	        // 1. 사용자 목표 목록 조회
+	        List<Goal> goals = dao.selectGoalsByUser(sqlSession,userNo);
+	        
+	        // 2. 각 목표별 습관 리스트 조회 후 Goal 객체의 habits 필드에 넣기
+	        for (Goal goal : goals) {
+	            List<Habit> habits = dao.selectHabitsByGoal(sqlSession,goal.getGoalNo());
+	            goal.setHabits(habits);
+	        }
+	        return goals;
+	    }
+		
+		
+		
+		@Override
+	    public List<HabitCheck> getChecksByHabit(int habitNo) {
+	        return dao.selectChecksByHabit(sqlSession, habitNo);
+	    }
 
 
 

@@ -1,40 +1,140 @@
-<!-- templates/habit/list.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>습관 목록</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f3f7;
+            margin: 0;
+            padding: 40px 0;
+        }
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 6px 32px rgba(0,0,0,0.12);
+            padding: 34px 38px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 28px;
+            color: #225588;
+            font-size: 2rem;
+        }
+        .goal-block {
+            margin-bottom: 36px;
+            border-left: 5px solid #357ab7;
+            background: #f7fafc;
+            padding: 18px 16px 10px 20px;
+            border-radius: 10px;
+        }
+        .goal-title {
+            font-size: 1.15rem;
+            color: #2c4777;
+            letter-spacing: -0.01em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .habit-list {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 7px;
+        }
+        .habit-list td {
+            background: #fff;
+            border-radius: 6px;
+            padding: 10px 10px;
+            border: none;
+            font-size: 1rem;
+            color: #343558;
+        }
+        .habit-title {
+            padding-left: 4px;
+            font-weight: 500;
+        }
+        .habit-action button {
+            background: #457de6;
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 6px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.19s;
+            margin-right: 8px;
+        }
+        .habit-action button:last-child {
+            margin-right: 0;
+            background: #fa5065;
+        }
+        .habit-action button:hover {
+            opacity: 0.85;
+        }
+        .empty-msg {
+            margin-top: 20px;
+            color: #888;
+            text-align: center;
+            font-size: 1.01rem;
+            font-style: italic;
+        }
+        .add-btn {
+            display: block;
+            width: 95%;
+            max-width: 280px;
+            margin: 35px auto 0;
+            padding: 13px 0;
+            background: #2b6cb0;
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            text-align: center;
+            text-decoration: none;
+            transition: background .22s;
+        }
+        .add-btn:hover {
+            background: #164d95;
+        }
+    </style>
 </head>
 <body>
+<div class="container">
     <h2>습관 목록</h2>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>번호</th>
-                <th>제목</th>
-                <th>상태</th>
-                <th>수정</th>
-                <th>삭제</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="habit : ${habit}">
-                <td th:text="${habit.habitNo}"></td>
-                <td th:text="${habit.title}"></td>
-                <td th:text="${habit.status}"></td>
-                <td>				
-					<form th:action="@{'/habit/edit/' + ${habit.habitNo}}" method="post" onsubmit="return confirm('수정하시겠습니까?');">
-                        <button type="submit">수정</button>
-						</form>
-					</td>
-                <td>
-                    <form th:action="@{'/habit/delete/' + ${habit.habitNo}}" method="post" onsubmit="return confirm('정말 삭제하시겠습니까?');">
-                        <button type="submit">삭제</button>
-                    </form>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <a th:href="@{/habit/add}">새 습관 추가</a>
+    <!-- 목표가 없을 때 안내 메시지 -->
+    <div th:if="${#lists.isEmpty(goals)}">
+        <div class="empty-msg">아직 등록된 목표가 없습니다.<br/>먼저 목표를 추가해보세요!</div>
+    </div>
+    <!-- 목표별 반복 -->
+    <div th:each="goal : ${goals}">
+        <div class="goal-block">
+            <div class="goal-title" th:text="${goal.title}">목표제목</div>
+            <!-- 습관 없을 때 메시지 -->
+            <div th:if="${goal.habits == null or #lists.isEmpty(goal.habits)}">
+                <div class="empty-msg" style="font-size:0.96rem;color:#bbb;">해당 목표에 등록된 습관이 없습니다.</div>
+            </div>
+            <!-- 습관 목록 -->
+            <table class="habit-list" th:if="${goal.habits != null and not #lists.isEmpty(goal.habits)}">
+                <tbody>
+                <tr th:each="habit : ${goal.habits}">
+                    <td class="habit-title" th:text="${habit.title}"></td>
+                    <td class="habit-action" style="text-align: right;">
+                        <form th:action="@{'/habit/edit/' + ${habit.habitNo}}" method="post" style="display: inline" onsubmit="return confirm('수정하시겠습니까?');">
+                            <button type="submit">수정</button>
+                        </form>
+                        <form th:action="@{'/habit/delete/' + ${habit.habitNo}}" method="post" style="display: inline" onsubmit="return confirm('정말 삭제하시겠습니까?');">
+                            <button type="submit">삭제</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <a th:href="@{/habit/add}" class="add-btn">새 습관 추가</a>
+</div>
 </body>
 </html>
