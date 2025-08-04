@@ -21,7 +21,7 @@ public class CachingParticipants {
         if (cache != null) {
             cache.put("allParticipants", participantsList);
         }
-    }
+    } 
 
     // 캐시된 리스트 꺼내기
     public Map<String, Integer> get() {

@@ -14,6 +14,7 @@ public class VectorUtil {
 	    int D = floatVector.length;
 	    int d = Regexp.REDUCE_DIMENSION;
 	    
+	    //시드 고정. 시드 바뀌면 카테고리 목록 임베딩 다시 해야해.
 	    Random rnd = new Random(42);
 	    
 	    // 결과 벡터 초기화

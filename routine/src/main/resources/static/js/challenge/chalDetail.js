@@ -359,12 +359,13 @@ function rightBottomScript() {
       profileImg.style.width = profileImg.style.height = "40px";
       profileImg.style.cursor = "pointer";
       profileImg.addEventListener("click", () => {
-        axios
-          .get(`${contextPath}/profile/profileDetail`, {
-            params: { userNo: c.userNo },
-          })
-          .then((res) => (location.href = res.request.responseURL))
-          .catch(() => alert("프로필을 불러오지 못했습니다."));
+        location.href = `${contextPath}/profile/detail?userNo=${c.userNo}`;
+        // axios
+        //   .get(`${contextPath}/profile/detail`, {
+        //     params: { userNo: c.userNo },
+        //   })
+        //   .then((res) => (location.href = res.request.responseURL))
+        //   .catch(() => alert("프로필을 불러오지 못했습니다."));
       });
       header.append(profileImg);
       const nick = document.createElement("strong");

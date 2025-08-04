@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 - 문의사항 상세보기</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .admin-wrapper {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        .admin-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            padding: 2.5rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+        }
+        .qna-card {
+            background: #f8f9ff;
+            border: 2px solid #e3e7ff;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .answer-section {
+            background: #f0f9ff;
+            border: 2px solid #bae6fd;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .answer-form {
+            background: #fff8e1;
+            border: 2px solid #ffcc02;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+        }
+        .btn-submit {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+        }
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .status-waiting {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-answered {
+            background: #d1edff;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-wrapper">
+        <div class="container">
+            <div class="admin-container">
+                
+                <!-- 헤더 -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1><i class="fas fa-clipboard-list me-2"></i>문의사항 상세 관리</h1>
+                    <a th:href="@{/admin/qna/list}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>목록으로
+                    </a>
+                </div>
+                
+                <!-- 문의사항 정보 -->
+                <div class="qna-card">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h3 th:text="${qna.userQnaTitle}">문의 제목</h3>
+                            <p class="text-muted mb-0">
+                                작성자: <span th:text="${qnaUser.name}">사용자명</span> | 
+                                작성일: <span th:text="${#dates.format(qna.createdate, 'yyyy-MM-dd HH:mm')}">날짜</span>
+                            </p>
+                        </div>
+                        <div>
+                            <span th:if="${qna.status}" class="status-badge status-answered">
+                                <i class="fas fa-check me-1"></i>답변완료
+                            </span>
+                            <span th:unless="${qna.status}" class="status-badge status-waiting">
+                                <i class="fas fa-clock me-1"></i>답변대기
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 p-3 bg-light rounded">
+                        <p th:text="${qna.userQna}" style="white-space: pre-wrap;">문의 내용</p>
+                    </div>
+                </div>
+                
+                <!-- 답변 섹션 -->
+                <div th:if="${answer != null}">
+                    <div class="answer-section">
+                        <h4 class="mb-3">
+                            <i class="fas fa-reply me-2"></i>관리자 답변
+                            <span class="badge bg-info ms-2" th:text="${answer.adminName}">관리자명</span>
+                        </h4>
+                        <p class="text-muted mb-3">
+                            답변일: <span th:text="${#dates.format(answer.createdate, 'yyyy-MM-dd HH:mm')}">답변일</span>
+                        </p>
+                        <div class="p-3 bg-white rounded border">
+                            <p th:text="${answer.answerQna}" style="white-space: pre-wrap;">답변 내용</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 답변 작성 폼 -->
+                <div th:if="${answer == null}">
+                    <div class="answer-form">
+                        <h4 class="mb-3"><i class="fas fa-pen me-2"></i>답변 작성</h4>
+                        
+                        <form th:action="@{/admin/qna/answer}" method="post">
+                            <input type="hidden" name="userQnaNo" th:value="${qna.userQnaNo}">
+                            
+                            <div class="mb-3">
+                                <label for="answerQna" class="form-label">답변 내용 *</label>
+                                <textarea class="form-control" 
+                                          id="answerQna" 
+                                          name="answerQna" 
+                                          rows="8" 
+                                          placeholder="고객님께 드릴 답변을 작성해주세요."
+                                          required></textarea>
+                            </div>
+                            
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-submit">
+                                    <i class="fas fa-paper-plane me-1"></i>답변 등록
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- 액션 버튼 -->
+                <div class="text-center mt-4">
+                    <a th:href="@{/admin/user/detail(userNo=${qnaUser.userNo})}" class="btn btn-info me-2">
+                        <i class="fas fa-user me-1"></i>회원 정보 보기
+                    </a>
+                    
+                    <button th:if="${answer == null}" type="button" class="btn btn-danger" onclick="deleteQna()">
+                        <i class="fas fa-trash me-1"></i>문의사항 삭제
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 삭제 확인 모달 -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">문의사항 삭제</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    정말로 이 문의사항을 삭제하시겠습니까?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <form th:action="@{/admin/qna/delete}" method="post" style="display: inline;">
+                        <input type="hidden" name="userQnaNo" th:value="${qna.userQnaNo}">
+                        <button type="submit" class="btn btn-danger">삭제하기</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function deleteQna() {
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
+    </script>
+</body>
+</html>

@@ -4,17 +4,18 @@ import com.kh.spring.user.model.vo.User;
 
 public interface UserService {
 
+	
     // 로그인 기능 (SELECT)
-    User loginUser(User user);
+    User loginUser(User u);
     
     // 회원가입 기능 (INSERT)
-    int insertUser(User user);
+    int insertUser(User u);
     
     // 회원 정보 수정 기능 (UPDATE)
-    int updateUser(User user);
+    int updateUser(User u);
 
     // 회원 탈퇴 기능 (UPDATE)
-    int deleteUser(User user);
+    int deleteUser(User u);
 
     // 아이디 중복확인 기능
     int checkUserId(String userId);

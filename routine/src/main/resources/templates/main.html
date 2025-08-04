@@ -1,25 +1,373 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
-    <title>ROUTINE</title>
-    <th:block th:replace="~{/common/fragment :: library}"></th:block>
-  </head>
-  <body>
-    <th:block th:replace="~{/common/fragment :: header}"></th:block>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WELLNESS - 메인</title>
+    <link rel="stylesheet" th:href="@{/css/common.css}">
+    <style>
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .hero-section h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        .hero-section p {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+            color: white;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+        }
+        .btn-outline:hover {
+            background: white;
+            color: #667eea;
+        }
+        .btn-admin {
+            background-color: #dc3545;
+        }
+        .btn-admin:hover {
+            background-color: #c82333;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .alert-info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .user-welcome {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #28a745;
+        }
+        .admin-welcome {
+            border-left-color: #dc3545;
+            background: linear-gradient(135deg, #f8f9fa 0%, #fff5f5 100%);
+        }
+        .role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .badge-admin {
+            background-color: #dc3545;
+            color: white;
+        }
+        .badge-user {
+            background-color: #28a745;
+            color: white;
+        }
+        .quick-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div id="header">
+        <div id="header_1">
+            <div id="header_1_left">
+                <img th:src="@{/images/logo.png}" onclick="location.href='/'">
+            </div>
+            <div id="header_1_center"></div>
+            <div id="header_1_right">
+                <!-- 로그인한 사용자 -->
+                <div th:if="${session.loginUser}">
+                    <span th:text="${session.loginUser.nick} + '님 환영합니다!'"></span>
+                    <!-- 권한 배지 -->
+                    <span th:if="${session.loginUser.role == 'ADMIN'}" class="role-badge badge-admin">관리자</span>
+                    <span th:if="${session.loginUser.role == 'USER'}" class="role-badge badge-user">일반회원</span>
+                    
+                    <a th:href="@{/user/mypage}">마이페이지</a>
+                    <a th:href="@{/user/logout}">로그아웃</a>
+                </div>
+                <!-- 비로그인 사용자 -->
+                <div th:unless="${session.loginUser}">
+                    <a th:href="@{/user/login}">로그인</a>
+                    <a th:href="@{/user/signup}">회원가입</a>
+                </div>
+            </div>
+        </div>
+        <div id="header_2">
+            <ul>
+                <li><a th:href="@{/}" class="active">홈</a></li>
+                <li><a th:href="@{/notice}">공지사항</a></li>
+                <!-- 로그인한 사용자만 문의사항 메뉴 표시 -->
+                <li th:if="${session.loginUser != null}">
+                    <a th:href="@{/qna/list}">문의사항</a>
+                </li>
+                <!-- 관리자 메뉴 (ADMIN 권한만 표시) -->
+                <li th:if="${session.loginUser != null and session.loginUser.role == 'ADMIN'}">
+                    <a th:href="@{/user/admin/dashboard}">관리자</a>
+                </li>
+            </ul>
+        </div>
+    </div>
 
-    2조 ROUTINE 메인입니다.
-    <br />
-    http://localhost:8153/routine/
-    <hr />
+    <!-- Main Content -->
+    <div class="content">
+        <div class="main-container">
+            
+            <!-- URL 파라미터 메시지 처리 -->
+            <div th:if="${param.msg}" class="alert alert-info">
+                <span th:text="${param.msg}"></span>
+            </div>
 
-    <a th:href="@{/habit/goal}">Habit</a>
-    <br />
-    <a th:href="@{/challenge/chalMain}">챌린지</a>
-    <hr />
-    <a th:href="@{/meeting/list}">모임</a>
-    <br>
-	<a th:href="@{/openForum/list}">OpenForum 게시판 by 만손 </a>	
-    <script th:src="@{/js/common/main.js}"></script>
-  </body>
+            <!-- 세션 알림 메시지 -->
+            <div th:if="${session.alertMsg}" class="alert alert-success">
+                <span th:text="${session.alertMsg}"></span>
+            </div>
+
+            <!-- 세션 에러 메시지 -->
+            <div th:if="${session.errorMsg}" class="alert alert-danger">
+                <span th:text="${session.errorMsg}"></span>
+            </div>
+
+            <!-- 로그인한 사용자 환영 메시지 -->
+            <div th:if="${session.loginUser}" 
+                 class="user-welcome"
+                 th:classappend="${session.loginUser.role == 'ADMIN'} ? 'admin-welcome' : ''">
+                <h3>
+                    <span th:text="${session.loginUser.name}"></span>님, 환영합니다! 
+                    <span th:if="${session.loginUser.role == 'ADMIN'}" style="color: #dc3545;">(관리자)</span>
+                </h3>
+                <p th:if="${session.loginUser.role == 'ADMIN'}">
+                    시스템 관리 및 사용자 관리 기능을 이용하실 수 있습니다.
+                </p>
+                <p th:if="${session.loginUser.role == 'USER'}">
+                    모든 서비스를 자유롭게 이용하실 수 있습니다.
+                </p>
+                
+                <div class="quick-actions">
+                    <a th:href="@{/user/mypage}" class="btn">마이페이지</a>
+                    <a th:href="@{/qna/list}" class="btn">내 문의사항</a>
+                    <!-- 관리자만 대시보드 버튼 표시 -->
+                    <a th:if="${session.loginUser.role == 'ADMIN'}" 
+                       th:href="@{/user/admin/dashboard}" 
+                       class="btn btn-admin">관리자 대시보드</a>
+                </div>
+            </div>
+
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <h1>WELLNESS</h1>
+                <p>건강한 삶을 위한 여러분의 파트너</p>
+                <!-- 비로그인 사용자만 표시 -->
+                <div th:unless="${session.loginUser}">
+                    <a th:href="@{/user/signup}" class="btn btn-outline">지금 시작하기</a>
+                    <a th:href="@{/user/login}" class="btn btn-outline">로그인</a>
+                </div>
+            </div>
+
+            <!-- Features Grid -->
+        
+                <div class="feature-card" th:if="${session.loginUser != null}">
+                    <div class="feature-icon">💬</div>
+                    <h3>Habit</h3>
+                    <div class="mt-3">
+                        <a th:href="@{/habit/goal}" class="btn">Habit</a>
+                    </div>
+                </div>
+
+                <!-- 비로그인 사용자용  안내 -->
+                <div class="feature-card" th:if="${session.loginUser == null}">
+                    <div class="feature-icon">💬</div>
+                    <h3>Habit</h3>
+                    <p>로그인하고 하셈</p>
+                    <div class="mt-3">
+                        <a th:href="@{/user/login}" class="btn">로그인하고 해</a>
+                    </div>
+                </div>
+
+
+            
+            <div class="feature-card" th:if="${session.loginUser != null}">
+                    <div class="feature-icon">💬</div>
+                    <h3>챌린지</h3>
+                    <div class="mt-3">
+                        <a th:href="@{/challenge/chalMain}" class="btn">챌린지</a>
+                    </div>
+                </div>
+
+                <!-- 비로그인 사용자용  안내 -->
+                <div class="feature-card" th:if="${session.loginUser == null}">
+                    <div class="feature-icon">💬</div>
+                    <h3>챌린지</h3>
+                    <p>로그인하고 하셈</p>
+                    <div class="mt-3">
+                        <a th:href="@{/user/login}" class="btn">로그인하고 해</a>
+                    </div>
+                </div>
+
+                
+                <div class="feature-card" th:if="${session.loginUser != null}">
+                    <div class="feature-icon">💬</div>
+                    <h3>모임</h3>
+                    <div class="mt-3">
+                        <a th:href="@{/meeting/list}" class="btn">모임</a>
+                    </div>
+                </div>
+
+                <!-- 비로그인 사용자용  안내 -->
+                <div class="feature-card" th:if="${session.loginUser == null}">
+                    <div class="feature-icon">💬</div>
+                    <h3>모임</h3>
+                    <p>로그인하고 하셈</p>
+                    <div class="mt-3">
+                        <a th:href="@{/user/login}" class="btn">로그인하고 해</a>
+                    </div>
+                </div>
+
+              
+                <div class="feature-card" th:if="${session.loginUser != null}">
+                    <div class="feature-icon">💬</div>
+                    <h3>게시판</h3>
+                    <div class="mt-3">
+                        <a th:href="@{/openForum/list}" class="btn">게시판</a>
+                    </div>
+                </div>
+
+                <!-- 비로그인 사용자용  안내 -->
+                <div class="feature-card" th:if="${session.loginUser == null}">
+                    <div class="feature-icon">💬</div>
+                    <h3>게시판</h3>
+                    <p>로그인하고 하셈</p>
+                    <div class="mt-3">
+                        <a th:href="@{/user/login}" class="btn">로그인하고 해</a>
+                    </div>
+                </div>
+
+                //문의사항
+                <!-- 문의사항 기능 소개 카드 추가 -->
+                <div class="feature-card" th:if="${session.loginUser != null}">
+                    <div class="feature-icon">💬</div>
+                    <h3>문의 지원</h3>
+                    <p>궁금한 점이나 문제가 있으시면 언제든지 문의해주세요. 빠른 답변을 제공합니다.</p>
+                    <div class="mt-3">
+                        <a th:href="@{/qna/write}" class="btn">문의하기</a>
+                        <a th:href="@{/qna/list}" class="btn btn-outline" style="background: transparent; border: 2px solid #007bff; color: #007bff;">내 문의보기</a>
+                    </div>
+                </div>
+
+                <!-- 비로그인 사용자용 문의사항 안내 -->
+                <div class="feature-card" th:if="${session.loginUser == null}">
+                    <div class="feature-icon">💬</div>
+                    <h3>문의 지원</h3>
+                    <p>궁금한 점이나 문제가 있으시면 로그인 후 문의해주세요. 빠른 답변을 제공합니다.</p>
+                    <div class="mt-3">
+                        <a th:href="@{/user/login}" class="btn">로그인하여 문의하기</a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // 페이지 로드 시 세션 메시지 자동 제거
+        window.onload = function() {
+            // 알림 메시지 4초 후 자동 숨김
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.transition = 'opacity 0.5s';
+                    alert.style.opacity = '0';
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 500);
+                }, 4000);
+            });
+
+            // 세션에서 메시지 제거 (AJAX 요청)
+            if (document.querySelector('.alert-success') || document.querySelector('.alert-danger')) {
+                fetch('/routine/user/clearMessages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                }).catch(error => {
+                    console.log('메시지 정리 중 오류:', error);
+                });
+            }
+        }
+    </script>
+</body>
 </html>
+

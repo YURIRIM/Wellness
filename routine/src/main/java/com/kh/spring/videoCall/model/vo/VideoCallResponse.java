@@ -20,7 +20,7 @@ public class VideoCallResponse {
 	private String roomName;
 	private LocalDateTime createDate;
 	private String isRestrict; //N:없음, Y:참여자만, S:참여자 및 성공한 사람
-	private String status; //Y:정상, N:비활성화, D:삭제됨
+	private String status; //Y:정상, N:비활성화, D:삭제됨-사용되지 않음
 	
 	private int participants;
 	

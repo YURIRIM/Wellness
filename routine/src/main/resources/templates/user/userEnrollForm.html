@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> 회원가입</title>
+    <title>WELLNESS - 회원가입</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <style>
         .signup-form {
@@ -73,6 +73,22 @@
             color: red;
             font-size: 12px;
         }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
     </style>
 </head>
 <body>
@@ -101,9 +117,14 @@
             <div class="signup-form">
                 <h2 style="text-align: center; margin-bottom: 30px;">회원가입</h2>
                 
+                <!-- 세션 알림 메시지 (성공) -->
+                <div th:if="${session.alertMsg}" class="alert alert-success">
+                    <span th:text="${session.alertMsg}"></span>
+                </div>
+
                 <!-- 에러 메시지 -->
-                <div th:if="${errorMsg}" style="color: red; text-align: center; margin-bottom: 20px;">
-                    <span th:text="${errorMsg}"></span>
+                <div th:if="${session.errorMsg}" class="alert alert-danger">
+                    <span th:text="${session.errorMsg}"></span>
                 </div>
 
                 <form th:action="@{/user/signup}" method="post" id="signupForm">
@@ -152,25 +173,35 @@
         </div>
     </div>
 
-
     <script>
         let isIdChecked = false;
         let isPwdMatched = false;
 
-     // 아이디 중복 확인
+        // 페이지 로드 시 알림 메시지 자동 숨김
+        window.onload = function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.transition = 'opacity 0.5s';
+                    alert.style.opacity = '0';
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 500);
+                }, 3000);
+            });
+        }
+
+        // 아이디 중복 확인
         function checkUserId() {
-            const userId = document.getElementById('userId').value.trim(); // trim() 추가
+            const userId = document.getElementById('userId').value.trim();
             
             if (!userId) {
                 alert('아이디를 입력해주세요.');
                 return;
             }
 
-            // URL 인코딩 추가
             fetch('/routine/user/checkId?userId=' + encodeURIComponent(userId))
-                .then(response => {
-                    return response.text();
-                })
+                .then(response => response.text())
                 .then(data => {
                     const resultDiv = document.getElementById('checkResult');
                     if (data === 'NNNNY') {

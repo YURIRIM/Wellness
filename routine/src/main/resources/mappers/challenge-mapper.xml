@@ -235,6 +235,7 @@
 					</when>
 					<when test='searchType == "J"'>
 						and cp.USER_NO = #{userNo}
+						and c.USER_NO != #{userNo}
 					</when>
 				</choose>
 				

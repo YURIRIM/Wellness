@@ -1,7 +1,10 @@
 package com.kh.spring.user.controller;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,35 +24,46 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder bcrypt;
 
     @PostMapping("/login")
     public String loginUser(User u, HttpSession session, Model model) {
         
         System.out.println("로그인 시도 - 사용자 입력 ID: " + u.getUserId());
         
-        // 사용자가 입력한 아이디만 가지고 일치한 회원 정보 조회
         User loginUser = userService.loginUser(u);
         
         System.out.println("DB에서 조회된 사용자: " + loginUser);
-        System.out.println("사용자가 입력한 비밀번호: " + u.getPassword());
         
-        session.setAttribute("loginUser", loginUser);
-        // 비밀번호 검증
-        if (loginUser != null && passwordEncoder.matches(u.getPassword(), loginUser.getPassword())) {
-            session.setAttribute("alertMsg", "로그인 성공!");
-            return "redirect:/";
+        if (loginUser != null && bcrypt.matches(u.getPassword(), loginUser.getPassword())) {
+            session.setAttribute("alertMsg", loginUser.getName() + "님, 환영합니다!");
+            session.setAttribute("loginUser", loginUser);
+            
+            // 관리자면 관리자 대시보드로, 일반 사용자면 메인 페이지로
+            if ("ADMIN".equals(loginUser.getRole())) {
+                return "redirect:/admin/dashboard";
+            } else {
+                return "redirect:/";
+            }
         } else {
             model.addAttribute("errorMsg", "아이디 또는 비밀번호가 일치하지 않습니다.");
-            return "common/errorPage";
+            return "user/login";
         }
     }
 
     @RequestMapping("/logout")
-    public String logoutUser(HttpSession session) {
+    public String logoutUser(HttpSession session){
+        String userName = "";
+        User loginUser = (User) session.getAttribute("loginUser");
+        if (loginUser != null) {
+            userName = loginUser.getName();
+        }
+        
         session.invalidate();
+        
         return "redirect:/";
     }
 
@@ -67,70 +81,83 @@ public class UserController {
             u.setEmail(u.getEmail().replace("&#64;", "@"));
         }
         
-        // 비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(u.getPassword());
+        String encodedPassword = bcrypt.encode(u.getPassword());
         u.setPassword(encodedPassword);
         
-        // 기본 권한 설정
         if (u.getRole() == null || u.getRole().isEmpty()) {
             u.setRole("USER");
         }
         
-        // 회원가입 처리
         int result = userService.insertUser(u);
         
         if (result > 0) {
-            session.setAttribute("alertMsg", "회원가입을 환영합니다.");
-            return "redirect:/";
+            session.setAttribute("alertMsg", u.getName() + "님, 회원가입을 환영합니다!");
+            return "redirect:/user/login";
         } else {
-            model.addAttribute("errorMsg", "회원가입에 실패하였습니다.");
-            return "common/errorPage";
+            model.addAttribute("errorMsg", "회원가입에 실패하였습니다. 다시 시도해주세요.");
+            return "user/userEnrollForm";
         }
     }
 
     @RequestMapping("/mypage")
-    public String myPage() {
+    public String myPage(Model model, HttpSession session) {
+        User loginUser = (User) session.getAttribute("loginUser");
+        if (loginUser != null) {
+            model.addAttribute("isAdmin", "ADMIN".equals(loginUser.getRole()));
+        }
         return "user/mypage";
     }
 
-    @RequestMapping("/update")
+    @PostMapping("/update")
     public String updateUser(User user, HttpSession session, Model model) {
+        
+        User loginUser = (User) session.getAttribute("loginUser");
+        if (loginUser == null) {
+            session.setAttribute("errorMsg", "로그인이 필요합니다.");
+            return "redirect:/user/login";
+        }
+        
+        user.setUserId(loginUser.getUserId());
         
         int result = userService.updateUser(user);
         
         if (result > 0) {
-            session.setAttribute("alertMsg", "정보수정 성공!");
+            session.setAttribute("alertMsg", "정보수정이 완료되었습니다!");
             
-            // 변경된 정보 갱신
             User updatedUser = userService.loginUser(user);
             session.setAttribute("loginUser", updatedUser);
             
             return "redirect:/user/mypage";
         } else {
-            model.addAttribute("errorMsg", "정보수정 실패!");
-            return "common/errorPage";
+            session.setAttribute("errorMsg", "정보수정에 실패했습니다.");
+            return "redirect:/user/mypage";
         }
     }
 
-    @RequestMapping("/delete")
+    @PostMapping("/delete")
     public String deleteUser(User u, HttpSession session) {
         
-        User loginUser = userService.loginUser(u);
+        User loginUser = (User) session.getAttribute("loginUser");
+        if (loginUser == null) {
+            return "redirect:/user/login?msg=로그인이 필요합니다.";
+        }
         
-        if (loginUser != null && passwordEncoder.matches(u.getPassword(), loginUser.getPassword())) {
+        u.setUserId(loginUser.getUserId());
+        User userToDelete = userService.loginUser(u);
+        
+        if (userToDelete != null && bcrypt.matches(u.getPassword(), userToDelete.getPassword())) {
             
             int result = userService.deleteUser(u);
             
             if (result > 0) {
-                session.setAttribute("alertMsg", "회원 탈퇴 성공");
-                session.removeAttribute("loginUser");
-                return "redirect:/";
+                session.invalidate();
+                return "redirect:/?msg=회원 탈퇴가 완료되었습니다.";
             } else {
-                session.setAttribute("alertMsg", "회원 탈퇴 실패");
+                session.setAttribute("errorMsg", "회원 탈퇴에 실패했습니다.");
                 return "redirect:/user/mypage";
             }
         } else {
-            session.setAttribute("alertMsg", "비밀번호를 잘못입력하셨습니다.");
+            session.setAttribute("errorMsg", "비밀번호가 일치하지 않습니다.");
             return "redirect:/user/mypage";
         }
     }
