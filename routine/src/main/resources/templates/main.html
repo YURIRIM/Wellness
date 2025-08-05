@@ -6,11 +6,102 @@
     <title>WELLNESS - 메인</title>
     <link rel="stylesheet" th:href="@{/css/common.css}">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* 헤더 스타일 */
+        .main-header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            position: relative;
+        }
+
+        .logo {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: none;
+        }
+
+        /* 로고 중앙 배치로 인해 네비게이션 메뉴는 숨김 처리 */
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: #f8f9fa;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .logout-btn {
+            padding: 8px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .admin-badge {
+            background: #dc3545;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* 메인 컨테이너 */
         .main-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
+
+        /* 히어로 섹션 수정 */
         .hero-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -18,38 +109,59 @@
             border-radius: 15px;
             text-align: center;
             margin-bottom: 40px;
-            position: relative; /* 추가 */
         }
+
         .hero-section h1 {
             font-size: 3em;
             margin-bottom: 20px;
         }
+
         .hero-section p {
             font-size: 1.2em;
             margin-bottom: 30px;
         }
+
+        /* 기능 카드 그리드 */
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
             margin-bottom: 40px;
         }
+
         .feature-card {
             background: white;
             padding: 30px;
-            border-radius: 10px;
+            border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             text-align: center;
-            transition: transform 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
+
         .feature-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
+
         .feature-icon {
             font-size: 3em;
             margin-bottom: 20px;
             opacity: 0.8;
         }
+
+        .feature-card h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .feature-card p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        /* 버튼 스타일 */
         .btn {
             display: inline-block;
             padding: 12px 30px;
@@ -62,69 +174,64 @@
             cursor: pointer;
             font-size: 16px;
             margin: 5px;
+            font-weight: 500;
         }
+
         .btn:hover {
             background-color: #0056b3;
             transform: scale(1.05);
             color: white;
         }
-        .btn-outline {
-            background: transparent;
-            border: 2px solid white;
-            color: white;
-        }
-        .btn-outline:hover {
-            background: white;
-            color: #667eea;
-        }
+
         .btn-admin {
             background-color: #dc3545;
         }
+
         .btn-admin:hover {
             background-color: #c82333;
         }
+
+        /* 알림 메시지 */
         .alert {
             padding: 15px;
             margin-bottom: 20px;
             border: 1px solid transparent;
-            border-radius: 4px;
+            border-radius: 8px;
+            font-weight: 500;
         }
+
         .alert-success {
             color: #155724;
             background-color: #d4edda;
             border-color: #c3e6cb;
         }
+
         .alert-info {
             color: #0c5460;
             background-color: #d1ecf1;
             border-color: #bee5eb;
         }
+
         .alert-danger {
             color: #721c24;
             background-color: #f8d7da;
             border-color: #f5c6cb;
         }
 
+        /* 관리자 환영 메시지 */
         .admin-welcome {
-            border-left-color: #dc3545;
-            background: linear-gradient(135deg, #f8f9fa 0%, #fff5f5 100%);
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%);
+            border: 1px solid #f5c6cb;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
         }
-        .role-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 10px;
+
+        .admin-welcome h3 {
+            color: #dc3545;
+            margin-bottom: 10px;
         }
-        .badge-admin {
-            background-color: #dc3545;
-            color: white;
-        }
-        .badge-user {
-            background-color: #28a745;
-            color: white;
-        }
+
         .quick-actions {
             display: flex;
             gap: 15px;
@@ -132,7 +239,7 @@
             margin-top: 15px;
         }
 
-        /* 랜딩 스크린 스타일 추가 */
+        /* 랜딩 스크린 스타일 */
         .landing-screen {
             position: fixed;
             top: 0;
@@ -178,9 +285,8 @@
             display: inline-block;
             padding: 15px 40px;
             margin: 10px;
-            background: transparent;
-            border: 2px solid white;
-            color: white;
+            background: white;
+            color: #667eea;
             text-decoration: none;
             border-radius: 30px;
             font-size: 18px;
@@ -190,20 +296,9 @@
         }
 
         .landing-btn:hover {
-            background: white;
-            color: #667eea;
+            background: #f8f9fa;
             transform: scale(1.05);
             box-shadow: 0 8px 25px rgba(255,255,255,0.3);
-        }
-
-        .landing-btn-primary {
-            background: white;
-            color: #667eea;
-        }
-
-        .landing-btn-primary:hover {
-            background: transparent;
-            color: white;
         }
 
         /* 메인 컨텐츠 숨김 */
@@ -211,7 +306,7 @@
             overflow: hidden;
         }
 
-        body.landing-mode #header,
+        body.landing-mode .main-header,
         body.landing-mode .content {
             display: none;
         }
@@ -228,8 +323,25 @@
             }
         }
 
-        /* 반응형 */
+        /* 반응형 디자인 */
         @media (max-width: 768px) {
+            .header-container {
+                padding: 15px;
+            }
+
+            .logo {
+                font-size: 24px;
+            }
+
+            .hero-section h1 {
+                font-size: 2.5em;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
             .landing-content h1 {
                 font-size: 2.5em;
             }
@@ -246,34 +358,28 @@
                 max-width: 200px;
             }
         }
-        
-        /* 히어로 섹션 내 로그아웃 버튼 */
-        .hero-logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
 
-        .hero-logout-btn a {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.5);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
+        @media (max-width: 480px) {
+            .header-container {
+                padding: 10px;
+                flex-direction: column;
+                gap: 10px;
+            }
 
-        .hero-logout-btn a:hover {
-            background: rgba(255,255,255,0.9);
-            color: #667eea;
+            .logo {
+                position: static;
+                transform: none;
+                margin-bottom: 10px;
+            }
+
+            .header-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
         }
     </style>
 </head>
 <body th:classappend="${session.loginUser == null} ? 'landing-mode' : ''">
-    
-
 
     <!-- 랜딩 스크린 (비로그인 사용자만) -->
     <div th:if="${session.loginUser == null}" id="landingScreen" class="landing-screen">
@@ -281,10 +387,30 @@
             <h1>WELLNESS</h1>
             <p>건강한 삶을 위한 여러분의 파트너</p>
             <div>
-                <a th:href="@{/user/login}" class="landing-btn landing-btn-primary">지금 시작하기</a>
+                <a th:href="@{/user/login}" class="landing-btn">지금 시작하기</a>
             </div>
         </div>
     </div>
+
+    <!-- 헤더 (로그인한 사용자만) -->
+    <header th:if="${session.loginUser}" class="main-header">
+        <div class="header-container">
+            <!-- 왼쪽 여백 -->
+            <div></div>
+            
+            <!-- 중앙 로고 -->
+            <a href="/" class="logo">WELLNESS</a>
+            
+            <!-- 우측 사용자 정보 및 로그아웃 -->
+            <div class="header-actions">
+                <div class="user-info">
+                    <span th:text="${session.loginUser.name}+ 님">사용자명</span>
+                    <span th:if="${session.loginUser.role == 'ADMIN'}" class="admin-badge">관리자</span>
+                </div>
+                <a th:href="@{/user/logout}" class="logout-btn">로그아웃</a>
+            </div>
+        </div>
+    </header>
 
     <!-- Main Content -->
     <div class="content">
@@ -305,32 +431,18 @@
                 <span th:text="${session.errorMsg}"></span>
             </div>
 
-            <!-- 로그인한 사용자 환영 메시지 -->
-            <div th:if="${session.loginUser}" 
-                 class="user-welcome"
-                 th:classappend="${session.loginUser.role == 'ADMIN'} ? 'admin-welcome' : ''">
-                <h3>
-                    <span th:if="${session.loginUser.role == 'ADMIN'}" style="color: #dc3545;">(관리자)</span>
-                </h3>
-                <p th:if="${session.loginUser.role == 'ADMIN'}">
-                    시스템 관리 및 사용자 관리 기능을 이용하실 수 있습니다.
-                </p>
-     
+            <!-- 관리자 환영 메시지 -->
+            <div th:if="${session.loginUser != null and session.loginUser.role == 'ADMIN'}" class="admin-welcome">
+                <h3>관리자 대시보드</h3>
+                <p>시스템 관리 및 사용자 관리 기능을 이용하실 수 있습니다.</p>
                 <div class="quick-actions">
-                    <!-- 관리자만 대시보드 버튼 표시 -->
-                    <a th:if="${session.loginUser.role == 'ADMIN'}" 
-                       th:href="@{/user/admin/dashboard}" 
-                       class="btn btn-admin">관리자 대시보드</a>
+                    <a th:href="@{/user/admin/dashboard}" class="btn btn-admin">관리자 대시보드</a>
+                    <a th:href="@{/user/mypage}" class="btn">마이페이지</a>
                 </div>
             </div>
 
             <!-- Hero Section -->
             <div class="hero-section">
-                <!-- 로그아웃 버튼 (히어로 섹션 우상단) -->
-                <div th:if="${session.loginUser}" class="hero-logout-btn">
-                    <a th:href="@{/user/logout}">로그아웃</a>
-                </div>
-                
                 <h1>WELLNESS</h1>
                 <p>건강한 삶을 위한 여러분의 파트너</p>
             </div>
@@ -342,11 +454,10 @@
                     <h3>Habit</h3>
                     <p>건강한 습관을 만들고 지속적으로 관리하세요</p>
                     <div class="mt-3">
-                        <a th:href="@{/habit/goal}" class="btn">Habit</a>
+                        <a th:href="@{/habit/goal}" class="btn">Habit 시작하기</a>
                     </div>
                 </div>
 
-                <!-- 비로그인 사용자용 안내 -->
                 <div class="feature-card" th:if="${session.loginUser == null}">
                     <div class="feature-icon">🎯</div>
                     <h3>Habit</h3>
@@ -361,11 +472,10 @@
                     <h3>챌린지</h3>
                     <p>다양한 건강 챌린지에 참여해보세요</p>
                     <div class="mt-3">
-                        <a th:href="@{/challenge/chalMain}" class="btn">챌린지</a>
+                        <a th:href="@{/challenge/chalMain}" class="btn">챌린지 참여하기</a>
                     </div>
                 </div>
 
-                <!-- 비로그인 사용자용 안내 -->
                 <div class="feature-card" th:if="${session.loginUser == null}">
                     <div class="feature-icon">🏆</div>
                     <h3>챌린지</h3>
@@ -380,11 +490,10 @@
                     <h3>모임</h3>
                     <p>건강한 라이프스타일을 함께 공유하세요</p>
                     <div class="mt-3">
-                        <a th:href="@{/meeting/list}" class="btn">모임</a>
+                        <a th:href="@{/meeting/list}" class="btn">모임 참여하기</a>
                     </div>
                 </div>
 
-                <!-- 비로그인 사용자용 안내 -->
                 <div class="feature-card" th:if="${session.loginUser == null}">
                     <div class="feature-icon">👥</div>
                     <h3>모임</h3>
@@ -399,11 +508,10 @@
                     <h3>게시판</h3>
                     <p>건강 정보를 공유하고 소통해보세요</p>
                     <div class="mt-3">
-                        <a th:href="@{/openForum/list}" class="btn">게시판</a>
+                        <a th:href="@{/openForum/list}" class="btn">게시판 보기</a>
                     </div>
                 </div>
 
-                <!-- 비로그인 사용자용 안내 -->
                 <div class="feature-card" th:if="${session.loginUser == null}">
                     <div class="feature-icon">💬</div>
                     <h3>게시판</h3>
@@ -414,19 +522,19 @@
                 </div>
                 
                 <div class="feature-card" th:if="${session.loginUser != null}">
-                    <div class="feature-icon">💬</div>
+                    <div class="feature-icon">📊</div>
                     <h3>내활동</h3>
                     <p>진행 중인 활동을 확인하세요</p>
                     <div class="mt-3">
-                        <a th:href="@{/activity/my}" class="btn">활동</a>
+                        <a th:href="@{/activity/my}" class="btn">활동 보기</a>
                         <a th:href="@{/user/mypage}" class="btn">마이페이지</a>
                     </div>
                 </div>
 
-                <!-- 비로그인 사용자용 안내 -->
                 <div class="feature-card" th:if="${session.loginUser == null}">
-                    <div class="feature-icon">💬</div>
+                    <div class="feature-icon">📊</div>
                     <h3>내활동</h3>
+                    <p>로그인하고 나의 활동을 확인해보세요</p>
                     <div class="mt-3">
                         <a th:href="@{/user/login}" class="btn">로그인하고 확인하기</a>
                     </div>
@@ -435,18 +543,17 @@
                 <div class="feature-card" th:if="${session.loginUser != null}">
                     <div class="feature-icon">🤝</div>
                     <h3>고객센터</h3>
-                    <p>궁금한 점이나 문제가 있으시면 언제든지 문의해주세요. 빠른 답변을 제공합니다.</p>
+                    <p>궁금한 점이나 문제가 있으시면 언제든지 문의해주세요</p>
                     <div class="mt-3">
                         <a th:href="@{/qna/list}" class="btn">문의하기</a>
                         <a th:href="@{/notice/list}" class="btn">공지사항</a>
                     </div>
                 </div>
 
-                <!-- 비로그인 사용자용 문의사항 안내 -->
                 <div class="feature-card" th:if="${session.loginUser == null}">
                     <div class="feature-icon">🤝</div>
-                    <h3>문의 지원</h3>
-                    <p>궁금한 점이나 문제가 있으시면 로그인 후 문의해주세요. 빠른 답변을 제공합니다.</p>
+                    <h3>고객센터</h3>
+                    <p>로그인 후 문의사항을 남겨주세요</p>
                     <div class="mt-3">
                         <a th:href="@{/user/login}" class="btn">로그인하기</a>
                     </div>
@@ -464,23 +571,11 @@
             
             // 랜딩 스크린이 있을 때만 실행 (비로그인 사용자)
             if (landingScreen) {
-                const startBtn = document.getElementById('startBtn');
                 const body = document.body;
-
-                // 시작하기 버튼 클릭 이벤트
-                startBtn.addEventListener('click', function() {
-                    // 랜딩 스크린 페이드아웃
-                    landingScreen.classList.add('fade-out');
-                    
-                    // 0.8초 후 랜딩 스크린 숨기고 메인 컨텐츠 표시
-                    setTimeout(() => {
-                        landingScreen.style.display = 'none';
-                        body.classList.remove('landing-mode');
-                    }, 800);
-                });
+                // 비로그인 사용자는 자동으로 랜딩 모드 유지
             }
 
-            // 페이지 로드 시 세션 메시지 자동 제거 (기존 기능 유지)
+            // 페이지 로드 시 세션 메시지 자동 제거
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(alert => {
                 setTimeout(() => {
