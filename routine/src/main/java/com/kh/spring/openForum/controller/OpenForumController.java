@@ -220,6 +220,9 @@ public class OpenForumController {
 	@ResponseBody
 	@PostMapping("/write-comments")
 	public int writeComments(Comments c) {
+		
+		System.out.println(c);
+		
 		int result = service.writeComments(c);
 		return result;
 	}

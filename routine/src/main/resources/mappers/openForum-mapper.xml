@@ -70,7 +70,7 @@
     						 VIEWS
     						)  
    	VALUES (#{postId},
-	 		1,
+	 		#{userNo},
 	 		#{title},
 	 		#{content},
 	 		SYSDATE,
@@ -118,6 +118,7 @@
   <select id="postDetail" resultMap="openForumResultMap">
    SELECT FORUM.POST_ID, 
         U.USER_ID, 
+        FORUM.USER_NO,
         FORUM.TITLE, 
         FORUM.CONTENT, 
         FORUM.CREATED_AT, 
@@ -167,7 +168,7 @@
   							  )
   		VALUES (SEQ_COMMENT_ID.NEXTVAL,
   				#{postId},
-  				10,
+  				#{userNo},
   				#{content},
   				0,
   				SYSDATE,

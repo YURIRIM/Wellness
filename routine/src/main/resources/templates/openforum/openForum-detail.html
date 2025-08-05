@@ -158,12 +158,13 @@
 		//버튼 클릭 시 폼 제출로 인한 페이지 이동(새로고침)을 막는 것
 		//AJAX가 정상적으로 실행될 수 있게 기본 폼 제출을 방지
 		
+		
 		$.ajax({
 			url: /*[[@{/openForum/write-comments}]]*/ "/openForum/write-comments",
 			method: "post",
 			data: {
 				postId: /*[[${post.postId}]]*/ 0,
-				userId: /*[[${post.userNo}]]*/ 0, 
+				userNo: /*[[${post.userNo}]]*/ 0, 
 				content: $("textarea[name='content']").val()	
 			},
 			success: function(result){
