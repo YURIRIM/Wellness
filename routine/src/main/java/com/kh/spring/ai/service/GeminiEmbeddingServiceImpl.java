@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.google.genai.Client;
 import com.google.genai.types.ContentEmbedding;
 import com.google.genai.types.EmbedContentResponse;
 import com.kh.spring.util.cryption.AESCryption;
@@ -56,4 +57,5 @@ public class GeminiEmbeddingServiceImpl implements GeminiEmbeddingService {
 	    
 	    return vectorArray;
 	}
+
 }
