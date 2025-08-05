@@ -5,141 +5,87 @@
     <title>모임 정보</title>
     <th:block th:replace="~{common/fragment :: library}"></th:block>
     <script type="text/javascript" th:src="@{'https://dapi.kakao.com/v2/maps/sdk.js?appkey=' + ${kakaoJsApiKey} + '&libraries=services'}"></script>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
-        #detailMap {
-            width: 100%;
-            height: 300px; 
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-top: 15px; 
-        }
+        body { font-family: 'Pretendard', sans-serif; background-color: #F7F9FC; color: #333; }
+        .page-container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+        .detail-card { background: #fff; border: 1px solid #EAECEF; border-radius: 12px; overflow: hidden; margin-bottom: 24px; }
+        .detail-header { padding: 24px; background-color: #2C3E50; color: #fff; }
+        .detail-header h2 { margin: 0; font-size: 24px; font-weight: 700; }
+        .detail-body { padding: 24px; }
+        .detail-info p { font-size: 1rem; color: #5D6D7E; margin-bottom: 12px; display: flex; align-items: center; }
+        .detail-info i { margin-right: 12px; color: #4A90E2; font-size: 1.2rem; }
+        .detail-description { margin-top: 20px; padding-top: 20px; border-top: 1px solid #EAECEF; }
+        #detailMap { width: 100%; height: 350px; border-radius: 8px; border: 1px solid #EAECEF; }
+        .action-panel { background: #fff; border: 1px solid #EAECEF; border-radius: 12px; padding: 24px; position: sticky; top: 20px; }
+        .action-panel .btn { width: 100%; margin-bottom: 10px; padding: 12px; font-weight: 600; }
+        .participant-list .list-group-item { border-left: 0; border-right: 0; }
     </style>
 </head>
 <body>
-	<th:block th:replace="~{common/fragment :: header}"></th:block>
-	    
-    <div class="container mt-4">
+    <th:block th:replace="~{common/fragment :: header}"></th:block>
+        
+    <div class="page-container">
         <div class="row">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h3 class="mb-1" th:text="${meeting.title}">모임 제목</h3>
-                        <small>
-                            <i class="bi bi-clock"></i> 
-                            개설일: <span th:text="${#temporals.format(meeting.meetingDate, 'yyyy-MM-dd HH:mm')}">생성일</span>
-                        </small>
+            <div class="col-lg-8">
+                <div class="detail-card">
+                    <div class="detail-header">
+                        <h2 th:text="${meeting.title}">모임 제목</h2>
                     </div>
-                    <div class="card-body">
-                        <div th:if="${meeting.description != null and !#strings.isEmpty(meeting.description)}">
-                            <h6>모임 소개</h6>
+                    <div class="detail-body">
+                        <div class="detail-info">
+                            <p><i class="bi bi-calendar-event"></i><span th:text="${#temporals.format(meeting.meetingDate, 'yyyy년 MM월 dd일 HH:mm')}"></span></p>
+                            <p><i class="bi bi-geo-alt"></i><span th:text="${meeting.locationObject?.address ?: '미정'}"></span></p>
+                            <p><i class="bi bi-person"></i><span th:text="${meeting.creatorName}"></span></p>
+                            <p><i class="bi bi-people"></i><span>참여인원 </span><span th:text="${participantCount}"></span><span>명</span></p>
+                        </div>
+                        <div class="detail-description" th:if="${meeting.description}">
                             <p th:text="${meeting.description}">모임 소개</p>
-                            <hr>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <strong><i class="bi bi-geo-alt"></i> 장소:</strong>
-                                <span th:if="${meeting.locationObject != null and meeting.locationObject.address != null and !#strings.isEmpty(meeting.locationObject.address)}"
-                                      th:text="${meeting.locationObject.address}">모임 장소 주소</span>
-                                <span th:unless="${meeting.locationObject != null and meeting.locationObject.address != null and !#strings.isEmpty(meeting.locationObject.address)}"
-                                      class="text-danger">장소 미정 또는 주소 없음</span>
-                            </div>
-                            <div class="col-md-6">
-                                <strong><i class="bi bi-person"></i> 개설자:</strong>
-                                <span th:text="${meeting.userNo}">사용자</span>
-                            </div>
-                            <div class="col-md-6 mt-2">
-                                <strong><i class="bi bi-people"></i> 참여자:</strong>
-                                <span th:text="${participantCount}">0</span>명
-                            </div>
-                        </div>
-                        
-                        <div th:if="${meeting.locationObject != null and meeting.locationObject.latitude != null and meeting.locationObject.longitude != null}">
-                            <hr>
-                            <h6>모임 장소 지도</h6>
-                            <div id="detailMap"></div>
-                        </div>
-                        <div th:unless="${meeting.locationObject != null and meeting.locationObject.latitude != null and meeting.locationObject.longitude != null}">
-                            <hr>
-                            <p class="text-info small">지정된 상세 모임 장소 지도가 없습니다.</p>
-                        </div>
+                        <div th:if="${meeting.locationObject?.latitude != null}" id="detailMap" class="mt-4"></div>
                     </div>
                 </div>
-                
-                <div class="card mt-3">
-                    <div class="card-header">
-                        <h5><i class="bi bi-people"></i> 참여자 목록</h5>
+
+                <div class="detail-card participant-list">
+                     <div class="card-header bg-white">
+                        <h5>참여자 목록</h5>
                     </div>
-                    <div class="card-body">
-                        <div th:if="${#lists.isEmpty(participants)}">
-                            <p class="text-muted">아직 참여자가 없습니다.</p>
-                        </div>
-                        <div th:unless="${#lists.isEmpty(participants)}">
-                            <div class="row">
-                                <div class="col-md-6 mb-2" th:each="participant : ${participants}">
-                                    <span class="badge bg-primary">사용자 <span th:text="${participant.userNo}">ID</span></span>
-                                    <small class="text-muted">참여: <span th:text="${#temporals.format(participant.joinedAt, 'MM-dd HH:mm')}">날짜</span></small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li th:if="${#lists.isEmpty(participants)}" class="list-group-item text-muted">아직 참여자가 없습니다.</li>
+                        <li th:each="p : ${participants}" class="list-group-item">
+                            사용자 <span th:text="${p.userNo}"></span> 
+                            <small class="text-muted float-end">참여일: <span th:text="${#temporals.format(p.joinedAt, 'yyyy.MM.dd')}"></span></small>
+                        </li>
+                    </ul>
                 </div>
             </div>
             
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="bi bi-chat-dots"></i> 모임 참여하기</h5>
+            <div class="col-lg-4">
+                <div class="action-panel">
+                     <div class="d-grid gap-2">
+                         <a th:href="@{/chat/room/{meetingNo}(meetingNo=${meeting.meetingNo})}" class="btn btn-lg btn-success">
+                            <i class="bi bi-chat-dots-fill"></i> 채팅방 입장
+                        </a>
+                        <a th:href="@{/meeting/list}" class="btn btn-secondary">
+                            <i class="bi bi-list-ul"></i> 목록으로
+                        </a>
                     </div>
-                    <div class="card-body">
-                        <div th:if="${!isParticipant}">
-                            <a th:href="@{/chat/room/{meetingNo}(meetingNo=${meeting.meetingNo})}" class="btn btn-success w-100 mb-3">
-                                <i class="bi bi-chat-square-text"></i> 참여하고 채팅하기
-                            </a>
-                            <div class="alert alert-info">
-                                <small>
-                                    <i class="bi bi-info-circle"></i> 이 모임에 참여하여 채팅을 시작해보세요!
-                                </small>
-                            </div>
-                        </div>
-                        
-                        <div th:if="${isParticipant}">
-                            <a th:href="@{/chat/room/{meetingNo}(meetingNo=${meeting.meetingNo})}" class="btn btn-primary w-100 mb-2">
-                                <i class="bi bi-chat-square-text"></i> 채팅방 입장
-                            </a>
-                            
-                            <div th:if="${session.userNo != meeting.userNo}">
-                                <button class="btn btn-outline-warning w-100 mb-2" onclick="leaveMeeting()">
-                                    <i class="bi bi-box-arrow-right"></i> 모임 나가기
-                                </button>
-                                <div class="alert alert-warning">
-                                    <small>
-                                        <i class="bi bi-exclamation-triangle"></i> 모임에 참여 중입니다. 개설자는 나갈 수 없습니다.
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div th:if="${session.userNo == meeting.userNo}">
-                            <hr>
-                            <div class="d-grid gap-2">
-                                <a th:href="@{/meeting/edit/{meetingNo}(meetingNo=${meeting.meetingNo})}" class="btn btn-outline-secondary">
-                                    <i class="bi bi-pencil"></i> 모임 정보 수정
+
+                    <div th:if="${session.loginUser != null}">
+                         <hr>
+                         <div class="d-grid gap-2">
+                            <button th:if="${isParticipant and session.loginUser.userNo != meeting.userNo}" class="btn btn-outline-warning" onclick="leaveMeeting()">
+                                <i class="bi bi-box-arrow-right"></i> 모임 나가기
+                            </button>
+                            <th:block th:if="${session.loginUser.userNo == meeting.userNo}">
+                                <a th:href="@{/meeting/edit/{meetingNo}(meetingNo=${meeting.meetingNo})}" class="btn btn-outline-info">
+                                    <i class="bi bi-pencil"></i> 정보 수정
                                 </a>
                                 <button class="btn btn-outline-danger" onclick="deleteMeeting()">
                                     <i class="bi bi-trash"></i> 모임 삭제
                                 </button>
-                            </div>
-                            <div class="alert alert-light mt-2">
-                                <small>
-                                    <i class="bi bi-crown"></i> 당신이 개설한 모임입니다.
-                                </small>
-                            </div>
-                        </div>
-                        
-                        <hr>
-                        <a th:href="@{/meeting/list}" class="btn btn-outline-primary w-100">
-                            <i class="bi bi-arrow-left"></i> 모임 목록으로
-                        </a>
+                            </th:block>
+                         </div>
                     </div>
                 </div>
             </div>
@@ -147,50 +93,35 @@
     </div>
     
     <script th:inline="javascript">
-        const meetingNo = /*[[${meeting.meetingNo}]]*/ 1;
-        const locationLatitude = /*[[${meeting.locationObject?.latitude}]]*/ null; 
-        const locationLongitude = /*[[${meeting.locationObject?.longitude}]]*/ null; 
+        const meetingNo = /*[[${meeting.meetingNo}]]*/ 0;
+        const lat = /*[[${meeting.locationObject?.latitude}]]*/ null; 
+        const lng = /*[[${meeting.locationObject?.longitude}]]*/ null; 
 
-        if (locationLatitude != null && locationLongitude != null) {
-            window.kakao.maps.load(function() {
-                var mapContainer = document.getElementById('detailMap');
-                var mapOption = { 
-                    center: new kakao.maps.LatLng(locationLatitude, locationLongitude), 
-                    level: 3 
-                };
-                var map = new kakao.maps.Map(mapContainer, mapOption); 
-
-                var marker = new kakao.maps.Marker({
-                    position: new kakao.maps.LatLng(locationLatitude, locationLongitude) 
-                });
-                marker.setMap(map);
-            });
+        if (lat != null && lng != null) {
+            var mapContainer = document.getElementById('detailMap'), 
+                mapOption = { center: new kakao.maps.LatLng(lat, lng), level: 4 };
+            var map = new kakao.maps.Map(mapContainer, mapOption); 
+            var marker = new kakao.maps.Marker({ position: new kakao.maps.LatLng(lat, lng) });
+            marker.setMap(map);
         }
         
         function leaveMeeting() {
-            if (confirm('이 모임에서 나가시겠습니까?\\n나가기 후에도 언제든 다시 참여할 수 있습니다.')) {
-                fetch('/routine/meeting/leave/' + meetingNo, {
-                    method: 'POST'
-                })
-                .then(response => response.text())
-                .then(result => {
+            if (confirm('이 모임에서 나가시겠습니까?')) {
+                fetch(`/routine/meeting/leave/${meetingNo}`, { method: 'POST' })
+                .then(res => res.text()).then(result => {
                     if (result === 'success') {
                         alert('모임에서 나갔습니다.');
-                        location.reload();
-                    } else if (result === 'owner') {
-                        alert('모임 개설자는 나갈 수 없습니다.');
-                    } else {
-                        alert('나가기에 실패했습니다.');
-                    }
+                        location.href = '/routine/meeting/list';
+                    } else alert('모임 나가기에 실패했습니다.');
                 });
             }
         }
         
         function deleteMeeting() {
-            if (confirm('정말로 이 모임을 삭제하시겠습니까?\\n삭제된 모임과 모든 대화 내용은 복구할 수 없습니다.')) {
+            if (confirm('정말로 이 모임을 삭제하시겠습니까?')) {
                 const form = document.createElement('form');
                 form.method = 'POST';
-                form.action = '/routine/meeting/delete/' + meetingNo;
+                form.action = `/routine/meeting/delete/${meetingNo}`;
                 document.body.appendChild(form);
                 form.submit();
             }

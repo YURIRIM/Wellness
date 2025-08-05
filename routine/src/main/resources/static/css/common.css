@@ -24,6 +24,64 @@
 }
 
 /*header css*/
+#header_2 > ul > li {
+    position: relative; /* 드롭다운 위치 기준점 */
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    min-width: 150px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    list-style: none;
+    padding: 5px 0;
+    margin: 0;
+    display: none;
+    z-index: 1000;
+}
+
+/* 호버시 드롭다운 표시 */
+#header_2 > ul > li.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+.dropdown-menu li {
+    margin: 0;
+    width: 100%;
+    float: none; /* 기존 float 해제 */
+    height: auto;
+    line-height: normal;
+    text-align: left;
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #333 !important;
+    font-size: 14px !important;
+    font-weight: normal !important;
+    border-radius: 3px;
+    margin: 2px 5px;
+}
+
+.dropdown-menu a:hover {
+    background: #f8f9fa;
+    color: #667eea !important;
+}
+
+/* 드롭다운 화살표 추가 */
+.dropdown > a::after {
+    content: ' ▼';
+    font-size: 10px;
+    margin-left: 5px;
+}
+
+
 div {
 	box-sizing: border-box;
 }
@@ -64,17 +122,9 @@ div {
 
 #header_1_right {
 	width: 30%;
+	
 }
 
-#header_1_left>img {
-	height: 80%;
-	position: absolute;
-	margin: auto;
-	top: 0px;
-	bottom: 0px;
-	right: 0px;
-	left: 0px;
-}
 
 #header_1_right {
 	text-align: center;
@@ -137,6 +187,9 @@ div {
 	padding: 5% 10%;
 	background-color: white;
 }
+
+/*  */
+
 
 /* footer css*/
 #footer {

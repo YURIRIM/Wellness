@@ -39,7 +39,6 @@ public class UserController {
         System.out.println("DB에서 조회된 사용자: " + loginUser);
         
         if (loginUser != null && bcrypt.matches(u.getPassword(), loginUser.getPassword())) {
-            session.setAttribute("alertMsg", loginUser.getName() + "님, 환영합니다!");
             session.setAttribute("loginUser", loginUser);
             
             // 관리자면 관리자 대시보드로, 일반 사용자면 메인 페이지로
