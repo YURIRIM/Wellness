@@ -1,6 +1,8 @@
 package com.kh.spring.habit.controller;
 
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +40,24 @@ public class HabitController {
 	    }
 
 	    List<Goal> goals = service.findGoalsWithHabits(loginUser.getUserNo());
+
+	    // null 안전성 보강: 각 Goal 내부 habits 리스트가 null이면 빈 리스트로 초기화
+	    if (goals != null) {
+	        for (Goal goal : goals) {
+	            if (goal.getHabits() == null) {
+	                goal.setHabits(new ArrayList<>());
+	            }
+	        }
+	    } else {
+	        // goals 자체가 null일 경우 빈 리스트로 초기화
+	        goals = new ArrayList<>();
+	    }
+
 	    model.addAttribute("goals", goals);
 
 	    return "habit/list";  // thymeleaf에서 goals 기반 출력
 	}
+
 
 	
 	// 등록 폼 보여주기
@@ -121,7 +137,7 @@ public class HabitController {
 	
 	
 	
-	// GET 요청 시 수정 폼 로드 + 기존 데이터 모델에 추가
+	// 기존 showEditForm 메서드는 폼 반환용으로 이미 존재
 	@GetMapping("/edit/{habitNo}")
 	public String showEditForm(@PathVariable int habitNo, Model model) {
 	    Habit habit = service.getHabitById(habitNo);
@@ -129,14 +145,54 @@ public class HabitController {
 	    return "habit/edit";
 	}
 
-	 
-
-	    @PostMapping("/update")
-	    public String updateHabit(Habit habit, RedirectAttributes ra) {
-	    	service.updateHabit(habit);
+	// 업데이트 처리 POST
+	@PostMapping("/update")
+	public String updateHabit(@ModelAttribute Habit habit, RedirectAttributes ra) {
+	    int result = service.updateHabit(habit);
+	    if (result > 0) {
 	        ra.addFlashAttribute("msg", "습관이 수정되었습니다.");
-	        return "redirect:/habit/list";
+	    } else {
+	        ra.addFlashAttribute("msg", "수정 실패하였습니다.");
 	    }
+	    return "redirect:/habit/list";
+	}
+	
+	@PostMapping("/goal/update")
+	public String updateGoal(@ModelAttribute Goal goal, RedirectAttributes ra, HttpSession session) {
+	    User loginUser = (User) session.getAttribute("loginUser");
+	    if (loginUser == null) {
+	        ra.addFlashAttribute("message", "로그인이 필요합니다.");
+	        return "redirect:/user/login";
+	    }
+	    goal.setUserNo(loginUser.getUserNo());
+
+	    int result = service.updateGoal(goal);
+	    if(result > 0) {
+	        ra.addFlashAttribute("message", "목표가 수정되었습니다.");
+	    } else {
+	        ra.addFlashAttribute("message", "수정에 실패했습니다.");
+	    }
+	    return "redirect:/habit/list";
+	}
+
+	
+	@GetMapping("/goal/edit/{goalNo}")
+	public String showGoalEditForm(@PathVariable int goalNo, Model model, HttpSession session) {
+	    User loginUser = (User) session.getAttribute("loginUser");
+	    if (loginUser == null) {
+	        return "redirect:/user/login";
+	    }
+	    Goal goal = service.getGoalById(goalNo);
+	    if(goal == null || goal.getUserNo() != loginUser.getUserNo()) {
+	        return "redirect:/habit/list"; // 권한 없거나 목표 없음
+	    }
+	    model.addAttribute("goal", goal);
+	    return "habit/goalEdit"; // 목표 수정 폼 뷰 이름
+	}
+
+	
+	
+
 
 	    
 	    
@@ -154,10 +210,20 @@ public class HabitController {
 	    }
 	    
 	    
+	    
 	    @GetMapping("/today")
-	    public String showTodayHabits(Model model) {
-	        return "habit/today"; 
+	    public String todayHabits(@SessionAttribute("loginUser") User loginUser, Model model) {
+	        int userNo = loginUser.getUserNo();
+
+	        // 오늘 해야 할 습관 목록 조회
+	        List<Habit> todayHabits = service.getTodayHabitsByUser(userNo);
+
+	        model.addAttribute("todayHabits", todayHabits);
+	        model.addAttribute("todayDate", LocalDate.now());
+
+	        return "habit/today"; // 하루치 습관 알림/리스트 뷰
 	    }
+
 	    
 	    
 	    
@@ -185,7 +251,26 @@ public class HabitController {
 	    }
 
 		
-	    
+	    @PostMapping("/goal/delete")
+	    public String deleteGoal(@ModelAttribute Goal goal, RedirectAttributes ra, HttpSession session) {
+	        User loginUser = (User) session.getAttribute("loginUser");
+
+	        if (loginUser == null) {
+	            ra.addFlashAttribute("message", "로그인이 필요합니다.");
+	            return "redirect:/user/login";
+	        }
+
+	        int result = service.deleteGoal(goal.getGoalNo());
+
+	        if (result > 0) {
+	            ra.addFlashAttribute("message", "목표가 삭제되었습니다.");
+	        } else {
+	            ra.addFlashAttribute("message", "삭제에 실패했습니다.");
+	        }
+
+	        return "redirect:/habit/list";
+	    }
+
 	    
 	    
 

@@ -1,383 +1,190 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
-  <meta charset="UTF-8" />
-  <title>목표 등록</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      line-height: 1.6;
-      padding: 2rem;
-      max-width: 600px;
-      margin: auto;
-    }
-    label {
-      display: block;
-      margin-top: 1.5rem;
-      font-weight: bold;
-    }
-    input, select, textarea {
-      width: 100%;
-      padding: 0.6rem;
-      margin-top: 0.4rem;
-      box-sizing: border-box;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    .example {
-      font-size: 0.9rem;
-      color: #666;
-      margin-top: 0.3rem;
-    }
-    button {
-      margin-top: 2rem;
-      padding: 0.8rem 1.2rem;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #45a049;
-    }
-    form {
-      background-color: #fff;
-      border-radius: 16px;
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-      padding: 36px 48px;
-      max-width: 720px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .error {
-      color: red;
-      font-size: 0.9rem;
-      margin-top: 0.4rem;
-    }
+	<meta charset="UTF-8" />
+	<title>목표 등록</title>
+	<style>
+		
+		body {
+			font-family: sans-serif;
+			line-height: 1.6;
+			padding: 2rem;
+			max-width: 600px;
+			margin: auto;
+		}
 
-    /* 5번 목표 기간 라디오 버튼 커스텀 */
-    #deadlineTypeWrapper {
-      display: flex;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    #deadlineTypeWrapper label {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
-      gap: 0.4rem;
-      font-weight: normal;
-      color: #333;
-      font-size: 1rem;
-    }
-    #deadlineTypeWrapper input[type="radio"] {
-      width: 15px;
-      height: 15px;
-      cursor: pointer;
-      margin: 0;
-    }
+		label {
+			display: block;
+			margin-top: 1.5rem;
+			font-weight: bold;
+		}
 
+		input,
+		select,
+		textarea {
+			width: 100%;
+			padding: 0.6rem;
+			margin-top: 0.4rem;
+			box-sizing: border-box;
+			border-radius: 6px;
+			border: 1px solid #ccc;
+		}
 
-	
-	
+		.example {
+			font-size: 0.9rem;
+			color: #666;
+			margin-top: 0.3rem;
+		}
 
-  </style>
+		button {
+			margin-top: 2rem;
+			padding: 0.8rem 1.2rem;
+			background: #4CAF50;
+			color: white;
+			border: none;
+			border-radius: 6px;
+			cursor: pointer;
+		}
+
+		button:hover {
+			background: #45a049;
+		}
+
+		form {
+			background-color: #fff;
+			border-radius: 16px;
+			box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+			padding: 36px 48px;
+			max-width: 720px;
+			width: 100%;
+			box-sizing: border-box;
+		}
+
+		.error {
+			color: red;
+			font-size: 0.9rem;
+			margin-top: 0.4rem;
+		}
+
+		/* 5번 목표 기간 라디오 버튼 커스텀 */
+		#deadlineTypeWrapper {
+			display: flex;
+			gap: 1.5rem;
+			flex-wrap: wrap;
+			align-items: center;
+		}
+
+		#deadlineTypeWrapper label {
+			display: flex;
+			align-items: center;
+			cursor: pointer;
+			user-select: none;
+			gap: 0.4rem;
+			font-weight: normal;
+			color: #333;
+			font-size: 1rem;
+		}
+
+		#deadlineTypeWrapper input[type="radio"] {
+			width: 15px;
+			height: 15px;
+			cursor: pointer;
+			margin: 0;
+		}
+	</style>
 </head>
+
 <body>
 
-  <form id="goalForm" th:action="@{/habit/goal}" method="post" >
-    <h2>🎯 목표 등록</h2>
-    <!-- 1. 목표 카테고리 -->
-    <label for="goalCategory">1️⃣ 어떤 분야의 목표인가요?</label>
-    <select id="goalCategory" name="goalCategory" required>
-      <option value="">-- 선택 안 함 --</option>
-      <option value="health">건강 / 운동</option>
-      <option value="learning">학습 / 자격증</option>
-      <option value="career">커리어 / 업무</option>
-      <option value="finance">재무 / 절약</option>
-      <option value="relationship">인간관계 / 가족</option>
-      <option value="hobby">취미 / 자기계발</option>
-      <option value="daily">생활 습관</option>
-    </select>
+	<form id="goalForm" th:action="@{/habit/goal}" method="post">
+		<h2>🎯 목표 등록</h2>
+		<!-- 1. 목표 카테고리 -->
+		<label for="goalCategory">1️⃣ 어떤 분야의 목표인가요?</label>
+		<select id="goalCategory" name="goalCategory" required>
+			<option value="">-- 선택 안 함 --</option>
+			<option value="health">건강 / 운동</option>
+			<option value="learning">학습 / 자격증</option>
+			<option value="career">커리어 / 업무</option>
+			<option value="finance">재무 / 절약</option>
+			<option value="relationship">인간관계 / 가족</option>
+			<option value="hobby">취미 / 자기계발</option>
+			<option value="daily">생활 습관</option>
+		</select>
 
-    <!-- 2. 전체적인 목표 -->
-    <label for="content">2️⃣ 당신의 목표는 무엇인가요?</label>
-    <input type="text" id="content" name="content" placeholder="예) 운동하기" required />
-    <div class="example">예: 운동하기 / 토익 공부 </div>
+		<!-- 2. 전체적인 목표 -->
+		<label for="content">2️⃣ 당신의 목표는 무엇인가요?</label>
+		<input type="text" id="content" name="content" placeholder="예) 운동하기" required />
+		<div class="example">예: 운동하기 / 토익 공부 </div>
 
-    <!-- 3. 목표 이유 -->
-    <label for="whyGoal">3️⃣ 왜 이 목표를 이루고 싶나요?</label>
-    <input type="text" id="whyGoal" name="whyGoal" placeholder="예) 건강한 몸을 만들고 싶어서 등" required />
-    <div class="example">예: 더 건강하고 활기찬 삶을 살기 위해 / 유학을 위해 토익 점수가 필요해서 </div>
+		<!-- 3. 목표 이유 -->
+		<label for="whyGoal">3️⃣ 왜 이 목표를 이루고 싶나요?</label>
+		<input type="text" id="whyGoal" name="whyGoal" placeholder="예) 건강한 몸을 만들고 싶어서 등" required />
+		<div class="example">예: 더 건강하고 활기찬 삶을 살기 위해 / 유학을 위해 토익 점수가 필요해서 </div>
 
-    <!-- 4. 구체적인 변화 -->
-    <label>4️⃣ 어떤 변화를 원하나요?</label>
-    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
-      <input type="text" id="action" name="action" placeholder="예: 체중 " style="flex: 2;" required />
-      <input type="number" id="beforeState" name="beforeState" placeholder="현재 수치" min="1" style="flex: 1;" required />
-      
-      <span style="flex: 0; font-weight: bold;">→</span>
-      
-      <input type="number" id="afterState" name="afterState" placeholder="목표 수치" min="1" style="flex: 1;" required />
-      <input type="text" id="unit" name="unit" placeholder="예: kg " style="flex: 1.5;" required />
-    </div>
-    <div class="example">
-      예: 체중 60 → 55 kg / 토익 점수 500 → 800 점 
-    </div>
+		<!-- 4. 구체적인 변화 -->
+		<label>4️⃣ 어떤 변화를 원하나요?</label>
+		<div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
+			<input type="hidden" id="title" name="title">
+			<input type="text" id="action" name="action" placeholder="예: 체중 " style="flex: 2;" required />
+			<input type="number" id="beforeState" name="beforeState" placeholder="현재 수치" min="1" style="flex: 1;"
+				required />
 
-    <!-- 5. 목표 기간 -->
-    <label>5️⃣ 언제까지 이루고 싶나요?</label>
-    <div id="deadlineTypeWrapper">
-      <label>
-        <input type="radio" name="deadlineType" value="relative" checked />기간으로 설정
-      </label>
+			<span style="flex: 0; font-weight: bold;">→</span>
 
-      <label>
-        <input type="radio" name="deadlineType" value="absolute" />특정 날짜로 설정
-      </label>
-    </div>
+			<input type="number" id="afterState" name="afterState" placeholder="목표 수치" min="1" style="flex: 1;"
+				required />
+			<input type="text" id="unit" name="unit" placeholder="예: kg " style="flex: 1.5;" required />
+		</div>
+		<div class="example">
+			예: 체중 60 → 55 kg / 토익 점수 500 → 800 점
+		</div>
 
-	<div id="relativeDeadlineInputs" style="display:flex; gap: 0.5rem; align-items: center; margin-top: 0.4rem;">
-	     <input type="number" id="deadlineValue" min="1" placeholder="숫자 입력 (예: 3)" inputmode="numeric" pattern="[0-9]*"/>
-	     <select id="deadlineUnit">
-	       <option value="">단위 선택</option>
-	       <option value="days">일</option>
-	       <option value="weeks">주</option>
-	       <option value="months">개월</option>
-	       <option value="years">년</option>
-	     </select>
-	   </div>
-	   <div id="absoluteDeadlineInput" style="display:none; margin-top: 0.8rem;">
-	     <input type="text" id="customDateInput" placeholder="YYYYMMDD 입력" inputmode="numeric" pattern="\d*" maxlength="8" />
-	   </div>
+		<!-- 5. 목표 기간 -->
+		<label>5️⃣ 언제까지 이루고 싶나요?</label>
+		<div id="deadlineTypeWrapper">
+			<label>
+				<input type="radio" name="deadlineType" value="relative" checked />기간으로 설정
+			</label>
 
-	   <!-- 🔽 목표 마감일 값이 서버로 넘어갈 유일한 필드! -->
-	   <input type="hidden" id="endDate" name="endDate" />
+			<label>
+				<input type="radio" name="deadlineType" value="absolute" />특정 날짜로 설정
+			</label>
+		</div>
 
-	   <div id="endDateDisplay" style="margin-top: 0.5rem; font-size: 0.9rem; color: #333;"></div>
-	   <div id="deadlineError" class="error"></div>
+		<div id="relativeDeadlineInputs" style="display:flex; gap: 0.5rem; align-items: center; margin-top: 0.4rem;">
+			<input type="number" id="deadlineValue" min="1" placeholder="숫자 입력 (예: 3)" inputmode="numeric"
+				pattern="[0-9]*" />
+			<select id="deadlineUnit">
+				<option value="">단위 선택</option>
+				<option value="days">일</option>
+				<option value="weeks">주</option>
+				<option value="months">개월</option>
+				<option value="years">년</option>
+			</select>
+		</div>
+		<div id="absoluteDeadlineInput" style="display:none; margin-top: 0.8rem;">
+			<input type="text" id="customDateInput" placeholder="YYYYMMDD 입력" inputmode="numeric" pattern="\d*"
+				maxlength="8" />
+		</div>
 
-	   <button type="submit">목표 등록하기</button>
-	 </form>
+		<!-- 🔽 목표 마감일 값이 서버로 넘어갈 유일한 필드! -->
+		<input type="hidden" id="endDate" name="endDate" />
+
+		<div id="endDateDisplay" style="margin-top: 0.5rem; font-size: 0.9rem; color: #333;"></div>
+		<div id="deadlineError" class="error"></div>
+
+		<button type="submit">목표 등록하기</button>
+	</form>
 
 
-  <br />
-  <a th:href="@{/habit/list}">목록으로</a>
-  <a th:href="@{/habit/cal}">캘린더</a>
-  <a th:href="@{/habit/today}">오늘의</a>
+	<br />
+	<a th:href="@{/habit/list}">목록으로</a>
+	<a th:href="@{/habit/cal}">캘린더</a>
+	<a th:href="@{/habit/today}">오늘의</a>
 
-  <script>
-   (() => {
-     const relativeInputs = document.getElementById('relativeDeadlineInputs');
-     const absoluteInput = document.getElementById('absoluteDeadlineInput');
-     const radios = document.querySelectorAll('input[name="deadlineType"]');
-     const customDateInput = document.getElementById('customDateInput');
-     const deadlineValueInput = document.getElementById('deadlineValue');
-     const deadlineUnitSelect = document.getElementById('deadlineUnit');
-     const endDateHidden = document.getElementById('endDate');
-     const endDateDisplay = document.getElementById('endDateDisplay');
-     const deadlineError = document.getElementById('deadlineError');
-     const today = new Date();
-     const maxDate = new Date();
-     maxDate.setFullYear(today.getFullYear() + 20);
-
-     radios.forEach(radio => {
-       radio.addEventListener('change', () => {
-         if (radio.value === 'relative' && radio.checked) {
-           relativeInputs.style.display = 'flex';
-           absoluteInput.style.display = 'none';
-           customDateInput.value = '';
-           endDateDisplay.textContent = '';
-           endDateHidden.value = '';
-           deadlineError.textContent = '';
-         } else if (radio.value === 'absolute' && radio.checked) {
-           relativeInputs.style.display = 'none';
-           absoluteInput.style.display = 'block';
-           deadlineValueInput.value = '';
-           deadlineUnitSelect.value = '';
-           endDateDisplay.textContent = '';
-           endDateHidden.value = '';
-           deadlineError.textContent = '';
-         }
-       });
-     });
-
-     deadlineValueInput.addEventListener('input', () => {
-       deadlineValueInput.value = deadlineValueInput.value.replace(/[^0-9]/g, '');
-       customDateInput.value = '';
-       deadlineError.textContent = '';
-       updateDeadlineDate();
-     });
-     deadlineUnitSelect.addEventListener('change', () => {
-       customDateInput.value = '';
-       deadlineError.textContent = '';
-       updateDeadlineDate();
-     });
-
-     function updateDeadlineDate() {
-       deadlineError.textContent = '';
-       endDateDisplay.textContent = '';
-       endDateHidden.value = '';
-
-       const value = parseInt(deadlineValueInput.value);
-       const unit = deadlineUnitSelect.value;
-       if (!value || value < 1) {
-         if(deadlineValueInput.value !== '') deadlineError.textContent = '⚠️ 1 이상의 숫자를 입력해주세요.';
-         return;
-       }
-       if (!unit) return;
-
-       const deadline = new Date(today.getTime());
-       switch (unit) {
-         case 'days':   deadline.setDate(deadline.getDate() + value);   break;
-         case 'weeks':  deadline.setDate(deadline.getDate() + value * 7); break;
-         case 'months': deadline.setMonth(deadline.getMonth() + value);   break;
-         case 'years':
-           if (value > 20) {
-             deadlineError.textContent = '⚠️ 너무 먼 미래입니다. 20년 이내로 설정해주세요.'; return; }
-           deadline.setFullYear(deadline.getFullYear() + value); break;
-       }
-       if (deadline > maxDate) {
-         deadlineError.textContent = '⚠️ 목표 마감일은 최대 20년 이내여야 합니다.'; return; }
-
-       const formattedDate = deadline.toISOString().slice(0, 10);
-       endDateDisplay.textContent = `👉 예상 마감일: ${formattedDate}`;
-       endDateHidden.value = formattedDate;
-     }
-
-     customDateInput.addEventListener('keydown', (e) => {
-       const allowedKeys = ['0','1','2','3','4','5','6','7','8','9','Backspace','Delete','ArrowLeft','ArrowRight','Tab'];
-       if (!allowedKeys.includes(e.key)) e.preventDefault();
-     });
-
-     customDateInput.addEventListener('input', (e) => {
-       e.target.value = e.target.value.replace(/\D/g, '');
-       const raw = e.target.value.trim();
-       if (raw.length !== 8) { endDateDisplay.textContent = ''; endDateHidden.value = ''; return; }
-       const yyyy = raw.slice(0, 4), mm = raw.slice(4, 6), dd = raw.slice(6, 8);
-       const formatted = `${yyyy}-${mm}-${dd}`;
-       const parsedDate = new Date(formatted);
-       if (isNaN(parsedDate.getTime()) || formatted !== parsedDate.toISOString().slice(0, 10)) {
-         alert('❌ 올바른 날짜 형식이 아닙니다.');
-         e.target.value = ''; endDateDisplay.textContent = ''; endDateHidden.value = ''; return;
-       }
-       const todayZero = new Date(new Date().setHours(0, 0, 0, 0));
-       if (parsedDate < todayZero) {
-         alert('❌ 과거 날짜는 선택할 수 없습니다.'); e.target.value = ''; endDateDisplay.textContent = ''; endDateHidden.value = ''; return;
-       }
-       if (parsedDate > maxDate) {
-         alert('❌ 목표 마감일은 최대 20년 이내여야 합니다.'); e.target.value = ''; endDateDisplay.textContent = ''; endDateHidden.value = ''; return;
-       }
-       deadlineValueInput.value = ''; deadlineUnitSelect.value = '';
-       deadlineError.textContent = '';
-       endDateDisplay.textContent = `👉 예상 마감일: ${formatted}`;
-       endDateHidden.value = formatted;
-     });
-
-     // (중략: before/after 값 검증 및 폼 제출 유효성)
-   })();
-
-       // beforeState, afterState 값 유효성 검사
-    function validateBeforeAfter() {
-      const beforeVal = parseInt(beforeInput.value);
-      const afterVal = parseInt(afterInput.value);
-      let valid = true;
-
-      if (!beforeVal || beforeVal < 1) {
-        beforeInput.setCustomValidity('현재 상태는 1 이상의 숫자만 입력해주세요.');
-        valid = false;
-      } else {
-        beforeInput.setCustomValidity('');
-      }
-
-      if (!afterVal || afterVal < 1) {
-        afterInput.setCustomValidity('목표 상태는 1 이상의 숫자만 입력해주세요.');
-        valid = false;
-      } else {
-        afterInput.setCustomValidity('');
-      }
-
-      return valid;
-    }
-
-    beforeInput.addEventListener('input', validateBeforeAfter);
-    afterInput.addEventListener('input', validateBeforeAfter);
-
-    // 폼 제출 시 유효성 검사
-    document.getElementById('goalForm').addEventListener('submit', (e) => {
-      if (!validateBeforeAfter()) {
-        e.preventDefault();
-        alert('현재 상태와 목표 상태는 모두 1 이상의 숫자여야 합니다.');
-        return;
-      }
-
-      // 마감일 입력 유효성 검사
-      const selectedType = document.querySelector('input[name="deadlineType"]:checked').value;
-      if (selectedType === 'relative') {
-        if (!deadlineValueInput.value || !deadlineUnitSelect.value) {
-          e.preventDefault();
-          alert('목표 기간을 올바르게 입력해주세요.');
-          return;
-        }
-      } else if (selectedType === 'absolute') {
-        if (!customDateInput.value) {
-          e.preventDefault();
-          alert('목표 마감일을 올바르게 입력해주세요.');
-          return;
-        }
-      }
-    });
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	// 숫자 입력만 허용하는 함수
-	function allowOnlyNumerals(event) {
-	  // 허용 키 목록: 숫자, 백스페이스 등
-	  const allowedKeys = [
-	    '0','1','2','3','4','5','6','7','8','9',
-	    'Backspace','ArrowLeft','ArrowRight','Tab'];
-	  if (
-	    // 키가 (숫자가 아니면) && 허용 키가 아니면
-	    (!event.key.match(/[0-9]/) && !allowedKeys.includes(event.key))
-	  ) {
-	    event.preventDefault();
-	  }
-	}
-
-	// 폼 로딩 시 해당 input에 이벤트 등록
-	window.addEventListener('DOMContentLoaded', () => {
-	  // 기간 입력칸
-	  const deadlineValueInput = document.getElementById('deadlineValue');
-	  if (deadlineValueInput)
-	    deadlineValueInput.addEventListener('keypress', allowOnlyNumerals);
-
-	  // 목표 변화칸
-	  const beforeInput = document.getElementById('beforeState');
-	  if (beforeInput)
-	    beforeInput.addEventListener('keypress', allowOnlyNumerals);
-
-	  const afterInput = document.getElementById('afterState');
-	  if (afterInput)
-	    afterInput.addEventListener('keypress', allowOnlyNumerals);
-
-	  // 특정 날짜 입력칸(YYYYMMDD)
-	  const customDateInput = document.getElementById('customDateInput');
-	  if (customDateInput)
-	    customDateInput.addEventListener('keypress', allowOnlyNumerals);
-	});
-  </script>
+	<script> (() => {const relativeInputs = document.getElementById('relativeDeadlineInputs'); const absoluteInput = document.getElementById('absoluteDeadlineInput'); const radios = document.querySelectorAll('input[name="deadlineType"]'); const customDateInput = document.getElementById('customDateInput'); const deadlineValueInput = document.getElementById('deadlineValue'); const deadlineUnitSelect = document.getElementById('deadlineUnit'); const endDateHidden = document.getElementById('endDate'); const endDateDisplay = document.getElementById('endDateDisplay'); const deadlineError = document.getElementById('deadlineError'); const today = new Date(); const maxDate = new Date(); maxDate.setFullYear(today.getFullYear() + 20); radios.forEach(radio => {radio.addEventListener('change', () => {if (radio.value === 'relative' && radio.checked) {relativeInputs.style.display = 'flex'; absoluteInput.style.display = 'none'; customDateInput.value = ''; endDateDisplay.textContent = ''; endDateHidden.value = ''; deadlineError.textContent = '';} else if (radio.value === 'absolute' && radio.checked) {relativeInputs.style.display = 'none'; absoluteInput.style.display = 'block'; deadlineValueInput.value = ''; deadlineUnitSelect.value = ''; endDateDisplay.textContent = ''; endDateHidden.value = ''; deadlineError.textContent = '';} });}); deadlineValueInput.addEventListener('input', () => {deadlineValueInput.value = deadlineValueInput.value.replace(/[^0-9]/g, ''); customDateInput.value = ''; deadlineError.textContent = ''; updateDeadlineDate();}); deadlineUnitSelect.addEventListener('change', () => {customDateInput.value = ''; deadlineError.textContent = ''; updateDeadlineDate();}); function updateDeadlineDate() {deadlineError.textContent = ''; endDateDisplay.textContent = ''; endDateHidden.value = ''; const value = parseInt(deadlineValueInput.value); const unit = deadlineUnitSelect.value; if (!value || value < 1) {if (deadlineValueInput.value !== '') deadlineError.textContent = '⚠️ 1 이상의 숫자를 입력해주세요.'; return;} if (!unit) return; const deadline = new Date(today.getTime()); switch (unit) {case 'days': deadline.setDate(deadline.getDate() + value); break; case 'weeks': deadline.setDate(deadline.getDate() + value * 7); break; case 'months': deadline.setMonth(deadline.getMonth() + value); break; case 'years': if (value > 20) {deadlineError.textContent = '⚠️ 너무 먼 미래입니다. 20년 이내로 설정해주세요.'; return;} deadline.setFullYear(deadline.getFullYear() + value); break;} if (deadline > maxDate) {deadlineError.textContent = '⚠️ 목표 마감일은 최대 20년 이내여야 합니다.'; return;} const formattedDate = deadline.toISOString().slice(0, 10); endDateDisplay.textContent = `👉 예상 마감일: ${formattedDate}`; endDateHidden.value = formattedDate;} customDateInput.addEventListener('keydown', (e) => {const allowedKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab']; if (!allowedKeys.includes(e.key)) e.preventDefault();}); customDateInput.addEventListener('input', (e) => {e.target.value = e.target.value.replace(/\D/g, ''); const raw = e.target.value.trim(); if (raw.length !== 8) {endDateDisplay.textContent = ''; endDateHidden.value = ''; return;} const yyyy = raw.slice(0, 4), mm = raw.slice(4, 6), dd = raw.slice(6, 8); const formatted = `${yyyy}-${mm}-${dd}`; const parsedDate = new Date(formatted); if (isNaN(parsedDate.getTime()) || formatted !== parsedDate.toISOString().slice(0, 10)) {alert('❌ 올바른 날짜 형식이 아닙니다.'); e.target.value = ''; endDateDisplay.textContent = ''; endDateHidden.value = ''; return;} const todayZero = new Date(new Date().setHours(0, 0, 0, 0)); if (parsedDate < todayZero) {alert('❌ 과거 날짜는 선택할 수 없습니다.'); e.target.value = ''; endDateDisplay.textContent = ''; endDateHidden.value = ''; return;} if (parsedDate > maxDate) {alert('❌ 목표 마감일은 최대 20년 이내여야 합니다.'); e.target.value = ''; endDateDisplay.textContent = ''; endDateHidden.value = ''; return;} deadlineValueInput.value = ''; deadlineUnitSelect.value = ''; deadlineError.textContent = ''; endDateDisplay.textContent = `👉 예상 마감일: ${formatted}`; endDateHidden.value = formatted;});})(); function validateBeforeAfter() {const beforeInput = document.getElementById('beforeState'); const afterInput = document.getElementById('afterState'); const beforeVal = parseInt(beforeInput.value); const afterVal = parseInt(afterInput.value); let valid = true; if (!beforeVal || beforeVal < 1) {beforeInput.setCustomValidity('현재 상태는 1 이상의 숫자만 입력해주세요.'); valid = false;} else {beforeInput.setCustomValidity('');} if (!afterVal || afterVal < 1) {afterInput.setCustomValidity('목표 상태는 1 이상의 숫자만 입력해주세요.'); valid = false;} else {afterInput.setCustomValidity('');} return valid;} document.getElementById('beforeState').addEventListener('input', validateBeforeAfter); document.getElementById('afterState').addEventListener('input', validateBeforeAfter); function allowOnlyNumerals(event) {const allowedKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Backspace', 'ArrowLeft', 'ArrowRight', 'Tab']; if ((!event.key.match(/[0-9]/) && !allowedKeys.includes(event.key))) {event.preventDefault();} } window.addEventListener('DOMContentLoaded', () => {const deadlineValueInput = document.getElementById('deadlineValue'); if (deadlineValueInput) deadlineValueInput.addEventListener('keypress', allowOnlyNumerals); const beforeInput = document.getElementById('beforeState'); if (beforeInput) beforeInput.addEventListener('keypress', allowOnlyNumerals); const afterInput = document.getElementById('afterState'); if (afterInput) afterInput.addEventListener('keypress', allowOnlyNumerals); const customDateInput = document.getElementById('customDateInput'); if (customDateInput) customDateInput.addEventListener('keypress', allowOnlyNumerals);}); document.getElementById('goalForm').addEventListener('submit', (e) => {if (!validateBeforeAfter()) {e.preventDefault(); alert('현재 상태와 목표 상태는 모두 1 이상의 숫자여야 합니다.'); return;} const deadlineValueInput = document.getElementById('deadlineValue'); const deadlineUnitSelect = document.getElementById('deadlineUnit'); const customDateInput = document.getElementById('customDateInput'); const selectedType = document.querySelector('input[name="deadlineType"]:checked').value; if (selectedType === 'relative') {if (!deadlineValueInput.value || !deadlineUnitSelect.value) {e.preventDefault(); alert('목표 기간을 올바르게 입력해주세요.'); return;} } else if (selectedType === 'absolute') {if (!customDateInput.value) {e.preventDefault(); alert('목표 마감일을 올바르게 입력해주세요.'); return;} } const action = document.getElementById('action').value.trim(); const afterState = document.getElementById('afterState').value.trim(); const unit = document.getElementById('unit').value.trim(); const content = document.getElementById('content').value.trim(); const titleValue = `${action} ${afterState}${unit} ${content}`; const titleInput = document.getElementById('title'); titleInput.value = titleValue;}); </script>
 
 </body>
+
 </html>

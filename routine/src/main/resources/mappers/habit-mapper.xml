@@ -81,10 +81,6 @@
     ORDER BY habit_no
   </select>
 
-  <!-- 한 건 조회 (PK 기준) -->
-  <select id="selectHabitByNo" parameterType="int" resultMap="habitResultMap">
-    SELECT * FROM habit WHERE habit_no = #{habitNo}
-  </select>
 
   <!-- Habit 삽입 -->
   <insert id="insertHabit" parameterType="Habit" useGeneratedKeys="false" keyProperty="habitNo">
@@ -95,8 +91,10 @@
       habit_no, user_no, goal_no, title, what, amount, unit, action, start_date,
       is_challenge, total_check, current_check, max_check, status, last_check
     ) VALUES (
-      #{habitNo}, #{userNo}, #{goalNo}, #{title}, #{what}, #{amount}, #{unit}, #{action}, #{startDate},
-      #{isChallenge}, #{totalCheck}, #{currentCheck}, #{maxCheck}, #{status}, #{lastCheck}
+    #{habitNo}, #{userNo}, #{goalNo},
+    #{title},
+    #{what}, #{amount}, #{unit}, #{action}, #{startDate},
+    #{isChallenge}, #{totalCheck}, #{currentCheck}, #{maxCheck}, #{status}, #{lastCheck}
     )
   </insert>
 
@@ -111,14 +109,27 @@
     )
   </insert>
 
-  <!-- Habit 수정 -->
-  <update id="updateHabit" parameterType="com.kh.spring.habit.model.vo.Habit">
+  <!-- 한 건 조회 -->
+<select id="selectHabitByNo" parameterType="int" resultMap="habitResultMap">
+    SELECT * FROM habit WHERE habit_no = #{habitNo}
+</select>
+
+<!-- 수정 -->
+<update id="updateHabit" parameterType="Habit">
     UPDATE habit
-    SET title = #{title},
-        goal_no = #{goalNo},
-        updated_at = SYSDATE
-    WHERE habit_no = #{habitNo}
-  </update>
+       SET title = #{title},
+           what = #{what},
+           amount = #{amount},
+           unit = #{unit},
+           action = #{action},
+           goal_no = #{goalNo},
+           start_date = #{startDate},
+           is_challenge = #{isChallenge},
+           status = #{status},
+           last_check = #{lastCheck}
+     WHERE habit_no = #{habitNo}
+</update>
+
 
   <!-- 삭제 관련 -->
   <delete id="deleteStreakRewardsByHabitNo" parameterType="int">
@@ -161,5 +172,28 @@
     WHERE g.user_no = #{userNo}
     ORDER BY g.start_date DESC, h.habit_no DESC
   </select>
+  
+  
+  
+  
+  
+  
+  <!-- 오늘 해야 할 습관 목록 조회 -->
+<select id="selectTodayHabitsByUser" parameterType="int" resultMap="habitResultMap">
+  SELECT *
+  FROM habit
+  WHERE user_no = #{userNo}
+    AND status = '진행중' -- 또는 활성화 상태
+    AND (
+      -- 반복 유형과 오늘 요일에 따른 조건 추가 가능
+      -- 예시: DAILY 이거나 WEEKLY이고 오늘 요일 포함
+      repeat_type = 'DAILY'
+      OR (repeat_type = 'WEEKLY' AND INSTR(repeat_week_days, TO_CHAR(SYSDATE, 'DY')) > 0)
+      OR (repeat_type = 'WEEKLY_COUNT' AND ...)
+      OR (repeat_type = 'MONTHLY_COUNT' AND ...)
+    )
+  ORDER BY habit_no
+</select>
+
 
 </mapper>

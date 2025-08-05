@@ -15,8 +15,10 @@ public interface HabitService {
 	List<Habit> getHabitsByUser(int userNo);
 	
 	
-    Habit getHabitById(int habitNo);
-    void updateHabit(Habit habit);
+	int updateHabit(Habit habit);
+	Habit getHabitById(int habitNo);
+	int updateGoal(Goal goal);
+	
     void deleteHabit(int habitNo);
 
 
@@ -31,4 +33,10 @@ public interface HabitService {
 	List<Goal> findGoalsWithHabits(int userNo);
 
 	List<HabitCheck> getChecksByHabit(int habitNo); // 전체
+
+	List<Habit> getTodayHabitsByUser(int userNo);
+
+	int deleteGoal(int goalNo);
+
+	Goal getGoalById(int goalNo);
 }
