@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title th:text="${post.title} + ' 수정'">게시글 수정</title>
+  <style>
+    body { font-family: 'Arial', sans-serif; margin: 20px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+    .form-group input[type="text"],
+    .form-group textarea { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    .form-group textarea { min-height: 150px; resize: vertical; }
+    .attachment-item { display: flex; align-items: center; margin-bottom: 5px; }
+    .attachment-item span { flex-grow: 1; }
+    .attachment-item button { margin-left: 10px; background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+    .attachment-item button:hover { background-color: #c82333; }
+    .btn-group { margin-top: 20px; }
+    .btn-group button, .btn-group a {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .btn-group button.submit-btn { background-color: #007bff; color: white; }
+    .btn-group button.submit-btn:hover { background-color: #0056b3; }
+    .btn-group a.cancel-btn { background-color: #6c757d; color: white; }
+    .btn-group a.cancel-btn:hover { background-color: #5a6268; }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+ 
+</head>
+
+
+<body>
+
+  <h2>게시글 수정</h2>
+
+  <form id="modifyPostForm" th:action="@{/openForum/modify-post}" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="postId" th:value="${post.postId}" />
+    <input type="hidden" name="userNo" th:value="${post.userNo}" />
+
+    <div class="form-group">
+      <label for="title">제목:</label>
+      <input type="text" id="title" name="title" th:value="${post.title}" required />
+    </div>
+
+    <div class="form-group">
+      <label for="content">내용:</label>
+      <textarea id="content" name="content" required th:text="${post.content}"></textarea>
+    </div>
+
+    <div class="form-group" th:if="${post.atList != null and !post.atList.isEmpty()}">
+      <label>기존 첨부파일:</label>
+      <div id="existingAttachments">
+        <div class="attachment-item" th:each="file : ${post.atList}">
+          <span th:text="${file.originName} "></span> 																		<!-- + ' (' + ${#numbers.formatDecimal(file.fileSize / 1024.0, 1, 2)} + ' KB)' -->
+          <input type="hidden" class="existingAttachmentId" name="existingAttachmentIds" th:value="${file.fileId}" />
+          <button type="button" class="deleteAttachmentBtn" th:data-fileId="${file.fileId}">삭제</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="newAttachments">새로운 첨부파일 추가:</label>
+      <input type="file" id="newAttachments" name="newFiles" multiple />
+    </div>
+
+    <div class="btn-group">
+      <button type="submit" class="submit-btn">수정 완료</button>
+      <a th:href="@{/openForum/detail(postId=${post.postId})}" class="cancel-btn">취소</a>
+    </div>
+  </form>
+
+  <script th:inline="javascript">
+  console.log("스크립트 로드됨!");
+    $(function(){
+      // Event listener for deleting existing attachments
+      $(document).on("click", ".deleteAttachmentBtn", function() {
+        const attachmentId = $(this).data("fileid");
+        const $attachmentItem = $(this).closest(".attachment-item");
+        console.log($(this));
+        console.log($(this).data("fileid"));
+        console.log(attachmentId);
+        
+       	
+        if (confirm("정말로 이 첨부파일을 삭제하시겠습니까?")) {
+            $.ajax({
+              url:/*[[@{/openForum/delete-attachment}]]*/ "/openForum/delete-attachment",
+            method: "post", // Or 'delete' if your endpoint is set up for RESTful DELETE
+            data: { fileId: attachmentId },
+            success: function(result) {
+              if (result > 0) { // controller returns a count of deleted items
+                alert("첨부파일이 삭제되었습니다.");
+                $attachmentItem.remove(); // Remove the attachment item from the DOM
+                $('input.existingAttachmentId[value="' + attachmentId + '"]').remove();    // Remove the corresponding hidden input field
+
+                if ($("#existingAttachments .attachment-item").length === 0) {	// If there are no more existing attachments, you might want to hide the "기존 첨부파일" section
+                  $("#existingAttachments").prev("label").remove(); // Remove label
+                  $("#existingAttachments").remove(); // Remove container
+                }
+
+              } else {
+                alert("첨부파일 삭제에 실패했습니다.");
+              }
+            },
+            error: function() {
+              console.log("첨부파일 삭제 통신 오류");
+              alert("첨부파일 삭제 중 오류가 발생했습니다.");
+            }
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

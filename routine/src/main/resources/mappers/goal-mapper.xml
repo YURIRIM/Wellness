@@ -46,14 +46,43 @@
       DEADLINE_TYPE, DEADLINE_VALUE, DEADLINE_UNIT
     )
     VALUES (
-      #{goalNo}, #{userNo},  CONCAT(CONCAT(CONCAT(#{action}, ' '), #{afterState}), #{unit}), #{content}, SYSDATE, #{endDate}, #{status},
+      #{goalNo}, #{userNo}, #{title}, #{content}, SYSDATE, #{endDate}, #{status},
       #{goalCategory}, #{whyGoal}, #{action}, #{beforeState}, #{afterState}, #{unit},
       #{deadlineType}, #{deadlineValue}, #{deadlineUnit}
     )
   </insert>
   
   
+    <update id="updateGoal" parameterType="Goal">
+        UPDATE goal
+        SET
+        title = #{title},
+            goal_category = #{goalCategory},
+            content = #{content},
+            why_goal = #{whyGoal},
+            action = #{action},
+            before_state = #{beforeState},
+            after_state = #{afterState},
+            unit = #{unit},
+            deadline_type = #{deadlineType},
+            deadline_value = #{deadlineValue},
+            deadline_unit = #{deadlineUnit},
+            end_date = #{endDate},
+            status = #{status}
+        WHERE goal_no = #{goalNo}
+        AND user_no = #{userNo}
+    </update>
   
+  
+  <select id="selectGoalById" parameterType="int" resultType="com.kh.spring.habit.model.vo.Goal">
+    SELECT *
+    FROM goal
+    WHERE goal_no = #{goalNo}
+</select>
+  
+<delete id="deleteGoal" parameterType="int">
+  DELETE FROM goal WHERE goal_no = #{goalNo}
+</delete>
 
 
 </mapper>

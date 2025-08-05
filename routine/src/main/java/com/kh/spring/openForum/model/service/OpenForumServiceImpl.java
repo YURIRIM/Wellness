@@ -85,4 +85,40 @@ public class OpenForumServiceImpl implements OpenForumService {
 		
 		return dao.commentList(sqlSession,postId);
 	}
+
+	//게시글(OpenForum Post) 삭제 메소드
+	@Override
+	public int deletePost(int postId) {
+		return dao.deletePost(sqlSession,postId);
+	}
+
+	@Override
+	public OpenForumAttachment selectAttachmentByFileId(int fileId) {
+		return dao.selectAttachmentByFileId(sqlSession,fileId);
+	}
+
+	@Override
+	public int deleteAttachment(int fileId) {
+		return dao.deleteAttachment(sqlSession,fileId);
+	}
+
+	//게시물 수정 메소드	
+	@Transactional
+	@Override
+	public int modifyPost(OpenForum post, ArrayList<OpenForumAttachment> newList) {
+		
+		int postId = post.getPostId();
+		int result1 = dao.updatePost(sqlSession, post);
+		int result2 = 1;
+		
+		if(result1>0) {
+			for(OpenForumAttachment att : newList) {
+				att.setPostId(postId);
+				result2 = dao.insertAttachment(sqlSession, att);
+			}
+		}
+		return result1*result2;
+	}
 }
+
+
