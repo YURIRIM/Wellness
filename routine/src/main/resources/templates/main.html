@@ -407,6 +407,7 @@
                     <span th:text="${session.loginUser.name}+ 님">사용자명</span>
                     <span th:if="${session.loginUser.role == 'ADMIN'}" class="admin-badge">관리자</span>
                 </div>
+                <a th:href="@{/user/mypage}" class="logout-btn">마이페이지</a>
                 <a th:href="@{/user/logout}" class="logout-btn">로그아웃</a>
             </div>
         </div>
@@ -523,11 +524,10 @@
                 
                 <div class="feature-card" th:if="${session.loginUser != null}">
                     <div class="feature-icon">📊</div>
-                    <h3>내활동</h3>
-                    <p>진행 중인 활동을 확인하세요</p>
+                    <h3>날씨</h3>
+                    <p>날씨를 확인하세요</p>
                     <div class="mt-3">
-                        <a th:href="@{/activity/my}" class="btn">활동 보기</a>
-                        <a th:href="@{/user/mypage}" class="btn">마이페이지</a>
+                        <a th:href="@{/recommend/map}" class="btn">날씨</a>
                     </div>
                 </div>
 
