@@ -134,34 +134,63 @@
       text-align: center;
       padding: 1rem 0;
     }
-    .add-btn {
-      display: block;
+    .add-btn, .add-goal-btn {
+      display: inline-block;
       width: 100%;
-      max-width: 320px;
-      margin: 35px auto 0;
+      max-width: 300px;
       padding: 14px 0;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border: none;
       color: white;
       font-weight: 700;
-      font-size: 1.2rem;
+      font-size: 1.13rem;
       border-radius: 50px;
       text-align: center;
       text-decoration: none;
       transition: background 0.22s ease;
       cursor: pointer;
       user-select: none;
+      margin: 0;
     }
-    .add-btn:hover {
+    .add-btn:hover, .add-goal-btn:hover {
       background: #164d95;
       text-decoration: none;
       opacity: 0.95;
+    }
+    /* 버튼 그룹 반응형 */
+    @media (max-width: 540px) {
+      .add-btn, .add-goal-btn {
+        max-width: 100%;
+        font-size: 1rem;
+        padding: 12px 0;
+      }
+    }
+
+    /* 모달 스타일 약간 조정 */
+    .modal-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-top-left-radius: 1rem;
+      border-top-right-radius: 1rem;
+    }
+    .modal-content {
+      border-radius: 1rem;
+    }
+    .form-label {
+      font-weight: 600;
+    }
+    .modal-footer .btn {
+      border-radius: 50px!important;
+      min-width: 120px;
     }
   </style>
 </head>
 <body>
   <div class="container-custom">
+    
+
     <h2><i class="fas fa-list-check me-2"></i>습관 목록</h2>
+
     <div th:if="${#lists.isEmpty(goals)}">
       <div class="empty-msg">아직 등록된 목표가 없습니다.<br>먼저 목표를 추가해보세요!</div>
     </div>
@@ -198,9 +227,62 @@
       </div>
     </div>
 
-    <a th:href="@{/habit/add}" class="add-btn"><i class="fas fa-plus me-2"></i>새 습관 추가</a>
-  </div>
+    <!-- 새 목표 등록 모달 (Bootstrap Modal) -->
+    <div class="modal fade" id="addGoalModal" tabindex="-1" aria-labelledby="addGoalModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <form th:action="@{/habit/goal}" method="post" id="goalForm">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addGoalModalLabel"><i class="fas fa-bullseye me-2"></i>새 목표 등록</h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="닫기"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="goalTitle" class="form-label">목표명</label>
+                <input type="text" class="form-control" id="goalTitle" name="title" placeholder="예: 체중 60 → 55kg 운동하기" required />
+                <div class="form-text">예: 토익 500 → 800점 공부, 저축 300 → 500만원 만들기 등</div>
+              </div>
+              <div class="mb-3">
+                <label for="goalCategory" class="form-label">카테고리</label>
+                <select id="goalCategory" name="goalCategory" class="form-select" required>
+                  <option value="">--선택--</option>
+                  <option value="health">건강/운동</option>
+                  <option value="learning">학습/자격증</option>
+                  <option value="career">커리어/업무</option>
+                  <option value="finance">재무/절약</option>
+                  <option value="relationship">인간관계/가족</option>
+                  <option value="hobby">취미/자기계발</option>
+                  <option value="daily">생활습관</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="whyGoal" class="form-label">이유</label>
+                <input type="text" class="form-control" id="whyGoal" name="whyGoal" placeholder="왜 이 목표를 이루고 싶나요?" required />
+              </div>
+              <div class="mb-3">
+                <label for="goalPeriod" class="form-label">기간/마감일</label>
+                <input type="text" class="form-control" id="goalPeriod" name="periodOrEndDate" placeholder="예: 3개월, 2025-12-31 등" />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>등록</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+	<!-- 버튼 그룹: 새 목표/새 습관 추가를 나란히 -->
+	    <div class="d-flex gap-3 justify-content-center mb-4 flex-wrap">
+			<a th:href="@{/habit/goal}" class="add-goal-btn">
+			   <i class="fas fa-bullseye me-2"></i>새 목표 추가
+			 </a>
+	      <a th:href="@{/habit/add}" class="add-btn">
+	        <i class="fas fa-plus me-2"></i>새 습관 추가
+	      </a>
+	    </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+  </div>
 </body>
 </html>
