@@ -64,6 +64,22 @@ public class OpenForumDao {
 	public ArrayList<Comments> commentList(SqlSessionTemplate sqlSession, int postId) {
 		
 		return (ArrayList)sqlSession.selectList("openForumMapper.commentList",postId);
+	}
+
+	public int deletePost(SqlSessionTemplate sqlSession, int postId) {
+		return sqlSession.delete("openForumMapper.deletePost",postId);
+	}
+
+	public OpenForumAttachment selectAttachmentByFileId(SqlSessionTemplate sqlSession, int fileId) {
+		return sqlSession.selectOne("openForumMapper.selectAttachmentByFileId",fileId);
+	}
+
+	public int deleteAttachment(SqlSessionTemplate sqlSession, int fileId) {
+		return sqlSession.delete("openForumMapper.deleteAttachment",fileId);
+	}
+
+	public int updatePost(SqlSessionTemplate sqlSession, OpenForum post) {
+		return sqlSession.update("openForumMapper.updatePost",post);
 	}  
 	
 	//sqlSession 객체 객체 받아와서 mapper 에 접근해서 필요한 sql 구문 받아오기

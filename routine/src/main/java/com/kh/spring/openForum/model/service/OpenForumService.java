@@ -25,4 +25,12 @@ public interface OpenForumService {
 
 	//댓글리스트 조회 
 	ArrayList<Comments> commentList(int postId);
+
+	int deletePost(int postId);
+
+	OpenForumAttachment selectAttachmentByFileId(int fileId);
+
+	int deleteAttachment(int fileId);
+
+	int modifyPost(OpenForum post, ArrayList<OpenForumAttachment> newList);
 }

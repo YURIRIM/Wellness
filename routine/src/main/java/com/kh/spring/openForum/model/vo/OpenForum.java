@@ -26,7 +26,7 @@ public class OpenForum {
 	private String changeName;
 
 	//추후 추가? 첨부파일을 담아올 ArrayList 추가해야함
-	private ArrayList<Attachment> atList;
+	private ArrayList<OpenForumAttachment> atList;
 }	
 	
 
