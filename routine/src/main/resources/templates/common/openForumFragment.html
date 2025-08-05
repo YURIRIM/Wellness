@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<style th:fragment="alertStyle">
+   
+        .alert-msg {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            z-index: 9999;
+        }
+
+        .alert-msg.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<div th:fragment="alertBox">
+<!-- 메시지가 있는 경우에만 표시 -->
+<div th:if="${alertMsg}" class="alert-msg" id="alertBox" th:text="${alertMsg}"></div>
+
+<script>
+    // 메시지가 있으면 표시 후 몇 초 후 사라지게
+    const alertBox = document.getElementById('alertBox');
+    if (alertBox) {
+        alertBox.classList.add('show');
+        setTimeout(() => {
+            alertBox.classList.remove('show');
+        }, 3000); // 3초 후 사라짐
+    }
+</script>
+
+<!-- 나머지 페이지 내용들 -->
+
+</div>
+</body>
+
+</html>
